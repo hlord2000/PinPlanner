@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-NME89B10ME"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-NME89B10ME');
+	</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" type="image/png" href="favicon.png">
+    <title>nRF54L Pin Planner</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>nRF54L Pin Planner</h1>
+            <p>Select peripherals and visualize pin assignments for your nRF54L</p>
+				<p style="text-align: center; margin-top: 10px; font-size: 0.9em;">
+							<a href="http://github.com/hlord2000/hlord2000.github.io" target="_blank" style="text-decoration: none; color: var(--primary-color);">
+								<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Icon" style="height: 1em; vertical-align: middle; margin-right: 5px;">
+                    View Source on GitHub
+                </a>
+            </p>
+            <div style="background-color: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeeba; border-radius: 5px; margin-top: 10px; font-weight: bold; text-align: center;">
+                NOT an official Nordic application. Please double check all configurations with the nRF54L documentation available here: 
+                <a href="https://docs.nordicsemi.com/category/nrf-54L-series" target="_blank">https://docs.nordicsemi.com/category/nrf-54L-series</a>
+            </div>
+        </div>
+        
+        <div class="package-selector">
+            <h3>MCU and Package Selection</h3>
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <div>
+                    <label for="mcuSelector" style="display: block; margin-bottom: 5px;">MCU</label>
+                    <select id="mcuSelector">
+                        <option value="nrf54l15" selected>nRF54L15</option>
+                        <option value="nrf54l10">nRF54L10</option>
+                        <option value="nrf54l05">nRF54L05</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="packageSelector" style="display: block; margin-bottom: 5px;">Package</label>
+                    <select id="packageSelector">
+                        <option value="qfn48-6x6-qfaa" selected>QFN-48 (6x6)</option>
+                        <option value="qfn40-5x5-qfaa" disabled>QFN-40 (5x5) (Coming Soon)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="peripheral-selector">
+                <h2>Available Peripherals</h2>
+                <input type="text" id="searchPeripherals" class="search-box" placeholder="Search peripherals...">
+                
+                <div id="peripherals-list">
+                    <!-- Peripherals will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="chip-display">
+                <h2 id="chipTitleDisplay">QFN-48 Pin Layout</h2>
+                <div class="chip-container">
+                    <div class="left-pins"></div>
+                    <div class="right-pins"></div>
+                    <div class="top-pins"></div>
+                    <div class="bottom-pins"></div>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #cccccc;"></div>
+                        <span>Available</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--primary-color);"></div>
+                        <span>Used</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--warning-color);"></div>
+                        <span>Clock Pin</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--error-color);"></div>
+                        <span>Required</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--system-color);"></div>
+                        <span>System</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #999999;"></div>
+                        <span>Power/Debug</span>
+                    </div>
+                </div>
+                <div class="pin-details" id="pinDetails">
+                    <p>Click a pin to see details...</p>
+                </div>
+            </div>
+
+            <div class="selected-peripherals">
+                <h2>Selected Peripherals</h2>
+                <ul class="selected-list" id="selectedList">
+                    <li class="empty-message">No peripherals selected yet.</li>
+                </ul>
+                <div class="button-group-vertical">
+                    <button id="clearAllBtn">Clear All</button>
+                    <button id="exportBtn">Export Configuration</button>
+                    <button id="importBtn">Import Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import Configuration Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Configuration</h2>
+                <span class="close" id="closeImportModal">&times;</span>
+            </div>
+            <div id="importModalBody">
+                <div class="import-tabs">
+                    <button class="import-tab-btn active" data-tab="file-upload">File Upload</button>
+                    <button class="import-tab-btn" data-tab="paste-json">Paste JSON</button>
+                </div>
+                
+                <div class="import-tab-content active" id="file-upload">
+                    <p>Select a JSON configuration file to import:</p>
+                    <input type="file" id="importFileInput" accept=".json" style="margin-bottom: 15px;">
+                </div>
+                
+                <div class="import-tab-content" id="paste-json">
+                    <p>Paste your exported JSON configuration below:</p>
+                    <textarea id="importJsonInput" style="width: 100%; height: 200px; margin-bottom: 15px; font-family: monospace;"></textarea>
+                </div>
+                
+                <div id="importError" style="color: red; margin-bottom: 10px; display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelImport">Cancel</button>
+                <button id="confirmImport">Import</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pin Selection Modal -->
+    <div id="pinSelectionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Select Pins for Peripheral</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="modalBody">
+                <p>Select which pins to use for each peripheral function:</p>
+                <div id="pinRestrictionWarning" style="display: none; background-color: #fff3cd; color: #856404; padding: 10px; margin-bottom: 15px; border: 1px solid #ffeeba; border-radius: 5px;">
+                    <strong>Note:</strong> This peripheral supports both Port 1 and specific Port 2 pins. For optimal power consumption, Port 1 is recommended. If using Port 2, only the specifically designated P2 pins for this peripheral can be used.
+                </div>
+                <table class="pin-selection-table" id="pinSelectionTable">
+                    <thead>
+                        <tr>
+                            <th>Function</th>
+                            <th>Required</th>
+                            <th>Pin Selection</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pinSelectionTableBody">
+                        <!-- Will be filled dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelPinSelection">Cancel</button>
+                <button id="confirmPinSelection">Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+	<script src="script.js"></script>
+	</body>
+</html>

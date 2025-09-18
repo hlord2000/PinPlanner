@@ -1,0 +1,62 @@
+{
+  "mcus": [
+    {
+      "id": "nrf54l15",
+      "name": "nRF54L15",
+      "packages": [
+        {
+          "file": "qfn52-6x6-qgaa",
+          "name": "QFN-52 (6x6)"
+        },
+        {
+          "file": "qfn48-6x6-qfaa",
+          "name": "QFN-48 (6x6)"
+        },
+        {
+          "file": "qfn40-5x5-qdaa",
+          "name": "QFN-40 (5x5)"
+        },
+        {
+          "file": "wlcsp47-2.4x2.2-caaa",
+          "name": "WLCSP-47 (2.4x2.2)"
+        }
+      ]
+    },
+    {
+      "id": "nrf54l10",
+      "name": "nRF54L10",
+      "packages": [
+        {
+          "file": "qfn52-6x6-qgaa",
+          "name": "QFN-52 (6x6)"
+        },
+        {
+          "file": "qfn48-6x6-qfaa",
+          "name": "QFN-48 (6x6)"
+        },
+        {
+          "file": "qfn40-5x5-qdaa",
+          "name": "QFN-40 (5x5)"
+        }
+      ]
+    },
+    {
+      "id": "nrf54l05",
+      "name": "nRF54L05",
+      "packages": [
+        {
+          "file": "qfn52-6x6-qgaa",
+          "name": "QFN-52 (6x6)"
+        },
+        {
+          "file": "qfn48-6x6-qfaa",
+          "name": "QFN-48 (6x6)"
+        },
+        {
+          "file": "qfn40-5x5-qdaa",
+          "name": "QFN-40 (5x5)"
+        }
+      ]
+    }
+  ]
+}
