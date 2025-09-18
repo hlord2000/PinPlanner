@@ -35,8 +35,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // --- THEME SWITCHER LOGIC ---
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    const setTheme = (isDark) => {
+        if (isDark) {
+            body.classList.add('dark-mode');
+            themeToggle.checked = true;
+            localStorage.setItem('theme', 'dark');
+        } else {
+            body.classList.remove('dark-mode');
+            themeToggle.checked = false;
+            localStorage.setItem('theme', 'light');
+        }
+    };
+
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+        setTheme(savedTheme === 'dark');
+    } else {
+        setTheme(prefersDark);
+    }
+
+    themeToggle.addEventListener('change', () => {
+        setTheme(themeToggle.checked);
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        const currentTheme = localStorage.getItem('theme');
+        if (!currentTheme) {
+            setTheme(e.matches);
+        }
+    });
+
     // Initial data load and package population
     initializeApp();
+
+    // --- TAB SWITCHER LOGIC ---
+    const peripheralsTab = document.getElementById('tab-peripherals');
+    const selectedTab = document.getElementById('tab-selected');
+    const peripheralsContent = document.getElementById('content-peripherals');
+    const selectedContent = document.getElementById('content-selected');
+
+    peripheralsTab.addEventListener('click', () => {
+        peripheralsTab.classList.add('active');
+        selectedTab.classList.remove('active');
+        peripheralsContent.classList.add('active');
+        selectedContent.classList.remove('active');
+    });
+
+    selectedTab.addEventListener('click', () => {
+        selectedTab.classList.add('active');
+        peripheralsTab.classList.remove('active');
+        selectedContent.classList.add('active');
+        peripheralsContent.classList.remove('active');
+    });
 });
 
 async function initializeApp() {
@@ -301,7 +357,7 @@ function createPinLayout() {
             top: mcuData.pins.filter(p => p.side === 'top').sort((a, b) => parseInt(a.packagePinId) - parseInt(b.packagePinId)),
         };
 
-        const containerSize = 420;
+        const containerSize = 400;
         const margin = 20;
         const activeArea = containerSize - (2 * margin);
 
@@ -347,7 +403,7 @@ function createPinLayout() {
 
     } else if (strategy.layoutType === 'gridMatrix') {
         const { rows, columns } = strategy;
-        const containerSize = 420;
+        const containerSize = 400;
         const cellWidth = containerSize / columns;
         const cellHeight = containerSize / rows;
 
@@ -619,7 +675,7 @@ function updateSelectedPeripheralsList() {
     selectedPeripherals.forEach(p => {
         const item = document.createElement('li');
         item.className = 'selected-item';
-        const pinList = Object.entries(p.pinFunctions).map(([pin, func]) => `${pin}: ${func}`).join(', ');
+        const pinList = Object.entries(p.pinFunctions).map(([pin, func]) => `${pin}: ${func}`).join(', ') || 'Auto-assigned';
         item.innerHTML = `
             <div><strong>${p.id}</strong><div>${pinList}</div></div>
             <button class="remove-btn" data-id="${p.id}">Remove</button>
@@ -668,6 +724,12 @@ function removePeripheral(id) {
     if (index === -1) return;
 
     const peripheral = selectedPeripherals[index];
+    // For checkbox-based (simple) peripherals, uncheck the box
+    const checkbox = document.getElementById(`${id.toLowerCase()}-checkbox`);
+    if (checkbox) {
+        checkbox.checked = false;
+    }
+
     for (const pinName in peripheral.pinFunctions) {
         delete usedPins[pinName];
     }
@@ -681,9 +743,17 @@ function removePeripheral(id) {
 }
 
 function editPeripheral(id) {
-    const peripheral = selectedPeripherals.find(p => p.id === id);
-    if (!peripheral) return;
-    openPinSelectionModal(peripheral.peripheral, peripheral.pinFunctions);
+    const peripheralData = mcuData.socPeripherals.find(p => p.id === id);
+    if (!peripheralData) return;
+
+    // Checkbox peripherals are not editable via modal
+    if (peripheralData.uiHint === 'checkbox') {
+        return;
+    }
+
+    const selected = selectedPeripherals.find(p => p.id === id);
+    if (!selected) return;
+    openPinSelectionModal(selected.peripheral, selected.pinFunctions);
 }
 
 // --- IMPORT/EXPORT ---
@@ -742,18 +812,36 @@ async function processImportedJson(json) {
         document.getElementById('packageSelector').value = config.package;
         await loadCurrentMcuData();
 
-        config.selectedPeripherals.forEach(p_config => {
+        // Clear existing config before import
+        clearAllPeripherals(false);
+
+        for (const p_config of config.selectedPeripherals) {
             const p_data = mcuData.socPeripherals.find(p => p.id === p_config.id);
             if (p_data) {
-                selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions: p_config.pinFunctions });
-                for (const pinName in p_config.pinFunctions) {
-                    usedPins[pinName] = { peripheral: p_data.id, function: p_config.pinFunctions[pinName] };
-                }
-                if (p_data.baseAddress) {
-                    usedAddresses[p_data.baseAddress] = p_data.id;
+                // Handle simple checkbox peripherals
+                if (p_data.uiHint === 'checkbox') {
+                    const checkbox = document.getElementById(`${p_data.id.toLowerCase()}-checkbox`);
+                    if (checkbox) checkbox.checked = true;
+                    
+                    const pinFunctions = {};
+                    p_data.signals.forEach(s => {
+                        const pinName = s.allowedGpio[0];
+                        usedPins[pinName] = { peripheral: p_data.id, function: s.name, required: true };
+                        pinFunctions[pinName] = s.name;
+                    });
+                    selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions });
+
+                } else { // Handle modal-based peripherals
+                    selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions: p_config.pinFunctions });
+                    for (const pinName in p_config.pinFunctions) {
+                        usedPins[pinName] = { peripheral: p_data.id, function: p_config.pinFunctions[pinName] };
+                    }
+                    if (p_data.baseAddress) {
+                        usedAddresses[p_data.baseAddress] = p_data.id;
+                    }
                 }
             }
-        });
+        }
 
         updateSelectedPeripheralsList();
         updatePinDisplay();
@@ -761,9 +849,24 @@ async function processImportedJson(json) {
     } catch (error) {
         document.getElementById('importError').textContent = `Error: ${error.message}`;
         document.getElementById('importError').style.display = 'block';
+        console.error("Import failed:", error);
     }
 }
 
 function filterPeripherals() {
-    // This function can be expanded to search through the new data structure
+    const searchTerm = document.getElementById('searchPeripherals').value.toLowerCase();
+    const peripheralsList = document.getElementById('peripherals-list');
+
+    // Query for all top-level peripheral display elements
+    const items = peripheralsList.querySelectorAll('.single-peripheral-btn, .accordion-item, .checkbox-group');
+
+    items.forEach(item => {
+        // Use textContent to get the visible text of the element and its children
+        const text = item.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            item.style.display = ''; // Show the item if it matches
+        } else {
+            item.style.display = 'none'; // Hide the item if it doesn't match
+        }
+    });
 }

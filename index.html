@@ -14,107 +14,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" type="image/png" href="favicon.png">
-    <title>nRF54L Pin Planner</title>
+    <title>nRF54L Pin Planner | by Helmut Lord</title>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>nRF54L Pin Planner</h1>
-            <p>Select peripherals and visualize pin assignments for your nRF54L</p>
-				<p style="text-align: center; margin-top: 10px; font-size: 0.9em;">
-							<a href="http://github.com/hlord2000/hlord2000.github.io" target="_blank" style="text-decoration: none; color: var(--primary-color);">
-								<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Icon" style="height: 1em; vertical-align: middle; margin-right: 5px;">
-                    View Source on GitHub
-                </a>
-            </p>
-            <div style="background-color: #fff3cd; color: #856404; padding: 10px; border: 1px solid #ffeeba; border-radius: 5px; margin-top: 10px; font-weight: bold; text-align: center;">
-                NOT an official Nordic application. Please double check all configurations with the nRF54L documentation available here: 
-                <a href="https://docs.nordicsemi.com/category/nrf-54L-series" target="_blank">https://docs.nordicsemi.com/category/nrf-54L-series</a>
+        <header class="header">
+            <div class="header-title">
+                <h1>nRF54L Pin Planner</h1>
+                <p class="subtitle">Created by <a href="https://www.linkedin.com/in/helmutlord/" target="_blank">Helmut Lord</a></p>
             </div>
-        </div>
-        
-        <div class="package-selector">
-            <h3>MCU and Package Selection</h3>
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <div>
-                    <label for="mcuSelector" style="display: block; margin-bottom: 5px;">MCU</label>
-                    <select id="mcuSelector">
-                        <option value="nrf54l15" selected>nRF54L15</option>
-                        <option value="nrf54l10">nRF54L10</option>
-                        <option value="nrf54l05">nRF54L05</option>
-                    </select>
+            <div class="theme-switch-container">
+                <svg class="theme-icon" id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                <div class="theme-switch-wrapper">
+                    <label class="theme-switch" for="theme-toggle">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
-                <div>
-                    <label for="packageSelector" style="display: block; margin-bottom: 5px;">Package</label>
-                    <select id="packageSelector">
-                        <option value="qfn48-6x6-qfaa" selected>QFN-48 (6x6)</option>
-                        <option value="qfn40-5x5-qfaa" disabled>QFN-40 (5x5) (Coming Soon)</option>
-                    </select>
-                </div>
+                <svg class="theme-icon" id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
             </div>
+        </header>
+
+        <div class="content-grid">
+            <aside class="sidebar">
+                <div class="package-selector card">
+                    <h2>Configuration</h2>
+                    <div class="selector-group">
+                        <label for="mcuSelector">MCU</label>
+                        <select id="mcuSelector">
+                        </select>
+                    </div>
+                    <div class="selector-group">
+                        <label for="packageSelector">Package</label>
+                        <select id="packageSelector">
+                        </select>
+                    </div>
+                </div>
+
+                <div class="sidebar-content card">
+                    <div class="tab-header">
+                        <button id="tab-peripherals" class="tab-btn active">Peripherals</button>
+                        <button id="tab-selected" class="tab-btn">Selected</button>
+                    </div>
+                    <div class="tab-body">
+                        <div id="content-peripherals" class="tab-content active">
+                            <input type="text" id="searchPeripherals" class="search-box" placeholder="Search peripherals...">
+                            <div id="peripherals-list">
+                                <!-- Peripherals will be dynamically inserted here -->
+                            </div>
+                        </div>
+                        <div id="content-selected" class="tab-content">
+                            <ul class="selected-list" id="selectedList">
+                                <li class="empty-message">No peripherals selected yet.</li>
+                            </ul>
+                            <div class="button-group-vertical">
+                                <button id="clearAllBtn">Clear All</button>
+                                <button id="exportBtn">Export Configuration</button>
+                                <button id="importBtn">Import Configuration</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main-view">
+                <div class="chip-display card">
+                    <h2 id="chipTitleDisplay"></h2>
+                    <div class="chip-container">
+                        <!-- Pin layout is generated here -->
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-color" style="background-color: var(--pin-bg-available);"></div><span>Available</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background-color: var(--primary-color);"></div><span>Used</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background-color: var(--warning-color);"></div><span>Clock Pin</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background-color: var(--error-color);"></div><span>Required</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background-color: var(--system-color);"></div><span>System</span></div>
+                        <div class="legend-item"><div class="legend-color" style="background-color: var(--pin-bg-special);"></div><span>Power/Debug</span></div>
+                    </div>
+                </div>
+                <div class="info-and-details">
+                    <div class="info-box card">
+                        <strong>NOTE:</strong> This is not an official Nordic application. Always verify configurations with the official <a href="https://docs.nordicsemi.com/category/nrf-54L-series" target="_blank">nRF54L documentation</a>.
+                    </div>
+                    <div class="pin-details card" id="pinDetails">
+                        <p>Click a pin to see details...</p>
+                    </div>
+                </div>
+            </main>
         </div>
 
-        <div class="flex-container">
-            <div class="peripheral-selector">
-                <h2>Available Peripherals</h2>
-                <input type="text" id="searchPeripherals" class="search-box" placeholder="Search peripherals...">
-                
-                <div id="peripherals-list">
-                    <!-- Peripherals will be dynamically inserted here -->
-                </div>
-            </div>
-
-            <div class="chip-display">
-                <h2 id="chipTitleDisplay">QFN-48 Pin Layout</h2>
-                <div class="chip-container">
-                    <div class="left-pins"></div>
-                    <div class="right-pins"></div>
-                    <div class="top-pins"></div>
-                    <div class="bottom-pins"></div>
-                </div>
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #cccccc;"></div>
-                        <span>Available</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: var(--primary-color);"></div>
-                        <span>Used</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: var(--warning-color);"></div>
-                        <span>Clock Pin</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: var(--error-color);"></div>
-                        <span>Required</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: var(--system-color);"></div>
-                        <span>System</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background-color: #999999;"></div>
-                        <span>Power/Debug</span>
-                    </div>
-                </div>
-                <div class="pin-details" id="pinDetails">
-                    <p>Click a pin to see details...</p>
-                </div>
-            </div>
-
-            <div class="selected-peripherals">
-                <h2>Selected Peripherals</h2>
-                <ul class="selected-list" id="selectedList">
-                    <li class="empty-message">No peripherals selected yet.</li>
-                </ul>
-                <div class="button-group-vertical">
-                    <button id="clearAllBtn">Clear All</button>
-                    <button id="exportBtn">Export Configuration</button>
-                    <button id="importBtn">Import Configuration</button>
-                </div>
-            </div>
-        </div>
+        <footer class="footer">
+            <p>An intuitive pin configuration tool for the nRF54L series.</p>
+            <a href="http://github.com/hlord2000/PinPlanner" target="_blank" class="github-link">
+                <svg class="github-icon" viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                <span>View Source</span>
+            </a>
+        </footer>
     </div>
     
     <!-- Import Configuration Modal -->
