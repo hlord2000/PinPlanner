@@ -71,29 +71,39 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Add scroll-wheel selection to dropdowns
+    enableScrollWheelSelection('mcuSelector');
+    enableScrollWheelSelection('packageSelector');
+
     // Initial data load and package population
     initializeApp();
-
-    // --- TAB SWITCHER LOGIC ---
-    const peripheralsTab = document.getElementById('tab-peripherals');
-    const selectedTab = document.getElementById('tab-selected');
-    const peripheralsContent = document.getElementById('content-peripherals');
-    const selectedContent = document.getElementById('content-selected');
-
-    peripheralsTab.addEventListener('click', () => {
-        peripheralsTab.classList.add('active');
-        selectedTab.classList.remove('active');
-        peripheralsContent.classList.add('active');
-        selectedContent.classList.remove('active');
-    });
-
-    selectedTab.addEventListener('click', () => {
-        selectedTab.classList.add('active');
-        peripheralsTab.classList.remove('active');
-        selectedContent.classList.add('active');
-        peripheralsContent.classList.remove('active');
-    });
 });
+
+function enableScrollWheelSelection(selectorId) {
+    const selector = document.getElementById(selectorId);
+    if (!selector) return;
+
+    selector.addEventListener('wheel', function(event) {
+        // Prevent the page from scrolling
+        event.preventDefault();
+
+        const direction = Math.sign(event.deltaY);
+        const currentIndex = selector.selectedIndex;
+        const numOptions = selector.options.length;
+
+        if (numOptions === 0) return;
+
+        // Calculate the next index, clamping it to the valid range
+        let nextIndex = currentIndex + direction;
+        nextIndex = Math.max(0, Math.min(nextIndex, numOptions - 1));
+
+        if (nextIndex !== currentIndex) {
+            selector.selectedIndex = nextIndex;
+            // Dispatch a change event to trigger the application's logic
+            selector.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }, { passive: false }); // passive: false is required to use preventDefault
+}
 
 async function initializeApp() {
     try {
@@ -265,7 +275,7 @@ function organizePeripherals() {
         const btn = document.createElement('button');
         btn.className = 'single-peripheral-btn';
         btn.dataset.id = p.id;
-        btn.textContent = `${p.id} (${p.type})`;
+        btn.textContent = `${p.id} (${p.type})`
         btn.addEventListener('click', () => handlePeripheralClick(p));
         peripheralsListContainer.appendChild(btn);
     });
@@ -433,19 +443,39 @@ function createPinLayout() {
 
 function showPinDetails(pinInfo) {
     const detailsElement = document.getElementById('pinDetails');
-    let usedBy = '';
+    
+    let usedByHtml = '';
     if (usedPins[pinInfo.name]) {
         const usage = usedPins[pinInfo.name];
-        usedBy = `<p><strong>Used by:</strong> ${usage.peripheral} (${usage.function})</p>`;
+        usedByHtml = `
+            <tr>
+                <td>Used by</td>
+                <td>${usage.peripheral} (${usage.function})</td>
+            </tr>
+        `;
     }
+
+    const functions = pinInfo.functions || [];
+    const functionsHtml = functions.length > 0 
+        ? `<tr>
+               <td>Functions</td>
+               <td>${functions.join('<br>')}</td>
+           </tr>`
+        : '';
 
     detailsElement.innerHTML = `
         <h3>${pinInfo.name} (Pin ${pinInfo.packagePinId})</h3>
-        <p><strong>Type:</strong> ${pinInfo.defaultType}</p>
-        ${pinInfo.isClockCapable ? '<p><strong>Clock capable</strong></p>' : ''}
-        ${usedBy}
-        <p><strong>Functions:</strong></p>
-        <ul>${(pinInfo.functions || []).map(f => `<li>${f}</li>`).join('')}</ul>
+        <table class="pin-details-table">
+            <tbody>
+                <tr>
+                    <td>Type</td>
+                    <td>${pinInfo.defaultType}</td>
+                </tr>
+                ${pinInfo.isClockCapable ? '<tr><td>Attribute</td><td>Clock capable</td></tr>' : ''}
+                ${usedByHtml}
+                ${functionsHtml}
+            </tbody>
+        </table>
     `;
 }
 
@@ -541,19 +571,12 @@ function populatePinSelectionTable(peripheral) {
         let selectionHtml;
         if (allPossiblePins.length === 1 && signal.allowedGpio.length === 1) {
             const pin = allPossiblePins[0];
-            const isUsedByOther = usedPins[pin.name] && usedPins[pin.name].peripheral !== peripheral.id;
-            const isChecked = tempSelectedPins[pin.name] === signal.name;
-            selectionHtml = `<label><input type="checkbox" data-signal="${signal.name}" data-pin="${pin.name}" ${isChecked ? 'checked' : ''} ${isUsedByOther ? 'disabled' : ''}> ${pin.name}`;
-            if (isUsedByOther) {
-                selectionHtml += ` <span class="pin-used-by">(Used by ${usedPins[pin.name].peripheral})</span>`;
-            }
-            selectionHtml += '</label>';
+            selectionHtml = `<label><input type="checkbox" data-signal="${signal.name}" data-pin="${pin.name}"> ${pin.name}</label>`;
         } else {
             let optionsHtml = '<option value="">-- Select Pin --</option>';
             allPossiblePins.forEach(pin => {
                 const isSelected = tempSelectedPins[pin.name] === signal.name;
-                const isUsedByOther = usedPins[pin.name] && !isSelected;
-                optionsHtml += `<option value="${pin.name}" ${isSelected ? 'selected' : ''} ${isUsedByOther ? 'disabled' : ''}>${pin.name}${isUsedByOther ? ` (Used by ${usedPins[pin.name].peripheral})` : (pin.isClockCapable ? ' (Clock)' : '')}</option>`;
+                optionsHtml += `<option value="${pin.name}" ${isSelected ? 'selected' : ''}>${pin.name}${(pin.isClockCapable ? ' (Clock)' : '')}</option>`;
             });
             selectionHtml = `<select data-signal="${signal.name}" ${signal.isMandatory ? 'required' : ''}>${optionsHtml}</select>`;
         }
@@ -570,36 +593,65 @@ function populatePinSelectionTable(peripheral) {
     tableBody.querySelectorAll('select, input[type="checkbox"]').forEach(input => {
         input.addEventListener('change', handlePinSelectionChange);
     });
+
+    updateModalPinAvailability(); // Set initial disabled states
 }
 
 function handlePinSelectionChange(event) {
     const input = event.target;
     const signalName = input.dataset.signal;
 
+    // Clear the old pin for this signal, if any
+    Object.keys(tempSelectedPins).forEach(pin => {
+        if (tempSelectedPins[pin] === signalName) {
+            delete tempSelectedPins[pin];
+        }
+    });
+
+    // Set the new pin
     if (input.type === 'checkbox') {
-        const pinName = input.dataset.pin;
         if (input.checked) {
-            if (usedPins[pinName] && usedPins[pinName].peripheral !== currentPeripheral.id) {
-                alert(`${pinName} is already in use by ${usedPins[pinName].peripheral}.`);
-                input.checked = false;
-                return;
-            }
-            tempSelectedPins[pinName] = signalName;
-        } else {
-            delete tempSelectedPins[pinName];
+            tempSelectedPins[input.dataset.pin] = signalName;
         }
     } else { // Dropdown
-        const newPinName = input.value;
-        let oldPinName = null;
-        for (const pin in tempSelectedPins) {
-            if (tempSelectedPins[pin] === signalName) {
-                oldPinName = pin;
-                break;
-            }
+        if (input.value) {
+            tempSelectedPins[input.value] = signalName;
         }
-        if (oldPinName) delete tempSelectedPins[oldPinName];
-        if (newPinName) tempSelectedPins[newPinName] = signalName;
     }
+    
+    updateModalPinAvailability();
+}
+
+function updateModalPinAvailability() {
+    const selects = document.querySelectorAll('#pinSelectionTableBody select');
+    const checkboxes = document.querySelectorAll('#pinSelectionTableBody input[type="checkbox"]');
+
+    const pinsSelectedInModal = Object.keys(tempSelectedPins);
+
+    // Update dropdowns
+    selects.forEach(select => {
+        const signalForThisSelect = select.dataset.signal;
+        for (const option of select.options) {
+            const pinName = option.value;
+            if (!pinName) continue;
+
+            const isUsedByOtherPeripheral = usedPins[pinName] && usedPins[pinName].peripheral !== currentPeripheral.id;
+            const isUsedInThisModal = pinsSelectedInModal.includes(pinName) && tempSelectedPins[pinName] !== signalForThisSelect;
+
+            option.disabled = isUsedByOtherPeripheral || isUsedInThisModal;
+        }
+    });
+
+    // Update checkboxes
+    checkboxes.forEach(checkbox => {
+        const pinName = checkbox.dataset.pin;
+        const signalForThisCheckbox = checkbox.dataset.signal;
+
+        const isUsedByOtherPeripheral = usedPins[pinName] && usedPins[pinName].peripheral !== currentPeripheral.id;
+        const isUsedInThisModal = pinsSelectedInModal.includes(pinName) && tempSelectedPins[pinName] !== signalForThisCheckbox;
+
+        checkbox.disabled = isUsedByOtherPeripheral || isUsedInThisModal;
+    });
 }
 
 function getPinsForSignal(signal) {
