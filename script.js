@@ -412,32 +412,38 @@ function createPinLayout() {
         placePins('top', pinsBySide.top);
 
     } else if (strategy.layoutType === 'gridMatrix') {
-        const { rows, columns } = strategy;
-        const containerSize = 400;
-        const cellWidth = containerSize / columns;
-        const cellHeight = containerSize / rows;
+		// Use the specific labels from the JSON file
+		const { rowLabels, columnLabels } = strategy;
+		const containerSize = 400;
+		
+		// Calculate cell dimensions based on the number of labels
+		const cellWidth = containerSize / columnLabels.length;
+		const cellHeight = containerSize / rowLabels.length;
 
-        const pinMap = new Map(mcuData.pins.map(p => [p.gridCoordinates, p]));
+		// Create a map for quick pin lookup
+		const pinMap = new Map(mcuData.pins.map(p => [p.gridCoordinates, p]));
 
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < columns; c++) {
-                const rowLabel = String.fromCharCode('A'.charCodeAt(0) + r);
-                const colLabel = c + 1;
-                const coord = `${rowLabel}${colLabel}`;
-                
-                if (pinMap.has(coord)) {
-                    const pinInfo = pinMap.get(coord);
-                    const pinElement = createPinElement(pinInfo);
-                    
-                    pinElement.style.position = 'absolute';
-                    pinElement.style.top = (r * cellHeight) + (cellHeight / 2) + 'px';
-                    pinElement.style.left = (c * cellWidth) + (cellWidth / 2) + 'px';
-                    pinElement.style.transform = 'translate(-50%, -50%)';
-                    
-                    chipContainer.appendChild(pinElement);
-                }
-            }
-        }
+		// Loop using the length of the label arrays
+		for (let r = 0; r < rowLabels.length; r++) {
+			for (let c = 0; c < columnLabels.length; c++) {
+				// Get the correct label directly from the arrays
+				const rowLabel = rowLabels[r];
+				const colLabel = columnLabels[c];
+				const coord = `${rowLabel}${colLabel}`;
+				
+				if (pinMap.has(coord)) {
+					const pinInfo = pinMap.get(coord);
+					const pinElement = createPinElement(pinInfo);
+					
+					pinElement.style.position = 'absolute';
+					pinElement.style.top = (r * cellHeight) + (cellHeight / 2) + 'px';
+					pinElement.style.left = (c * cellWidth) + (cellWidth / 2) + 'px';
+					pinElement.style.transform = 'translate(-50%, -50%)';
+					
+					chipContainer.appendChild(pinElement);
+				}
+			}
+		}
     }
 }
 

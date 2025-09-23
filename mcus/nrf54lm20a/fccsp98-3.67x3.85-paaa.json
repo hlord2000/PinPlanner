@@ -1,0 +1,360 @@
+{
+  "$schema": "../mcuSchema.json",
+  "partInfo": {
+    "partNumber": "nRF54LM20A-PAAA",
+    "packageType": "FCCSP-98",
+    "sizeDescription": "3.67x3.85mm FCCSP-98",
+    "datasheetVersion": "https://docs-be.nordicsemi.com/bundle/ps_nrf54LM20A/page/pdf/nRF54LM20A_Preliminary_Datasheet_v0.7.pdf"
+  },
+  "renderConfig": {
+    "canvasDefaults": {
+      "padding": 20
+    },
+    "chipBody": {
+      "width": 3.67,
+      "height": 3.85,
+      "cornerRadius": 0.2
+    },
+    "pinDefaults": {
+      "shape": "circle",
+      "width": 0.2,
+      "fillColor": "#B0B0B0",
+      "strokeColor": "#707070",
+      "strokeWidth": 0.05
+    },
+    "layoutStrategy": {
+      "layoutType": "gridMatrix",
+      "rows": 10,
+      "columns": 10,
+      "rowLabels": ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K"],
+      "columnLabels": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+      "pitchX": 0.35,
+      "pitchY": 0.35,
+      "originOffset": {
+        "x": -1.675,
+        "y": -1.675
+      },
+      "labelOriginConvention": "topLeft"
+    }
+  },
+  "pins": [
+    { "packagePinId": "A1", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "A1" },
+    { "packagePinId": "A2", "name": "XC1", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "crystal_hf", "functions": ["Analog input"], "gridCoordinates": "A2" },
+    { "packagePinId": "A3", "name": "VDD", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "A3" },
+    { "packagePinId": "A4", "name": "VDD", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "A4" },
+    { "packagePinId": "A5", "name": "DCC", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "A5" },
+    { "packagePinId": "A6", "name": "DECD", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "decoupling", "functions": ["Power"], "gridCoordinates": "A6" },
+    { "packagePinId": "A7", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "A7" },
+    { "packagePinId": "A8", "name": "DECA", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "decoupling", "functions": ["Power"], "gridCoordinates": "A8" },
+    { "packagePinId": "A9", "name": "VDD", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "A9" },
+    { "packagePinId": "A10", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "A10" },
+    { "packagePinId": "B1", "name": "XC2", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "crystal_hf", "functions": ["Analog input"], "gridCoordinates": "B1" },
+    { "packagePinId": "B2", "name": "P1.15", "port": "P1", "pinIndex": 15, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["ASO[2]", "RADIO[0]", "Digital I/O"], "gridCoordinates": "B2" },
+    { "packagePinId": "B3", "name": "P1.16", "port": "P1", "pinIndex": 16, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["ASI[2]", "RADIO[1]", "Digital I/O"], "gridCoordinates": "B3" },
+    { "packagePinId": "B4", "name": "P1.17", "port": "P1", "pinIndex": 17, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["RADIO[2]", "Digital I/O"], "gridCoordinates": "B4" },
+    { "packagePinId": "B5", "name": "P1.18", "port": "P1", "pinIndex": 18, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["RADIO[3]", "Digital I/O"], "gridCoordinates": "B5" },
+    { "packagePinId": "B6", "name": "P1.19", "port": "P1", "pinIndex": 19, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["RADIO[4]", "Digital I/O"], "gridCoordinates": "B6" },
+    { "packagePinId": "B7", "name": "P1.23", "port": "P1", "pinIndex": 23, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "B7" },
+    { "packagePinId": "B8", "name": "P1.26", "port": "P1", "pinIndex": 26, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["ASI[3]", "Digital I/O"], "gridCoordinates": "B8" },
+    { "packagePinId": "B9", "name": "P2.06", "port": "P2", "pinIndex": 6, "isClockCapable": true, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.6", "TRACECLK", "SPIM00.SCK", "SPIS00.SCK", "Digital I/O"], "gridCoordinates": "B9" },
+    { "packagePinId": "B10", "name": "P2.00", "port": "P2", "pinIndex": 0, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.4", "QSPI.D3", "SPIM00.DCX", "UARTE00.RXD", "Digital I/O"], "gridCoordinates": "B10" },
+    { "packagePinId": "C1", "name": "DECRF", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "decoupling", "functions": ["Power"], "gridCoordinates": "C1" },
+    { "packagePinId": "C2", "name": "P1.14", "port": "P1", "pinIndex": 14, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "C2" },
+    { "packagePinId": "C3", "name": "P1.13", "port": "P1", "pinIndex": 13, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "C3" },
+    { "packagePinId": "C4", "name": "P1.12", "port": "P1", "pinIndex": 12, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "C4" },
+    { "packagePinId": "C5", "name": "P1.11", "port": "P1", "pinIndex": 11, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "C5" },
+    { "packagePinId": "C6", "name": "P1.20", "port": "P1", "pinIndex": 20, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["RADIO[5]", "XL1", "Digital I/O", "Analog input"], "gridCoordinates": "C6" },
+    { "packagePinId": "C7", "name": "P1.21", "port": "P1", "pinIndex": 21, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["RADIO[6]", "XL2", "Digital I/O", "Analog input"], "gridCoordinates": "C7" },
+    { "packagePinId": "C8", "name": "P1.27", "port": "P1", "pinIndex": 27, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "C8" },
+    { "packagePinId": "C9", "name": "P2.07", "port": "P2", "pinIndex": 7, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.7", "TRACEDATA[0]", "SWO", "SPIM00.DCX", "UARTE00.RXD", "Digital I/O"], "gridCoordinates": "C9" },
+    { "packagePinId": "C10", "name": "P2.01", "port": "P2", "pinIndex": 1, "isClockCapable": true, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.0", "QSPI.SCK", "SPIM00.SCK", "SPIS00.SCK", "Digital I/O"], "gridCoordinates": "C10" },
+    { "packagePinId": "D1", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "D1" },
+    { "packagePinId": "D2", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "D2" },
+    { "packagePinId": "D4", "name": "P3.12", "port": "P3", "pinIndex": 12, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "D4" },
+    { "packagePinId": "D5", "name": "P1.10", "port": "P1", "pinIndex": 10, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "D5" },
+    { "packagePinId": "D6", "name": "P1.22", "port": "P1", "pinIndex": 22, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "D6" },
+    { "packagePinId": "D7", "name": "P1.24", "port": "P1", "pinIndex": 24, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "D7" },
+    { "packagePinId": "D8", "name": "P1.28", "port": "P1", "pinIndex": 28, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "D8" },
+    { "packagePinId": "D9", "name": "P2.08", "port": "P2", "pinIndex": 8, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.8", "TRACEDATA[1]", "SPIM00.SDO", "SPIS00.SDO", "UARTE00.TXD", "Digital I/O"], "gridCoordinates": "D9" },
+    { "packagePinId": "D10", "name": "P2.02", "port": "P2", "pinIndex": 2, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.1", "QSPI.D0", "SPIM00.SDO", "SPIS00.SDO", "UARTE00.TXD", "Digital I/O"], "gridCoordinates": "D10" },
+    { "packagePinId": "E1", "name": "ANT", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "rf_antenna", "functions": ["RF"], "gridCoordinates": "E1" },
+    { "packagePinId": "E3", "name": "P0.09", "port": "P0", "pinIndex": 9, "isClockCapable": false, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "E3" },
+    { "packagePinId": "E4", "name": "P3.11", "port": "P3", "pinIndex": 11, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "E4" },
+    { "packagePinId": "E5", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "E5" },
+    { "packagePinId": "E6", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "E6" },
+    { "packagePinId": "E7", "name": "P1.25", "port": "P1", "pinIndex": 25, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["ASO[3]", "Digital I/O"], "gridCoordinates": "E7" },
+    { "packagePinId": "E8", "name": "P1.09", "port": "P1", "pinIndex": 9, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["ASI[1]", "Digital I/O"], "gridCoordinates": "E8" },
+    { "packagePinId": "E9", "name": "P2.09", "port": "P2", "pinIndex": 9, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.9", "TRACEDATA[2]", "SPIM00.SDI", "SPIS00.SDI", "UARTE00.CTS", "Digital I/O"], "gridCoordinates": "E9" },
+    { "packagePinId": "E10", "name": "P2.03", "port": "P2", "pinIndex": 3, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.3", "QSPI.D2", "Digital I/O"], "gridCoordinates": "E10" },
+    { "packagePinId": "F1", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "F1" },
+    { "packagePinId": "F2", "name": "nRESET", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "debug", "functions": ["Reset"], "gridCoordinates": "F2" },
+    { "packagePinId": "F3", "name": "P0.08", "port": "P0", "pinIndex": 8, "isClockCapable": false, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "F3" },
+    { "packagePinId": "F4", "name": "P3.10", "port": "P3", "pinIndex": 10, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "F4" },
+    { "packagePinId": "F5", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "F5" },
+    { "packagePinId": "F6", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "F6" },
+    { "packagePinId": "F7", "name": "P3.09", "port": "P3", "pinIndex": 9, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "F7" },
+    { "packagePinId": "F8", "name": "P1.08", "port": "P1", "pinIndex": 8, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["ASO[1]", "Digital I/O"], "gridCoordinates": "F8" },
+    { "packagePinId": "F9", "name": "P2.10", "port": "P2", "pinIndex": 10, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.10", "TRACEDATA[3]", "SPIM00.CSN", "SPIS00.CSN", "UARTE00.RTS", "Digital I/O"], "gridCoordinates": "F9" },
+    { "packagePinId": "F10", "name": "P2.04", "port": "P2", "pinIndex": 4, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.2", "QSPI.D1", "SPIM00.SDI", "SPIS00.SDI", "UARTE00.CTS", "Digital I/O"], "gridCoordinates": "F10" },
+    { "packagePinId": "G1", "name": "SWDCLK", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "debug", "functions": ["Digital I/O"], "gridCoordinates": "G1" },
+    { "packagePinId": "G2", "name": "SWDIO", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "debug", "functions": ["Digital I/O"], "gridCoordinates": "G2" },
+    { "packagePinId": "G3", "name": "P0.07", "port": "P0", "pinIndex": 7, "isClockCapable": true, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "G3" },
+    { "packagePinId": "G4", "name": "P3.08", "port": "P3", "pinIndex": 8, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "G4" },
+    { "packagePinId": "G5", "name": "P3.07", "port": "P3", "pinIndex": 7, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "G5" },
+    { "packagePinId": "G6", "name": "P3.06", "port": "P3", "pinIndex": 6, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "G6" },
+    { "packagePinId": "G7", "name": "P3.05", "port": "P3", "pinIndex": 5, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "G7" },
+    { "packagePinId": "G8", "name": "P1.07", "port": "P1", "pinIndex": 7, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["GRTC.CLKOUTFAST", "EXTREF", "Digital I/O", "Analog input"], "gridCoordinates": "G8" },
+    { "packagePinId": "G9", "name": "P2.05", "port": "P2", "pinIndex": 5, "isClockCapable": false, "powerDomain": "mcu", "defaultType": "io", "functions": ["FLPR.5", "QSPI.CSN", "SPIM00.CSN", "SPIS00.CSN", "UARTE00.RTS", "Digital I/O"], "gridCoordinates": "G9" },
+    { "packagePinId": "G10", "name": "VDD", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "G10" },
+    { "packagePinId": "H1", "name": "VDD", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "H1" },
+    { "packagePinId": "H2", "name": "P0.06", "port": "P0", "pinIndex": 6, "isClockCapable": true, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "H2" },
+    { "packagePinId": "H3", "name": "P0.05", "port": "P0", "pinIndex": 5, "isClockCapable": false, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "H3" },
+    { "packagePinId": "H4", "name": "P3.03", "port": "P3", "pinIndex": 3, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "H4" },
+    { "packagePinId": "H5", "name": "P3.02", "port": "P3", "pinIndex": 2, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "H5" },
+    { "packagePinId": "H6", "name": "P3.01", "port": "P3", "pinIndex": 1, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "H6" },
+    { "packagePinId": "H7", "name": "P3.00", "port": "P3", "pinIndex": 0, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "H7" },
+    { "packagePinId": "H8", "name": "P1.05", "port": "P1", "pinIndex": 5, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN5", "ASO[0]", "Digital I/O", "Analog input"], "gridCoordinates": "H8" },
+    { "packagePinId": "H9", "name": "P1.03", "port": "P1", "pinIndex": 3, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN7", "Digital I/O", "Analog input"], "gridCoordinates": "H9" },
+    { "packagePinId": "H10", "name": "P1.29", "port": "P1", "pinIndex": 29, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN3", "Digital I/O", "Analog input"], "gridCoordinates": "H10" },
+    { "packagePinId": "J1", "name": "P0.04", "port": "P0", "pinIndex": 4, "isClockCapable": true, "powerDomain": "low_power", "defaultType": "io", "functions": ["GRTC.CLKOUT32K", "Digital I/O"], "gridCoordinates": "J1" },
+    { "packagePinId": "J2", "name": "P0.03", "port": "P0", "pinIndex": 3, "isClockCapable": true, "powerDomain": "low_power", "defaultType": "io", "functions": ["GRTC.PWM", "Digital I/O"], "gridCoordinates": "J2" },
+    { "packagePinId": "J3", "name": "P0.02", "port": "P0", "pinIndex": 2, "isClockCapable": false, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "J3" },
+    { "packagePinId": "J4", "name": "P3.04", "port": "P3", "pinIndex": 4, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "J4" },
+    { "packagePinId": "J5", "name": "TXRTUNE", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "other_system", "functions": ["Analog I/O"], "gridCoordinates": "J5" },
+    { "packagePinId": "J6", "name": "P1.01", "port": "P1", "pinIndex": 1, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["NFC1", "Digital I/O", "NFC input"], "gridCoordinates": "J6" },
+    { "packagePinId": "J7", "name": "P1.02", "port": "P1", "pinIndex": 2, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["NFC2", "Digital I/O", "NFC input"], "gridCoordinates": "J7" },
+    { "packagePinId": "J8", "name": "P1.06", "port": "P1", "pinIndex": 6, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN4", "ASI[0]", "Digital I/O", "Analog input"], "gridCoordinates": "J8" },
+    { "packagePinId": "J9", "name": "P1.04", "port": "P1", "pinIndex": 4, "isClockCapable": true, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN6", "Digital I/O", "Analog input"], "gridCoordinates": "J9" },
+    { "packagePinId": "J10", "name": "P1.30", "port": "P1", "pinIndex": 30, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN2", "Digital I/O", "Analog input"], "gridCoordinates": "J10" },
+    { "packagePinId": "K1", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "K1" },
+    { "packagePinId": "K2", "name": "P0.01", "port": "P0", "pinIndex": 1, "isClockCapable": false, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "K2" },
+    { "packagePinId": "K3", "name": "P0.00", "port": "P0", "pinIndex": 0, "isClockCapable": false, "powerDomain": "low_power", "defaultType": "io", "functions": ["Digital I/O"], "gridCoordinates": "K3" },
+    { "packagePinId": "K4", "name": "D-", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "other_system", "functions": ["Analog I/O"], "gridCoordinates": "K4" },
+    { "packagePinId": "K5", "name": "D+", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "other_system", "functions": ["Analog I/O"], "gridCoordinates": "K5" },
+    { "packagePinId": "K6", "name": "DECUSB", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "decoupling", "functions": ["Power"], "gridCoordinates": "K6" },
+    { "packagePinId": "K7", "name": "VBUS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_positive", "functions": ["Power"], "gridCoordinates": "K7" },
+    { "packagePinId": "K8", "name": "P1.00", "port": "P1", "pinIndex": 0, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN0", "Digital I/O", "Analog input"], "gridCoordinates": "K8" },
+    { "packagePinId": "K9", "name": "P1.31", "port": "P1", "pinIndex": 31, "isClockCapable": false, "powerDomain": "peripheral", "defaultType": "io", "functions": ["AIN1", "Digital I/O", "Analog input"], "gridCoordinates": "K9" },
+    { "packagePinId": "K10", "name": "VSS", "port": null, "pinIndex": null, "isClockCapable": false, "defaultType": "power_ground", "functions": ["Power"], "gridCoordinates": "K10" }
+  ],
+  "socPeripherals": [
+    {
+      "id": "SPIM/SPIS00",
+      "type": "SPI",
+      "description": "SPIM/SPIS for GPIO port 2",
+      "signals": [
+        { "name": "SCK", "direction": "inout", "allowedGpio": [ "P2.01", "P2.06" ], "requiresClockCapablePin": true },
+        { "name": "SDO", "direction": "output", "allowedGpio": [ "P2.02", "P2.08" ] },
+        { "name": "SDI", "direction": "input", "allowedGpio": [ "P2.04", "P2.09" ] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": [ "P2.05", "P2.10" ] },
+        { "name": "DCX", "direction": "output", "allowedGpio": [ "P2.00", "P2.07" ] }
+      ]
+    },
+    {
+      "id": "UARTE00",
+      "type": "UART",
+      "description": "UARTE for GPIO port 2",
+      "signals": [
+        { "name": "TXD", "direction": "output", "isMandatory": true, "allowedGpio": [ "P2.02", "P2.08" ] },
+        { "name": "RXD", "direction": "input", "isMandatory": true, "allowedGpio": [ "P2.00", "P2.07" ] },
+        { "name": "CTS", "direction": "input", "allowedGpio": [ "P2.04", "P2.09" ] },
+        { "name": "RTS", "direction": "output", "allowedGpio": [ "P2.05", "P2.10" ] }
+      ]
+    },
+    {
+      "id": "QSPI",
+      "type": "QSPI",
+      "description": "Quad Serial Peripheral Interface",
+      "uiHint": "checkbox",
+      "signals": [
+        { "name": "SCK", "direction": "output", "isMandatory": true, "allowedGpio": [ "P2.01" ] },
+        { "name": "CSN", "direction": "output", "isMandatory": true, "allowedGpio": [ "P2.05" ] },
+        { "name": "D0", "direction": "inout", "isMandatory": true, "allowedGpio": [ "P2.02" ] },
+        { "name": "D1", "direction": "inout", "isMandatory": true, "allowedGpio": [ "P2.04" ] },
+        { "name": "D2", "direction": "inout", "isMandatory": true, "allowedGpio": [ "P2.03" ] },
+        { "name": "D3", "direction": "inout", "isMandatory": true, "allowedGpio": [ "P2.00" ] }
+      ]
+    },
+    {
+      "id": "RADIO",
+      "type": "RADIO",
+      "description": "Radio controlled GPIO for DFE",
+      "signals": [
+        { "name": "RADIO[0]", "direction": "output", "allowedGpio": [ "P1.15" ] },
+        { "name": "RADIO[1]", "direction": "output", "allowedGpio": [ "P1.16" ] },
+        { "name": "RADIO[2]", "direction": "output", "allowedGpio": [ "P1.17" ] },
+        { "name": "RADIO[3]", "direction": "output", "allowedGpio": [ "P1.18" ] },
+        { "name": "RADIO[4]", "direction": "output", "allowedGpio": [ "P1.19" ] },
+        { "name": "RADIO[5]", "direction": "output", "allowedGpio": [ "P1.20" ] },
+        { "name": "RADIO[6]", "direction": "output", "allowedGpio": [ "P1.21" ] }
+      ]
+    },
+    {
+      "id": "SAADC",
+      "type": "SAADC",
+      "description": "SAADC, 8 channels",
+      "signals": [
+        { "name": "AIN0", "direction": "analog_input", "allowedGpio": [ "P1.00" ] },
+        { "name": "AIN1", "direction": "analog_input", "allowedGpio": [ "P1.31" ] },
+        { "name": "AIN2", "direction": "analog_input", "allowedGpio": [ "P1.30" ] },
+        { "name": "AIN3", "direction": "analog_input", "allowedGpio": [ "P1.29" ] },
+        { "name": "AIN4", "direction": "analog_input", "allowedGpio": [ "P1.06" ] },
+        { "name": "AIN5", "direction": "analog_input", "allowedGpio": [ "P1.05" ] },
+        { "name": "AIN6", "direction": "analog_input", "allowedGpio": [ "P1.04" ] },
+        { "name": "AIN7", "direction": "analog_input", "allowedGpio": [ "P1.03" ] },
+        { "name": "EXTREF", "direction": "analog_input", "allowedGpio": [ "P1.07" ] }
+      ]
+    },
+    {
+      "id": "NFCT",
+      "type": "NFCT",
+      "description": "NFC Active Tag",
+      "uiHint": "checkbox",
+      "signals": [
+        { "name": "NFC1", "direction": "input", "allowedGpio": [ "P1.01" ] },
+        { "name": "NFC2", "direction": "input", "allowedGpio": [ "P1.02" ] }
+      ]
+    },
+    {
+      "id": "TAMPC",
+      "type": "TAMPC",
+      "description": "Tamper Controller",
+      "signals": [
+        { "name": "ASO[0]", "direction": "output", "allowedGpio": [ "P1.05" ] },
+        { "name": "ASI[0]", "direction": "input", "allowedGpio": [ "P1.06" ] },
+        { "name": "ASO[1]", "direction": "output", "allowedGpio": [ "P1.08" ] },
+        { "name": "ASI[1]", "direction": "input", "allowedGpio": [ "P1.09" ] },
+        { "name": "ASO[2]", "direction": "output", "allowedGpio": [ "P1.15" ] },
+        { "name": "ASI[2]", "direction": "input", "allowedGpio": [ "P1.16" ] },
+        { "name": "ASO[3]", "direction": "output", "allowedGpio": [ "P1.25" ] },
+        { "name": "ASI[3]", "direction": "input", "allowedGpio": [ "P1.26" ] }
+      ]
+    },
+    {
+      "id": "GRTC",
+      "type": "GRTC",
+      "description": "Global Real-time Clock",
+      "signals": [
+        { "name": "PWM", "direction": "output", "allowedGpio": [ "P0.03" ], "requiresClockCapablePin": true },
+        { "name": "CLKOUT32K", "direction": "output", "requiresClockCapablePin": true, "allowedGpio": [ "P0.04" ] },
+        { "name": "CLKOUTFAST", "direction": "output", "requiresClockCapablePin": true, "allowedGpio": [ "P1.07" ] }
+      ]
+    },
+    {
+      "id": "LFXO",
+      "type": "LFXO",
+      "description": "Low Frequency Crystal Oscillator",
+      "uiHint": "checkbox",
+      "signals": [
+        { "name": "XL1", "direction": "input", "allowedGpio": [ "P1.20" ], "isMandatory": true },
+        { "name": "XL2", "direction": "input", "allowedGpio": [ "P1.21" ], "isMandatory": true }
+      ]
+    },
+    {
+      "id": "USBHS",
+      "type": "USB",
+      "description": "High-speed USB 2.0 device",
+      "uiHint": "checkbox",
+      "signals": [
+        { "name": "D+", "direction": "inout", "allowedGpio": ["D+"], "isMandatory": true },
+        { "name": "D-", "direction": "inout", "allowedGpio": ["D-"], "isMandatory": true }
+      ]
+    },
+    {
+      "id": "GPIOTE20",
+      "type": "GPIOTE",
+      "description": "GPIOTE for P1/P3 pins, 8 channels",
+      "signals": [
+        { "name": "CHAN[0]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[1]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[2]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[3]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[4]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[5]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[6]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CHAN[7]", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] }
+      ]
+    },
+    {
+      "id": "GPIOTE30",
+      "type": "GPIOTE",
+      "description": "GPIOTE for P0 pins, 4 channels",
+      "signals": [
+        { "name": "CHAN[0]", "direction": "inout", "allowedGpio": [ "P0*" ] },
+        { "name": "CHAN[1]", "direction": "inout", "allowedGpio": [ "P0*" ] },
+        { "name": "CHAN[2]", "direction": "inout", "allowedGpio": [ "P0*" ] },
+        { "name": "CHAN[3]", "direction": "inout", "allowedGpio": [ "P0*" ] }
+      ]
+    },
+    {
+      "id": "SPIM/SPIS30",
+      "type": "SPI",
+      "baseAddress": "0x40104000",
+      "description": "SPIM/SPIS for GPIO port 0",
+      "signals": [
+        { "name": "SCK", "direction": "inout", "allowedGpio": [ "P0*" ], "requiresClockCapablePin": true },
+        { "name": "SDO", "direction": "output", "allowedGpio": [ "P0*" ] },
+        { "name": "SDI", "direction": "input", "allowedGpio": [ "P0*" ] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": [ "P0*" ] },
+        { "name": "DCX", "direction": "output", "allowedGpio": [ "P0*" ] }
+      ]
+    },
+    {
+      "id": "TWIM/TWIS30",
+      "type": "TWI",
+      "baseAddress": "0x40104000",
+      "description": "TWIM/TWIS for GPIO port 0",
+      "signals": [
+        { "name": "SCL", "direction": "inout", "allowedGpio": [ "P0*" ], "requiresClockCapablePin": true },
+        { "name": "SDA", "direction": "inout", "allowedGpio": [ "P0*" ] }
+      ]
+    },
+    {
+      "id": "UARTE30",
+      "type": "UART",
+      "baseAddress": "0x40104000",
+      "description": "UARTE for GPIO port 0",
+      "signals": [
+        { "name": "TXD", "direction": "output", "allowedGpio": [ "P0*" ] },
+        { "name": "RXD", "direction": "input", "allowedGpio": [ "P0*" ] },
+        { "name": "CTS", "direction": "input", "allowedGpio": [ "P0*" ] },
+        { "name": "RTS", "direction": "output", "allowedGpio": [ "P0*" ] }
+      ]
+    },
+    {
+      "id": "SPIM/SPIS20",
+      "type": "SPI",
+      "baseAddress": "0x400C6000",
+      "description": "SPIM/SPIS for GPIO port 1/3",
+      "signals": [
+        { "name": "SCK", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ], "requiresClockCapablePin": true },
+        { "name": "SDO", "direction": "output", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "SDI", "direction": "input", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "DCX", "direction": "output", "allowedGpio": [ "P1*", "P3*" ] }
+      ]
+    },
+    {
+      "id": "TWIM/TWIS20",
+      "type": "TWI",
+      "baseAddress": "0x400C6000",
+      "description": "TWIM/TWIS for GPIO port 1/3",
+      "signals": [
+        { "name": "SCL", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ], "requiresClockCapablePin": true },
+        { "name": "SDA", "direction": "inout", "allowedGpio": [ "P1*", "P3*" ] }
+      ]
+    },
+    {
+      "id": "UARTE20",
+      "type": "UART",
+      "baseAddress": "0x400C6000",
+      "description": "UARTE for GPIO port 1/3",
+      "signals": [
+        { "name": "TXD", "direction": "output", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "RXD", "direction": "input", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "CTS", "direction": "input", "allowedGpio": [ "P1*", "P3*" ] },
+        { "name": "RTS", "direction": "output", "allowedGpio": [ "P1*", "P3*" ] }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,20 @@
 {
   "mcus": [
     {
+      "id": "nrf54lm20a",
+      "name": "nRF54LM20A",
+      "packages": [
+        {
+          "file": "fccsp98-3.67x3.85-paaa",
+          "name": "FCCSP-98 (3.7x3.9)"
+        },
+        {
+          "file": "qfn52-6x6-qgaa",
+          "name": "QFN-52 (6x6)"
+        }
+      ]
+    },
+    {
       "id": "nrf54l15",
       "name": "nRF54L15",
       "packages": [
