@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event listeners
     document.getElementById('mcuSelector').addEventListener('change', handleMcuChange);
     document.getElementById('packageSelector').addEventListener('change', handlePackageChange);
-    document.getElementById('clearAllBtn').addEventListener('click', () => clearAllPeripherals(true));
+    document.getElementById('clearAllBtn').addEventListener('click', clearAllPeripherals);
     document.getElementById('exportBtn').addEventListener('click', exportConfiguration);
     document.getElementById('importBtn').addEventListener('click', openImportModal);
     document.getElementById('searchPeripherals').addEventListener('input', filterPeripherals);
@@ -132,7 +132,7 @@ function populateMcuSelector() {
 
 // --- DATA LOADING AND UI REFRESH ---
 
-function handleMcuChange() {
+async function handleMcuChange() {
     const mcuSelector = document.getElementById('mcuSelector');
     const packageSelector = document.getElementById('packageSelector');
     const selectedMcuOption = mcuSelector.options[mcuSelector.selectedIndex];
@@ -149,21 +149,21 @@ function handleMcuChange() {
             option.textContent = pkg.name;
             packageSelector.appendChild(option);
         });
-        loadCurrentMcuData();
+        await loadCurrentMcuData();
     } else {
         reinitializeView(true); // No packages, clear view
     }
 }
 
-function handlePackageChange() {
-    loadCurrentMcuData();
+async function handlePackageChange() {
+    await loadCurrentMcuData();
 }
 
-function loadCurrentMcuData() {
+async function loadCurrentMcuData() {
     const mcu = document.getElementById('mcuSelector').value;
     const pkg = document.getElementById('packageSelector').value;
     if (mcu && pkg) {
-        loadMCUData(mcu, pkg);
+        await loadMCUData(mcu, pkg);
     }
 }
 
@@ -185,19 +185,24 @@ async function loadMCUData(mcu, pkg) {
 }
 
 function reinitializeView(clearOnly = false) {
-    clearAllPeripherals(false); // Clear without confirmation
+    resetState();
 
     if (clearOnly || !mcuData.partInfo) {
         document.getElementById('chipTitleDisplay').textContent = 'No MCU Loaded';
         organizePeripherals();
         createPinLayout();
+        updateSelectedPeripheralsList();
+        updatePinDisplay();
         return;
     }
 
     document.getElementById('chipTitleDisplay').textContent = `${mcuData.partInfo.packageType} Pin Layout`;
     organizePeripherals();
     createPinLayout();
-    setHFXtalAsSystemRequirement();
+    
+    loadStateFromLocalStorage();
+
+    updateSelectedPeripheralsList();
     updatePinDisplay();
     console.log("Initialization complete. Peripherals loaded:", mcuData.socPeripherals.length);
 }
@@ -488,21 +493,103 @@ function showPinDetails(pinInfo) {
 
 // --- STATE MANAGEMENT ---
 
-function clearAllPeripherals(askConfirmation) {
-    if (askConfirmation && !confirm('Are you sure you want to clear all peripherals?')) {
-        return;
-    }
+function resetState() {
     selectedPeripherals = [];
     usedPins = {};
     usedAddresses = {};
-    document.querySelectorAll('.simple-peripherals input[type="checkbox"]').forEach(cb => {
+    document.querySelectorAll('input[type="checkbox"][data-peripheral-id]').forEach(cb => {
         cb.checked = false;
     });
     if (mcuData.pins) {
-        setHFXtalAsSystemRequirement(); // Re-apply system requirements
+        setHFXtalAsSystemRequirement();
     }
+}
+
+function clearAllPeripherals() {
+    if (!confirm('Are you sure you want to clear all peripherals?')) {
+        return;
+    }
+    resetState();
     updateSelectedPeripheralsList();
     updatePinDisplay();
+    saveStateToLocalStorage();
+}
+
+// --- PERSISTENCE ---
+
+function getPersistenceKey() {
+    const mcu = document.getElementById('mcuSelector').value;
+    const pkg = document.getElementById('packageSelector').value;
+    if (!mcu || !pkg) return null;
+    return `pinPlannerConfig-${mcu}-${pkg}`;
+}
+
+function saveStateToLocalStorage() {
+    const key = getPersistenceKey();
+    if (!key) return;
+
+    const config = {
+        selectedPeripherals: selectedPeripherals.map(p => ({ id: p.id, pinFunctions: p.pinFunctions }))
+    };
+    localStorage.setItem(key, JSON.stringify(config));
+    console.log(`State saved for ${key}`);
+}
+
+function applyConfig(config) {
+    if (!config || !config.selectedPeripherals) return;
+
+    for (const p_config of config.selectedPeripherals) {
+        const p_data = mcuData.socPeripherals.find(p => p.id === p_config.id);
+        if (p_data) {
+            // Handle simple checkbox peripherals
+            if (p_data.uiHint === 'checkbox') {
+                const checkbox = document.getElementById(`${p_data.id.toLowerCase()}-checkbox`);
+                if (checkbox) checkbox.checked = true;
+                
+                const pinFunctions = {};
+                p_data.signals.forEach(s => {
+                    const pinName = s.allowedGpio[0];
+                    usedPins[pinName] = { peripheral: p_data.id, function: s.name, required: true };
+                    pinFunctions[pinName] = s.name;
+                });
+                selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions });
+
+            } else { // Handle modal-based peripherals
+                selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions: p_config.pinFunctions });
+                for (const pinName in p_config.pinFunctions) {
+                    const signal = p_data.signals.find(s => s.name === p_config.pinFunctions[pinName]);
+                    usedPins[pinName] = { 
+                        peripheral: p_data.id, 
+                        function: p_config.pinFunctions[pinName],
+                        required: signal ? signal.isMandatory : false
+                    };
+                }
+                if (p_data.baseAddress) {
+                    usedAddresses[p_data.baseAddress] = p_data.id;
+                }
+            }
+        }
+    }
+}
+
+function loadStateFromLocalStorage() {
+    const key = getPersistenceKey();
+    if (!key) return;
+
+    const savedState = localStorage.getItem(key);
+    if (!savedState) {
+        console.log(`No saved state found for ${key}`);
+        return;
+    }
+
+    try {
+        const config = JSON.parse(savedState);
+        applyConfig(config);
+        console.log(`State loaded for ${key}`);
+    } catch (error) {
+        console.error("Failed to load or parse saved state:", error);
+        localStorage.removeItem(key);
+    }
 }
 
 function setHFXtalAsSystemRequirement() {
@@ -546,6 +633,7 @@ function toggleSimplePeripheral(event) {
     }
     updateSelectedPeripheralsList();
     updatePinDisplay();
+    saveStateToLocalStorage();
 }
 
 
@@ -716,6 +804,7 @@ function confirmPinSelection() {
     updateSelectedPeripheralsList();
     updatePinDisplay();
     closePinSelectionModal();
+    saveStateToLocalStorage();
 }
 
 
@@ -798,6 +887,7 @@ function removePeripheral(id) {
 
     updateSelectedPeripheralsList();
     updatePinDisplay();
+    saveStateToLocalStorage();
 }
 
 function editPeripheral(id) {
@@ -866,43 +956,16 @@ async function processImportedJson(json) {
         }
 
         document.getElementById('mcuSelector').value = config.mcu;
-        await handleMcuChange(); // This will update packages and load data
+        await handleMcuChange();
         document.getElementById('packageSelector').value = config.package;
         await loadCurrentMcuData();
 
-        // Clear existing config before import
-        clearAllPeripherals(false);
-
-        for (const p_config of config.selectedPeripherals) {
-            const p_data = mcuData.socPeripherals.find(p => p.id === p_config.id);
-            if (p_data) {
-                // Handle simple checkbox peripherals
-                if (p_data.uiHint === 'checkbox') {
-                    const checkbox = document.getElementById(`${p_data.id.toLowerCase()}-checkbox`);
-                    if (checkbox) checkbox.checked = true;
-                    
-                    const pinFunctions = {};
-                    p_data.signals.forEach(s => {
-                        const pinName = s.allowedGpio[0];
-                        usedPins[pinName] = { peripheral: p_data.id, function: s.name, required: true };
-                        pinFunctions[pinName] = s.name;
-                    });
-                    selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions });
-
-                } else { // Handle modal-based peripherals
-                    selectedPeripherals.push({ id: p_data.id, peripheral: p_data, pinFunctions: p_config.pinFunctions });
-                    for (const pinName in p_config.pinFunctions) {
-                        usedPins[pinName] = { peripheral: p_data.id, function: p_config.pinFunctions[pinName] };
-                    }
-                    if (p_data.baseAddress) {
-                        usedAddresses[p_data.baseAddress] = p_data.id;
-                    }
-                }
-            }
-        }
+        resetState();
+        applyConfig(config);
 
         updateSelectedPeripheralsList();
         updatePinDisplay();
+        saveStateToLocalStorage();
         closeImportModal();
     } catch (error) {
         document.getElementById('importError').textContent = `Error: ${error.message}`;
