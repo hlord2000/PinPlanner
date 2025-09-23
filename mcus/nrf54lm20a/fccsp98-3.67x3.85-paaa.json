@@ -8,7 +8,7 @@
   },
   "renderConfig": {
     "canvasDefaults": {
-      "padding": 20
+      "padding": 30
     },
     "chipBody": {
       "width": 3.67,

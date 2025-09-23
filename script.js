@@ -363,6 +363,8 @@ function createPinLayout() {
     chipContainer.appendChild(chipBody);
 
     const strategy = mcuData.renderConfig.layoutStrategy;
+    const padding = mcuData.renderConfig.canvasDefaults?.padding || 20;
+    const containerSize = 400;
 
     if (strategy.layoutType === 'quadPerimeter') {
         const pinsBySide = {
@@ -372,9 +374,7 @@ function createPinLayout() {
             top: mcuData.pins.filter(p => p.side === 'top').sort((a, b) => parseInt(a.packagePinId) - parseInt(b.packagePinId)),
         };
 
-        const containerSize = 400;
-        const margin = 20;
-        const activeArea = containerSize - (2 * margin);
+        const activeArea = containerSize - (2 * padding);
 
         const placePins = (side, pins) => {
             const len = pins.length;
@@ -383,7 +383,7 @@ function createPinLayout() {
 
             pins.forEach((pinInfo, index) => {
                 const pinElement = createPinElement(pinInfo);
-                const pos = margin + (index + 1) * spacing;
+                const pos = padding + (index + 1) * spacing;
 
                 switch (side) {
                     case 'left':
@@ -417,38 +417,36 @@ function createPinLayout() {
         placePins('top', pinsBySide.top);
 
     } else if (strategy.layoutType === 'gridMatrix') {
-		// Use the specific labels from the JSON file
-		const { rowLabels, columnLabels } = strategy;
-		const containerSize = 400;
-		
-		// Calculate cell dimensions based on the number of labels
-		const cellWidth = containerSize / columnLabels.length;
-		const cellHeight = containerSize / rowLabels.length;
+        const { rowLabels, columnLabels } = strategy;
+        const activeArea = containerSize - (2 * padding);
 
-		// Create a map for quick pin lookup
-		const pinMap = new Map(mcuData.pins.map(p => [p.gridCoordinates, p]));
+        // Handle cases with a single row or column to avoid division by zero
+        const cellWidth = columnLabels.length > 1 ? activeArea / (columnLabels.length - 1) : activeArea;
+        const cellHeight = rowLabels.length > 1 ? activeArea / (rowLabels.length - 1) : activeArea;
 
-		// Loop using the length of the label arrays
-		for (let r = 0; r < rowLabels.length; r++) {
-			for (let c = 0; c < columnLabels.length; c++) {
-				// Get the correct label directly from the arrays
-				const rowLabel = rowLabels[r];
-				const colLabel = columnLabels[c];
-				const coord = `${rowLabel}${colLabel}`;
-				
-				if (pinMap.has(coord)) {
-					const pinInfo = pinMap.get(coord);
-					const pinElement = createPinElement(pinInfo);
-					
-					pinElement.style.position = 'absolute';
-					pinElement.style.top = (r * cellHeight) + (cellHeight / 2) + 'px';
-					pinElement.style.left = (c * cellWidth) + (cellWidth / 2) + 'px';
-					pinElement.style.transform = 'translate(-50%, -50%)';
-					
-					chipContainer.appendChild(pinElement);
-				}
-			}
-		}
+        const pinMap = new Map(mcuData.pins.map(p => [p.gridCoordinates, p]));
+
+        for (let r = 0; r < rowLabels.length; r++) {
+            for (let c = 0; c < columnLabels.length; c++) {
+                const coord = `${rowLabels[r]}${columnLabels[c]}`;
+                
+                if (pinMap.has(coord)) {
+                    const pinInfo = pinMap.get(coord);
+                    const pinElement = createPinElement(pinInfo);
+                    
+                    pinElement.style.position = 'absolute';
+                    // For a single item, center it. Otherwise, distribute along the axis.
+                    const leftPos = columnLabels.length > 1 ? (c * cellWidth) + padding : containerSize / 2;
+                    const topPos = rowLabels.length > 1 ? (r * cellHeight) + padding : containerSize / 2;
+
+                    pinElement.style.top = `${topPos}px`;
+                    pinElement.style.left = `${leftPos}px`;
+                    pinElement.style.transform = 'translate(-50%, -50%)';
+                    
+                    chipContainer.appendChild(pinElement);
+                }
+            }
+        }
     }
 }
 
