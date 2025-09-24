@@ -8,10 +8,22 @@
       "type": "object",
       "description": "Basic information about the chip part and package.",
       "properties": {
-        "partNumber": { "type": "string", "description": "Manufacturer part number." },
-        "packageType": { "type": "string", "description": "e.g., QFN-48, WLCSP-35." },
-        "datasheetVersion": { "type": "string", "description": "Version of the datasheet this definition is based on." },
-        "sizeDescription": { "type": "string", "description": "Overall physical dimensions (e.g., '7mm x 7mm x 0.85mm body')." }
+        "partNumber": {
+          "type": "string",
+          "description": "Manufacturer part number."
+        },
+        "packageType": {
+          "type": "string",
+          "description": "e.g., QFN-48, WLCSP-35."
+        },
+        "datasheetVersion": {
+          "type": "string",
+          "description": "Version of the datasheet this definition is based on."
+        },
+        "sizeDescription": {
+          "type": "string",
+          "description": "Overall physical dimensions (e.g., '7mm x 7mm x 0.85mm body')."
+        }
       },
       "required": ["partNumber", "packageType"]
     },
@@ -22,7 +34,11 @@
         "canvasDefaults": {
           "type": "object",
           "properties": {
-            "padding": { "type": "number", "default": 20, "description": "Default padding around the package within the canvas, in 'units' or pixels if units are abstract." }
+            "padding": {
+              "type": "number",
+              "default": 20,
+              "description": "Default padding around the package within the canvas, in 'units' or pixels if units are abstract."
+            }
           },
           "required": ["padding"]
         },
@@ -30,23 +46,66 @@
           "type": "object",
           "description": "Visual and dimensional properties of the chip body.",
           "properties": {
-            "width": { "type": "number", "description": "Width of the chip body in 'units'." },
-            "height": { "type": "number", "description": "Height of the chip body in 'units'." },
-            "centerX": { "type": "number", "default": 0, "description": "X-coordinate of the chip body's center (application can define origin, e.g., canvas center)." },
-            "centerY": { "type": "number", "default": 0, "description": "Y-coordinate of the chip body's center." },
-            "cornerRadius": { "type": "number", "default": 0, "description": "Corner radius if shape is 'rect', in 'units'." },
-            "fillColor": { "type": "string", "format": "color", "default": "#4A4A4A" },
-            "strokeColor": { "type": "string", "format": "color", "default": "#222222" },
-            "strokeWidth": { "type": "number", "default": 0.5, "description": "in 'units' or pixels" },
+            "width": {
+              "type": "number",
+              "description": "Width of the chip body in 'units'."
+            },
+            "height": {
+              "type": "number",
+              "description": "Height of the chip body in 'units'."
+            },
+            "centerX": {
+              "type": "number",
+              "default": 0,
+              "description": "X-coordinate of the chip body's center (application can define origin, e.g., canvas center)."
+            },
+            "centerY": {
+              "type": "number",
+              "default": 0,
+              "description": "Y-coordinate of the chip body's center."
+            },
+            "cornerRadius": {
+              "type": "number",
+              "default": 0,
+              "description": "Corner radius if shape is 'rect', in 'units'."
+            },
+            "fillColor": {
+              "type": "string",
+              "format": "color",
+              "default": "#4A4A4A"
+            },
+            "strokeColor": {
+              "type": "string",
+              "format": "color",
+              "default": "#222222"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 0.5,
+              "description": "in 'units' or pixels"
+            },
             "orientationMarker": {
-                "type": "object",
-                "description": "Visual marker for pin 1 or package orientation.",
-                "properties": {
-                    "size": {"type": "number", "description": "Diameter or length of the marker in 'units'."},
-                    "offsetX": {"type": "number", "description": "X offset from chipBody centerX in 'units'."},
-                    "offsetY": {"type": "number", "description": "Y offset from chipBody centerY in 'units'."},
-                    "fillColor": {"type": "string", "format": "color", "default": "#FFFFFF"}
+              "type": "object",
+              "description": "Visual marker for pin 1 or package orientation.",
+              "properties": {
+                "size": {
+                  "type": "number",
+                  "description": "Diameter or length of the marker in 'units'."
+                },
+                "offsetX": {
+                  "type": "number",
+                  "description": "X offset from chipBody centerX in 'units'."
+                },
+                "offsetY": {
+                  "type": "number",
+                  "description": "Y offset from chipBody centerY in 'units'."
+                },
+                "fillColor": {
+                  "type": "string",
+                  "format": "color",
+                  "default": "#FFFFFF"
                 }
+              }
             }
           },
           "required": ["width", "height"]
@@ -56,11 +115,29 @@
           "description": "Default visual properties for all pins. Can be overridden per pin.",
           "properties": {
             "shape": { "enum": ["rect", "circle"], "default": "rect" },
-            "width": { "type": "number", "description": "Default width/diameter of a pin in 'units'." },
-            "height": { "type": "number", "description": "Default height of a pin (if applicable, e.g., for rects) in 'units'." },
-            "fillColor": { "type": "string", "format": "color", "default": "#B0B0B0" },
-            "strokeColor": { "type": "string", "format": "color", "default": "#707070" },
-            "strokeWidth": { "type": "number", "default": 0.2, "description": "in 'units' or pixels" }
+            "width": {
+              "type": "number",
+              "description": "Default width/diameter of a pin in 'units'."
+            },
+            "height": {
+              "type": "number",
+              "description": "Default height of a pin (if applicable, e.g., for rects) in 'units'."
+            },
+            "fillColor": {
+              "type": "string",
+              "format": "color",
+              "default": "#B0B0B0"
+            },
+            "strokeColor": {
+              "type": "string",
+              "format": "color",
+              "default": "#707070"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 0.2,
+              "description": "in 'units' or pixels"
+            }
           },
           "required": ["shape", "width"]
         },
@@ -74,7 +151,12 @@
           ]
         }
       },
-      "required": ["canvasDefaults", "chipBody", "pinDefaults", "layoutStrategy"]
+      "required": [
+        "canvasDefaults",
+        "chipBody",
+        "pinDefaults",
+        "layoutStrategy"
+      ]
     },
     "socPeripherals": {
       "type": "array",
@@ -99,7 +181,12 @@
             "type": "string",
             "description": "Brief description of the peripheral's function."
           },
-          "uiHint": { "type": "string", "enum": ["normal", "checkbox"], "default": "normal", "description": "A hint for the UI on how to display this peripheral." },
+          "uiHint": {
+            "type": "string",
+            "enum": ["normal", "checkbox"],
+            "default": "normal",
+            "description": "A hint for the UI on how to display this peripheral."
+          },
           "signals": {
             "type": "array",
             "description": "Defines the individual signals (pins/lines) this peripheral requires or provides.",
@@ -112,15 +199,24 @@
                 },
                 "description": { "type": "string" },
                 "direction": {
-                  "enum": ["input", "output", "inout", "analog_input", "analog_output", "analog_inout"],
+                  "enum": [
+                    "input",
+                    "output",
+                    "inout",
+                    "analog_input",
+                    "analog_output",
+                    "analog_inout"
+                  ],
                   "description": "Signal direction relative to the SoC peripheral."
                 },
                 "isMandatory": {
-                  "type": "boolean", "default": false,
+                  "type": "boolean",
+                  "default": false,
                   "description": "Is this signal essential for the peripheral's basic operation?"
                 },
                 "requiresClockCapablePin": {
-                  "type": "boolean", "default": false,
+                  "type": "boolean",
+                  "default": false,
                   "description": "Does this signal require connection to a GPIO pin designated as 'clock capable' in the 'pins' array?"
                 },
                 "allowedGpio": {
@@ -154,28 +250,88 @@
       "items": {
         "type": "object",
         "properties": {
-          "packagePinId": { "type": "string", "description": "Unique physical identifier on the package (e.g., '1', '48', 'A1', 'G7')." },
-          "name": { "type": "string", "description": "Logical SoC signal name (e.g., 'P0.01', 'VDD', 'NC')." },
-          "port": { "type": ["string", "null"], "description": "GPIO port for GPIO pins, e.g., 'P0', 'P1'." },
-          "pinIndex": { "type": ["integer", "null"], "description": "Index of the pin within its port for GPIO pins." },
+          "packagePinId": {
+            "type": "string",
+            "description": "Unique physical identifier on the package (e.g., '1', '48', 'A1', 'G7')."
+          },
+          "name": {
+            "type": "string",
+            "description": "Logical SoC signal name (e.g., 'P0.01', 'VDD', 'NC')."
+          },
+          "port": {
+            "type": ["string", "null"],
+            "description": "GPIO port for GPIO pins, e.g., 'P0', 'P1'."
+          },
+          "pinIndex": {
+            "type": ["integer", "null"],
+            "description": "Index of the pin within its port for GPIO pins."
+          },
           "functions": {
             "type": "array",
             "description": "List of functions available on this pin. E.g., ['AIN0', 'PWM_OUT2', 'GPIO'].",
             "items": { "type": "string" }
           },
-          "defaultType": { "enum": ["io", "power_positive", "power_ground", "analog_special", "debug", "reset", "crystal_hf", "crystal_lf", "rf_antenna", "rf_control", "decoupling", "nc", "other_system"], "description": "Primary classification." },
+          "defaultType": {
+            "enum": [
+              "io",
+              "power_positive",
+              "power_ground",
+              "analog_special",
+              "debug",
+              "reset",
+              "crystal_hf",
+              "crystal_lf",
+              "rf_antenna",
+              "rf_control",
+              "decoupling",
+              "nc",
+              "other_system"
+            ],
+            "description": "Primary classification."
+          },
           "isClockCapable": { "type": "boolean", "default": false },
           "powerDomain": { "type": "string" },
-          "renderOrder": { "type": "integer", "description": "For perimeter layouts, the sequential drawing order if 'packagePinId' is not numeric/sequential." },
-          "side": { "enum": ["top", "bottom", "left", "right"], "description": "For perimeter layouts, which side the pin is on." },
-          "gridCoordinates": { "type": "string", "description": "For grid layouts, e.g., 'A1', 'H12'."},
-          "x": { "type": "number", "description": "Explicit X coordinate (center) in 'units', for 'customExplicitLayout' or to override calculated." },
-          "y": { "type": "number", "description": "Explicit Y coordinate (center) in 'units'." },
-          "rotation": { "type": "number", "default": 0, "description": "Rotation in degrees (0 is typically pointing outwards for perimeter pins)." },
-          "shape": { "type": "string", "description": "Overrides pinDefaults.shape." },
-          "width": { "type": "number", "description": "Overrides pinDefaults.width." },
-          "height": { "type": "number", "description": "Overrides pinDefaults.height." },
-          "length": { "type": "number", "description": "Overrides pinDefaults.length." },
+          "renderOrder": {
+            "type": "integer",
+            "description": "For perimeter layouts, the sequential drawing order if 'packagePinId' is not numeric/sequential."
+          },
+          "side": {
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "For perimeter layouts, which side the pin is on."
+          },
+          "gridCoordinates": {
+            "type": "string",
+            "description": "For grid layouts, e.g., 'A1', 'H12'."
+          },
+          "x": {
+            "type": "number",
+            "description": "Explicit X coordinate (center) in 'units', for 'customExplicitLayout' or to override calculated."
+          },
+          "y": {
+            "type": "number",
+            "description": "Explicit Y coordinate (center) in 'units'."
+          },
+          "rotation": {
+            "type": "number",
+            "default": 0,
+            "description": "Rotation in degrees (0 is typically pointing outwards for perimeter pins)."
+          },
+          "shape": {
+            "type": "string",
+            "description": "Overrides pinDefaults.shape."
+          },
+          "width": {
+            "type": "number",
+            "description": "Overrides pinDefaults.width."
+          },
+          "height": {
+            "type": "number",
+            "description": "Overrides pinDefaults.height."
+          },
+          "length": {
+            "type": "number",
+            "description": "Overrides pinDefaults.length."
+          },
           "fillColor": { "type": "string", "format": "color" },
           "strokeColor": { "type": "string", "format": "color" },
           "strokeWidth": { "type": "number" }
@@ -201,17 +357,33 @@
           },
           "required": ["top", "bottom", "left", "right"]
         },
-        "pinPitch": { "type": "number", "description": "Distance between centers of adjacent pins on a side, in 'units'." },
+        "pinPitch": {
+          "type": "number",
+          "description": "Distance between centers of adjacent pins on a side, in 'units'."
+        },
         "numberingStart": {
           "type": "object",
           "properties": {
             "side": { "enum": ["top", "bottom", "left", "right"] },
-            "corner": { "enum": ["topLeft", "topRight", "bottomLeft", "bottomRight", "center"], "description": "Relative corner/edge of the side where pin numbering starts." },
+            "corner": {
+              "enum": [
+                "topLeft",
+                "topRight",
+                "bottomLeft",
+                "bottomRight",
+                "center"
+              ],
+              "description": "Relative corner/edge of the side where pin numbering starts."
+            },
             "direction": { "enum": ["clockwise", "counterClockwise"] }
           },
           "required": ["side", "corner", "direction"]
         },
-        "pinOffsetFromEdge": { "type": "number", "default": 0, "description": "Distance from the chip body edge to the center of the pin's base, in 'units'." }
+        "pinOffsetFromEdge": {
+          "type": "number",
+          "default": 0,
+          "description": "Distance from the chip body edge to the center of the pin's base, in 'units'."
+        }
       },
       "required": ["layoutType", "pinCounts", "pinPitch", "numberingStart"]
     },
@@ -221,10 +393,24 @@
         "layoutType": { "const": "gridMatrix" },
         "rows": { "type": "integer" },
         "columns": { "type": "integer" },
-        "rowLabels": { "type": "array", "items": { "type": "string" }, "description": "e.g., ['A', 'B', ...]" },
-        "columnLabels": { "type": "array", "items": { "type": "string" }, "description": "e.g., ['1', '2', ...]" },
-        "pitchX": { "type": "number", "description": "Horizontal distance between pin/ball centers, in 'units'." },
-        "pitchY": { "type": "number", "description": "Vertical distance between pin/ball centers, in 'units'." },
+        "rowLabels": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "e.g., ['A', 'B', ...]"
+        },
+        "columnLabels": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "e.g., ['1', '2', ...]"
+        },
+        "pitchX": {
+          "type": "number",
+          "description": "Horizontal distance between pin/ball centers, in 'units'."
+        },
+        "pitchY": {
+          "type": "number",
+          "description": "Vertical distance between pin/ball centers, in 'units'."
+        },
         "originOffset": {
           "type": "object",
           "description": "X,Y offset of the center of the first pin (e.g., A1) from the chipBody center (0,0), in 'units'.",
@@ -234,15 +420,29 @@
           },
           "required": ["x", "y"]
         },
-        "labelOriginConvention": { "enum": ["topLeft", "bottomLeft"], "default": "topLeft", "description": "Defines if 'A1' is the top-left or bottom-left pin of the grid." }
+        "labelOriginConvention": {
+          "enum": ["topLeft", "bottomLeft"],
+          "default": "topLeft",
+          "description": "Defines if 'A1' is the top-left or bottom-left pin of the grid."
+        }
       },
-      "required": ["layoutType", "rows", "columns", "pitchX", "pitchY", "originOffset"]
+      "required": [
+        "layoutType",
+        "rows",
+        "columns",
+        "pitchX",
+        "pitchY",
+        "originOffset"
+      ]
     },
     "customExplicitLayout": {
       "type": "object",
       "properties": {
         "layoutType": { "const": "customCoordinates" },
-        "description": { "type": "string", "default": "Pins are positioned using their explicit x, y, rotation properties."}
+        "description": {
+          "type": "string",
+          "default": "Pins are positioned using their explicit x, y, rotation properties."
+        }
       },
       "required": ["layoutType"]
     }

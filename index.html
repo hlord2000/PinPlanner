@@ -1,178 +1,303 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-	<!-- Google tag (gtag.js) -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=G-NME89B10ME"></script>
-	<script>
-	  window.dataLayer = window.dataLayer || [];
-	  function gtag(){dataLayer.push(arguments);}
-	  gtag('js', new Date());
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-NME89B10ME"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-	  gtag('config', 'G-NME89B10ME');
-	</script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="style.css">
-    <link rel="shortcut icon" type="image/png" href="favicon.png">
+      gtag("config", "G-NME89B10ME");
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" type="image/png" href="favicon.png" />
     <title>nRF54L Pin Planner | by Helmut Lord</title>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header class="header">
-            <div class="header-title">
-                <h1>nRF54L Pin Planner</h1>
-                <p class="subtitle">Created by <a href="https://www.linkedin.com/in/helmutlord/" target="_blank">Helmut Lord</a></p>
-            </div>
-            <div class="theme-switch-container">
-                <svg class="theme-icon" id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <div class="theme-switch-wrapper">
-                    <label class="theme-switch" for="theme-toggle">
-                        <input type="checkbox" id="theme-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <svg class="theme-icon" id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            </div>
-        </header>
-
-        <div class="content-grid">
-            <aside class="sidebar">
-                <div class="package-selector card">
-                    <h2>Configuration</h2>
-                    <div class="selector-group">
-                        <label for="mcuSelector">MCU</label>
-                        <select id="mcuSelector"></select>
-                    </div>
-                    <div class="selector-group">
-                        <label for="packageSelector">Package</label>
-                        <select id="packageSelector"></select>
-                    </div>
-                </div>
-
-                <div class="sidebar-content card">
-                    <h2>Peripherals</h2>
-                    <div id="content-peripherals">
-                        <input type="text" id="searchPeripherals" class="search-box" placeholder="Search peripherals...">
-                        <div id="peripherals-list">
-                            <!-- Peripherals will be dynamically inserted here -->
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <main class="main-view">
-                <div class="chip-display card">
-                    <h2 id="chipTitleDisplay"></h2>
-                    <div class="chip-container">
-                        <!-- Pin layout is generated here -->
-                    </div>
-                    <div class="legend">
-                        <div class="legend-item"><div class="legend-color" style="background-color: var(--pin-bg-available);"></div><span>Available</span></div>
-                        <div class="legend-item"><div class="legend-color" style="background-color: var(--primary-color);"></div><span>Used</span></div>
-                        <div class="legend-item"><div class="legend-color" style="background-color: var(--warning-color);"></div><span>Clock Pin</span></div>
-                        <div class="legend-item"><div class="legend-color" style="background-color: var(--error-color);"></div><span>Required</span></div>
-                        <div class="legend-item"><div class="legend-color" style="background-color: var(--system-color);"></div><span>System</span></div>
-                        <div class="legend-item"><div class="legend-color" style="background-color: var(--pin-bg-special);"></div><span>Power/Debug</span></div>
-                    </div>
-                </div>
-                <div class="info-and-details">
-                    <div class="pin-details card" id="pinDetails">
-                        <p>Click a pin to see details...</p>
-                    </div>
-                </div>
-            </main>
-
-            <aside class="selected-view card">
-                <h2>Selected</h2>
-                <div id="content-selected">
-                    <ul class="selected-list" id="selectedList">
-                        <li class="empty-message">No peripherals selected yet.</li>
-                    </ul>
-                    <div class="button-group-vertical">
-                        <button id="clearAllBtn">Clear All</button>
-                        <button id="exportBtn">Export Configuration</button>
-                        <button id="importBtn">Import Configuration</button>
-                    </div>
-                </div>
-            </aside>
+      <header class="header">
+        <div class="header-title">
+          <h1>nRF54L Pin Planner</h1>
+          <p class="subtitle">
+            Created by
+            <a href="https://www.linkedin.com/in/helmutlord/" target="_blank"
+              >Helmut Lord</a
+            >
+          </p>
         </div>
+        <div class="theme-switch-container">
+          <svg
+            class="theme-icon"
+            id="sun-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="theme-toggle">
+              <input type="checkbox" id="theme-toggle" />
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <svg
+            class="theme-icon"
+            id="moon-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </div>
+      </header>
 
-        <footer class="footer">
-            <p>An intuitive pin configuration tool for the nRF54L series.</p>
-            <div class="footer-note">
-                <strong>NOTE:</strong> This is not an official Nordic application. Always verify configurations with the official <a href="https://docs.nordicsemi.com/" target="_blank">nRF54L documentation</a>.
+      <div class="content-grid">
+        <aside class="sidebar">
+          <div class="package-selector card">
+            <h2>Configuration</h2>
+            <div class="selector-group">
+              <label for="mcuSelector">MCU</label>
+              <select id="mcuSelector"></select>
             </div>
-            <a href="http://github.com/hlord2000/PinPlanner" target="_blank" class="github-link">
-                <svg class="github-icon" viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-                <span>View Source</span>
-            </a>
-        </footer>
+            <div class="selector-group">
+              <label for="packageSelector">Package</label>
+              <select id="packageSelector"></select>
+            </div>
+          </div>
+
+          <div class="sidebar-content card">
+            <h2>Peripherals</h2>
+            <div id="content-peripherals">
+              <input
+                type="text"
+                id="searchPeripherals"
+                class="search-box"
+                placeholder="Search peripherals..."
+              />
+              <div id="peripherals-list">
+                <!-- Peripherals will be dynamically inserted here -->
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main class="main-view">
+          <div class="chip-display card">
+            <h2 id="chipTitleDisplay"></h2>
+            <div class="chip-container">
+              <!-- Pin layout is generated here -->
+            </div>
+            <div class="legend">
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: var(--pin-bg-available)"
+                ></div>
+                <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: var(--primary-color)"
+                ></div>
+                <span>Used</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: var(--pin-bg-available); border: 2px solid var(--warning-color);"
+                ></div>
+                <span>Clock Pin</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: var(--pin-bg-special)"
+                ></div>
+                <span>Power/Debug</span>
+              </div>
+            </div>
+          </div>
+          <div class="info-and-details">
+            <div class="pin-details card" id="pinDetails">
+              <p>Click a pin to see details...</p>
+            </div>
+          </div>
+        </main>
+
+        <aside class="selected-view card">
+          <h2>Selected</h2>
+          <div id="content-selected">
+            <ul class="selected-list" id="selectedList">
+              <li class="empty-message">No peripherals selected yet.</li>
+            </ul>
+            <div class="button-group-vertical">
+              <button id="clearAllBtn">Clear All</button>
+              <button id="exportBtn">Export Configuration</button>
+              <button id="importBtn">Import Configuration</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="footer">
+        <p>An intuitive pin configuration tool for the nRF54L series.</p>
+        <div class="footer-note">
+          <strong>NOTE:</strong> This is not an official Nordic application.
+          Always verify configurations with the official
+          <a href="https://docs.nordicsemi.com/" target="_blank"
+            >nRF54L documentation</a
+          >.
+        </div>
+        <a
+          href="http://github.com/hlord2000/PinPlanner"
+          target="_blank"
+          class="github-link"
+        >
+          <svg
+            class="github-icon"
+            viewBox="0 0 16 16"
+            version="1.1"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+            ></path>
+          </svg>
+          <span>View Source</span>
+        </a>
+      </footer>
     </div>
-    
+
     <!-- Import Configuration Modal -->
     <div id="importModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Import Configuration</h2>
-                <span class="close" id="closeImportModal">&times;</span>
-            </div>
-            <div id="importModalBody">
-                <div class="import-tabs">
-                    <button class="import-tab-btn active" data-tab="file-upload">File Upload</button>
-                    <button class="import-tab-btn" data-tab="paste-json">Paste JSON</button>
-                </div>
-                
-                <div class="import-tab-content active" id="file-upload">
-                    <p>Select a JSON configuration file to import:</p>
-                    <input type="file" id="importFileInput" accept=".json" style="margin-bottom: 15px;">
-                </div>
-                
-                <div class="import-tab-content" id="paste-json">
-                    <p>Paste your exported JSON configuration below:</p>
-                    <textarea id="importJsonInput" style="width: 100%; height: 200px; margin-bottom: 15px; font-family: monospace;"></textarea>
-                </div>
-                
-                <div id="importError" style="color: red; margin-bottom: 10px; display: none;"></div>
-            </div>
-            <div class="modal-footer">
-                <button id="cancelImport">Cancel</button>
-                <button id="confirmImport">Import</button>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Import Configuration</h2>
+          <span class="close" id="closeImportModal">&times;</span>
         </div>
+        <div id="importModalBody">
+          <div class="import-tabs">
+            <button class="import-tab-btn active" data-tab="file-upload">
+              File Upload
+            </button>
+            <button class="import-tab-btn" data-tab="paste-json">
+              Paste JSON
+            </button>
+          </div>
+
+          <div class="import-tab-content active" id="file-upload">
+            <p>Select a JSON configuration file to import:</p>
+            <input
+              type="file"
+              id="importFileInput"
+              accept=".json"
+              style="margin-bottom: 15px"
+            />
+          </div>
+
+          <div class="import-tab-content" id="paste-json">
+            <p>Paste your exported JSON configuration below:</p>
+            <textarea
+              id="importJsonInput"
+              style="
+                width: 100%;
+                height: 200px;
+                margin-bottom: 15px;
+                font-family: monospace;
+              "
+            ></textarea>
+          </div>
+
+          <div
+            id="importError"
+            style="color: red; margin-bottom: 10px; display: none"
+          ></div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelImport">Cancel</button>
+          <button id="confirmImport">Import</button>
+        </div>
+      </div>
     </div>
-    
+
     <!-- Pin Selection Modal -->
     <div id="pinSelectionModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Select Pins for Peripheral</h2>
-                <span class="close">&times;</span>
-            </div>
-            <div id="modalBody">
-                <p>Select which pins to use for each peripheral function:</p>
-                <div id="pinRestrictionWarning" style="display: none; background-color: #fff3cd; color: #856404; padding: 10px; margin-bottom: 15px; border: 1px solid #ffeeba; border-radius: 5px;">
-                    <strong>Note:</strong> This peripheral supports both Port 1 and specific Port 2 pins. For optimal power consumption, Port 1 is recommended. If using Port 2, only the specifically designated P2 pins for this peripheral can be used.
-                </div>
-                <table class="pin-selection-table" id="pinSelectionTable">
-                    <thead>
-                        <tr>
-                            <th>Function</th>
-                            <th>Required</th>
-                            <th>Pin Selection</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pinSelectionTableBody">
-                        <!-- Will be filled dynamically -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button id="cancelPinSelection">Cancel</button>
-                <button id="confirmPinSelection">Confirm Selection</button>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Select Pins for Peripheral</h2>
+          <span class="close">&times;</span>
         </div>
+        <div id="modalBody">
+          <p>Select which pins to use for each peripheral function:</p>
+          <div
+            id="pinRestrictionWarning"
+            style="
+              display: none;
+              background-color: #fff3cd;
+              color: #856404;
+              padding: 10px;
+              margin-bottom: 15px;
+              border: 1px solid #ffeeba;
+              border-radius: 5px;
+            "
+          >
+            <strong>Note:</strong> This peripheral supports both Port 1 and
+            specific Port 2 pins. For optimal power consumption, Port 1 is
+            recommended. If using Port 2, only the specifically designated P2
+            pins for this peripheral can be used.
+          </div>
+          <table class="pin-selection-table" id="pinSelectionTable">
+            <thead>
+              <tr>
+                <th>Function</th>
+                <th>Required</th>
+                <th>Pin Selection</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="pinSelectionTableBody">
+              <!-- Will be filled dynamically -->
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelPinSelection">Cancel</button>
+          <button id="confirmPinSelection">Confirm Selection</button>
+        </div>
+      </div>
     </div>
-	<script src="script.js"></script>
-	</body>
+    <script src="script.js"></script>
+  </body>
 </html>

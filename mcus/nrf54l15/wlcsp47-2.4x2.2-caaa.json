@@ -26,24 +26,8 @@
       "layoutType": "gridMatrix",
       "rows": 7,
       "columns": 7,
-      "rowLabels": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-        "G"
-      ],
-      "columnLabels": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7"
-      ],
+      "rowLabels": ["A", "B", "C", "D", "E", "F", "G"],
+      "columnLabels": ["1", "2", "3", "4", "5", "6", "7"],
       "pitchX": 0.35,
       "pitchY": 0.35,
       "originOffset": {
@@ -61,9 +45,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "crystal_hf",
-      "functions": [
-        "Connection for 32 MHz crystal"
-      ],
+      "functions": ["Connection for 32 MHz crystal"],
       "gridCoordinates": "A1"
     },
     {
@@ -73,9 +55,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "crystal_hf",
-      "functions": [
-        "Connection for 32 MHz crystal"
-      ],
+      "functions": ["Connection for 32 MHz crystal"],
       "gridCoordinates": "A2"
     },
     {
@@ -85,12 +65,7 @@
       "pinIndex": 12,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P1.12",
-        "ASI[3]",
-        "RADIO[3]",
-        "AIN5"
-      ],
+      "functions": ["P1.12", "ASI[3]", "RADIO[3]", "AIN5"],
       "gridCoordinates": "A3"
     },
     {
@@ -100,9 +75,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "decoupling",
-      "functions": [
-        "0.9 V regulator supply decoupling"
-      ],
+      "functions": ["0.9 V regulator supply decoupling"],
       "gridCoordinates": "A4"
     },
     {
@@ -112,9 +85,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "decoupling",
-      "functions": [
-        "0.9 V regulator supply decoupling"
-      ],
+      "functions": ["0.9 V regulator supply decoupling"],
       "gridCoordinates": "A5"
     },
     {
@@ -124,9 +95,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "power_ground",
-      "functions": [
-        "Ground"
-      ],
+      "functions": ["Ground"],
       "gridCoordinates": "A6"
     },
     {
@@ -136,9 +105,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "power_positive",
-      "functions": [
-        "DC/DC regulator output"
-      ],
+      "functions": ["DC/DC regulator output"],
       "gridCoordinates": "A7"
     },
     {
@@ -148,9 +115,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "decoupling",
-      "functions": [
-        "0.9 V regulator supply decoupling"
-      ],
+      "functions": ["0.9 V regulator supply decoupling"],
       "gridCoordinates": "B1"
     },
     {
@@ -160,11 +125,7 @@
       "pinIndex": 9,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.09",
-        "ASO[2]",
-        "RADIO[0]"
-      ],
+      "functions": ["P1.09", "ASO[2]", "RADIO[0]"],
       "gridCoordinates": "B3"
     },
     {
@@ -174,11 +135,7 @@
       "pinIndex": 13,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.13",
-        "RADIO[4]",
-        "AIN6"
-      ],
+      "functions": ["P1.13", "RADIO[4]", "AIN6"],
       "gridCoordinates": "B4"
     },
     {
@@ -188,11 +145,7 @@
       "pinIndex": 14,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.14",
-        "RADIO[5]",
-        "AIN7"
-      ],
+      "functions": ["P1.14", "RADIO[5]", "AIN7"],
       "gridCoordinates": "B5"
     },
     {
@@ -202,9 +155,7 @@
       "pinIndex": 15,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "General purpose I/O"
-      ],
+      "functions": ["General purpose I/O"],
       "gridCoordinates": "B6"
     },
     {
@@ -214,9 +165,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "power_positive",
-      "functions": [
-        "Power supply"
-      ],
+      "functions": ["Power supply"],
       "gridCoordinates": "B7"
     },
     {
@@ -226,9 +175,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "power_ground",
-      "functions": [
-        "Ground (radio supply)"
-      ],
+      "functions": ["Ground (radio supply)"],
       "gridCoordinates": "C2"
     },
     {
@@ -238,11 +185,7 @@
       "pinIndex": 10,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.10",
-        "ASI[2]",
-        "RADIO[1]"
-      ],
+      "functions": ["P1.10", "ASI[2]", "RADIO[1]"],
       "gridCoordinates": "C3"
     },
     {
@@ -252,12 +195,7 @@
       "pinIndex": 11,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P1.11",
-        "ASO[3]",
-        "RADIO[2]",
-        "AIN4"
-      ],
+      "functions": ["P1.11", "ASO[3]", "RADIO[2]", "AIN4"],
       "gridCoordinates": "C4"
     },
     {
@@ -267,10 +205,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.00",
-        "XL1"
-      ],
+      "functions": ["P1.00", "XL1"],
       "gridCoordinates": "C5"
     },
     {
@@ -280,10 +215,7 @@
       "pinIndex": 1,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.01",
-        "XL2"
-      ],
+      "functions": ["P1.01", "XL2"],
       "gridCoordinates": "C6"
     },
     {
@@ -293,10 +225,7 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.02",
-        "NFC1"
-      ],
+      "functions": ["P1.02", "NFC1"],
       "gridCoordinates": "C7"
     },
     {
@@ -306,9 +235,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "rf_antenna",
-      "functions": [
-        "Single ended radio antenna connection"
-      ],
+      "functions": ["Single ended radio antenna connection"],
       "gridCoordinates": "D1"
     },
     {
@@ -318,9 +245,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "reset",
-      "functions": [
-        "Pin reset with on-chip pull-up"
-      ],
+      "functions": ["Pin reset with on-chip pull-up"],
       "gridCoordinates": "D2"
     },
     {
@@ -330,10 +255,7 @@
       "pinIndex": 4,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P0.04",
-        "GRTC CLKOUT32K"
-      ],
+      "functions": ["P0.04", "GRTC CLKOUT32K"],
       "gridCoordinates": "D3"
     },
     {
@@ -360,10 +282,7 @@
       "pinIndex": 3,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P1.03",
-        "NFC2"
-      ],
+      "functions": ["P1.03", "NFC2"],
       "gridCoordinates": "D5"
     },
     {
@@ -373,11 +292,7 @@
       "pinIndex": 4,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P1.04",
-        "ASO[0]",
-        "AIN0"
-      ],
+      "functions": ["P1.04", "ASO[0]", "AIN0"],
       "gridCoordinates": "D6"
     },
     {
@@ -387,11 +302,7 @@
       "pinIndex": 6,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.06",
-        "ASO[1]",
-        "AIN2"
-      ],
+      "functions": ["P1.06", "ASO[1]", "AIN2"],
       "gridCoordinates": "D7"
     },
     {
@@ -401,10 +312,7 @@
       "pinIndex": 3,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P0.03",
-        "GRTC PWM"
-      ],
+      "functions": ["P0.03", "GRTC PWM"],
       "gridCoordinates": "E1"
     },
     {
@@ -414,9 +322,7 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "General purpose I/O"
-      ],
+      "functions": ["General purpose I/O"],
       "gridCoordinates": "E2"
     },
     {
@@ -426,9 +332,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "debug",
-      "functions": [
-        "Serial wire clock"
-      ],
+      "functions": ["Serial wire clock"],
       "gridCoordinates": "E3"
     },
     {
@@ -455,11 +359,7 @@
       "pinIndex": 3,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P2.03",
-        "FLPR.3",
-        "QSPI D2"
-      ],
+      "functions": ["P2.03", "FLPR.3", "QSPI D2"],
       "gridCoordinates": "E5"
     },
     {
@@ -469,12 +369,7 @@
       "pinIndex": 5,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.05",
-        "ASI[0]",
-        "RADIO[6]",
-        "AIN1"
-      ],
+      "functions": ["P1.05", "ASI[0]", "RADIO[6]", "AIN1"],
       "gridCoordinates": "E6"
     },
     {
@@ -484,11 +379,7 @@
       "pinIndex": 7,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P1.07",
-        "ASI[1]",
-        "AIN3"
-      ],
+      "functions": ["P1.07", "ASI[1]", "AIN3"],
       "gridCoordinates": "E7"
     },
     {
@@ -498,9 +389,7 @@
       "pinIndex": 1,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "General purpose I/O"
-      ],
+      "functions": ["General purpose I/O"],
       "gridCoordinates": "F1"
     },
     {
@@ -510,9 +399,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "debug",
-      "functions": [
-        "Serial wire data"
-      ],
+      "functions": ["Serial wire data"],
       "gridCoordinates": "F2"
     },
     {
@@ -539,13 +426,7 @@
       "pinIndex": 6,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P2.06",
-        "TRACECLK",
-        "FLPR.6",
-        "SPIM SCK",
-        "SPIS SCK"
-      ],
+      "functions": ["P2.06", "TRACECLK", "FLPR.6", "SPIM SCK", "SPIS SCK"],
       "gridCoordinates": "F4"
     },
     {
@@ -589,11 +470,7 @@
       "pinIndex": 8,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P1.08",
-        "EXTREF",
-        "GRTC CLKOUTFAST"
-      ],
+      "functions": ["P1.08", "EXTREF", "GRTC CLKOUTFAST"],
       "gridCoordinates": "F7"
     },
     {
@@ -603,9 +480,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "General purpose I/O"
-      ],
+      "functions": ["General purpose I/O"],
       "gridCoordinates": "G1"
     },
     {
@@ -632,9 +507,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "power_positive",
-      "functions": [
-        "Power supply"
-      ],
+      "functions": ["Power supply"],
       "gridCoordinates": "G3"
     },
     {
@@ -644,9 +517,7 @@
       "pinIndex": null,
       "isClockCapable": false,
       "defaultType": "power_ground",
-      "functions": [
-        "Ground"
-      ],
+      "functions": ["Ground"],
       "gridCoordinates": "G4"
     },
     {
@@ -673,13 +544,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": [
-        "P2.00",
-        "SPIM DCX",
-        "UARTE RXD",
-        "FLPR.4",
-        "QSPI D3"
-      ],
+      "functions": ["P2.00", "SPIM DCX", "UARTE RXD", "FLPR.4", "QSPI D3"],
       "gridCoordinates": "G6"
     },
     {
@@ -689,13 +554,7 @@
       "pinIndex": 1,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": [
-        "P2.01",
-        "SPIM SCK",
-        "SPIS SCK",
-        "FLPR.0",
-        "QSPI SCK"
-      ],
+      "functions": ["P2.01", "SPIM SCK", "SPIS SCK", "FLPR.0", "QSPI SCK"],
       "gridCoordinates": "G7"
     }
   ],
@@ -709,46 +568,31 @@
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": [
-            "P2.01",
-            "P2.06"
-          ],
+          "allowedGpio": ["P2.01", "P2.06"],
           "driveStrengthRequirement": "extra high"
         },
         {
           "name": "SDO",
           "direction": "output",
-          "allowedGpio": [
-            "P2.02",
-            "P2.08"
-          ],
+          "allowedGpio": ["P2.02", "P2.08"],
           "driveStrengthRequirement": "extra high"
         },
         {
           "name": "SDI",
           "direction": "input",
-          "allowedGpio": [
-            "P2.04",
-            "P2.09"
-          ],
+          "allowedGpio": ["P2.04", "P2.09"],
           "driveStrengthRequirement": "extra high"
         },
         {
           "name": "CS",
           "direction": "inout",
-          "allowedGpio": [
-            "P2.05",
-            "P2.10"
-          ],
+          "allowedGpio": ["P2.05", "P2.10"],
           "driveStrengthRequirement": "extra high"
         },
         {
           "name": "DCX",
           "direction": "output",
-          "allowedGpio": [
-            "P2.00",
-            "P2.07"
-          ],
+          "allowedGpio": ["P2.00", "P2.07"],
           "driveStrengthRequirement": "extra high"
         }
       ]
@@ -763,35 +607,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.02",
-            "P2.08"
-          ]
+          "allowedGpio": ["P2.02", "P2.08"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.00",
-            "P2.07"
-          ]
+          "allowedGpio": ["P2.00", "P2.07"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": [
-            "P2.04",
-            "P2.09"
-          ]
+          "allowedGpio": ["P2.04", "P2.09"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": [
-            "P2.05",
-            "P2.10"
-          ]
+          "allowedGpio": ["P2.05", "P2.10"]
         }
       ]
     },
@@ -804,51 +636,37 @@
         {
           "name": "RADIO[0]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.09"
-          ]
+          "allowedGpio": ["P1.09"]
         },
         {
           "name": "RADIO[1]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.10"
-          ]
+          "allowedGpio": ["P1.10"]
         },
         {
           "name": "RADIO[2]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.11"
-          ]
+          "allowedGpio": ["P1.11"]
         },
         {
           "name": "RADIO[3]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.12"
-          ]
+          "allowedGpio": ["P1.12"]
         },
         {
           "name": "RADIO[4]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.13"
-          ]
+          "allowedGpio": ["P1.13"]
         },
         {
           "name": "RADIO[5]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.14"
-          ]
+          "allowedGpio": ["P1.14"]
         },
         {
           "name": "RADIO[6]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.05"
-          ]
+          "allowedGpio": ["P1.05"]
         }
       ]
     },
@@ -863,42 +681,27 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*",
-            "P2.01"
-          ]
+          "allowedGpio": ["P1*", "P2.01"]
         },
         {
           "name": "SDO",
           "direction": "output",
-          "allowedGpio": [
-            "P1*",
-            "P2.02"
-          ]
+          "allowedGpio": ["P1*", "P2.02"]
         },
         {
           "name": "SDI",
           "direction": "input",
-          "allowedGpio": [
-            "P1*",
-            "P2.04"
-          ]
+          "allowedGpio": ["P1*", "P2.04"]
         },
         {
           "name": "CS",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*",
-            "P2.05"
-          ]
+          "allowedGpio": ["P1*", "P2.05"]
         },
         {
           "name": "DCX",
           "direction": "output",
-          "allowedGpio": [
-            "P1*",
-            "P2.00"
-          ]
+          "allowedGpio": ["P1*", "P2.00"]
         }
       ]
     },
@@ -913,17 +716,13 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDA",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -937,35 +736,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*",
-            "P2.02"
-          ]
+          "allowedGpio": ["P1*", "P2.02"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*",
-            "P2.00"
-          ]
+          "allowedGpio": ["P1*", "P2.00"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": [
-            "P1*",
-            "P2.04"
-          ]
+          "allowedGpio": ["P1*", "P2.04"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": [
-            "P1*",
-            "P2.05"
-          ]
+          "allowedGpio": ["P1*", "P2.05"]
         }
       ]
     },
@@ -980,42 +767,27 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*",
-            "P2.06"
-          ]
+          "allowedGpio": ["P1*", "P2.06"]
         },
         {
           "name": "SDO",
           "direction": "output",
-          "allowedGpio": [
-            "P1*",
-            "P2.08"
-          ]
+          "allowedGpio": ["P1*", "P2.08"]
         },
         {
           "name": "SDI",
           "direction": "input",
-          "allowedGpio": [
-            "P1*",
-            "P2.09"
-          ]
+          "allowedGpio": ["P1*", "P2.09"]
         },
         {
           "name": "CS",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*",
-            "P2.10"
-          ]
+          "allowedGpio": ["P1*", "P2.10"]
         },
         {
           "name": "DCX",
           "direction": "output",
-          "allowedGpio": [
-            "P1*",
-            "P2.07"
-          ]
+          "allowedGpio": ["P1*", "P2.07"]
         }
       ]
     },
@@ -1030,17 +802,13 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDA",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1054,35 +822,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*",
-            "P2.08"
-          ]
+          "allowedGpio": ["P1*", "P2.08"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*",
-            "P2.07"
-          ]
+          "allowedGpio": ["P1*", "P2.07"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": [
-            "P1*",
-            "P2.09"
-          ]
+          "allowedGpio": ["P1*", "P2.09"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": [
-            "P1*",
-            "P2.10"
-          ]
+          "allowedGpio": ["P1*", "P2.10"]
         }
       ]
     },
@@ -1097,37 +853,27 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDO",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDI",
           "direction": "input",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CS",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "DCX",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1142,17 +888,13 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDA",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1166,31 +908,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1205,17 +939,13 @@
           "direction": "output",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "DIN",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1230,17 +960,13 @@
           "direction": "output",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "DIN",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1253,30 +979,22 @@
         {
           "name": "CHAN[0]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1289,30 +1007,22 @@
         {
           "name": "CHAN[0]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1325,30 +1035,22 @@
         {
           "name": "CHAN[0]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1361,65 +1063,47 @@
         {
           "name": "AIN0",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.04"
-          ]
+          "allowedGpio": ["P1.04"]
         },
         {
           "name": "AIN1",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.05"
-          ]
+          "allowedGpio": ["P1.05"]
         },
         {
           "name": "AIN2",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.06"
-          ]
+          "allowedGpio": ["P1.06"]
         },
         {
           "name": "AIN3",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.07"
-          ]
+          "allowedGpio": ["P1.07"]
         },
         {
           "name": "AIN4",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.11"
-          ]
+          "allowedGpio": ["P1.11"]
         },
         {
           "name": "AIN5",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.12"
-          ]
+          "allowedGpio": ["P1.12"]
         },
         {
           "name": "AIN6",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.13"
-          ]
+          "allowedGpio": ["P1.13"]
         },
         {
           "name": "AIN7",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.14"
-          ]
+          "allowedGpio": ["P1.14"]
         },
         {
           "name": "EXTREF",
           "direction": "analog_input",
-          "allowedGpio": [
-            "P1.08"
-          ]
+          "allowedGpio": ["P1.08"]
         }
       ]
     },
@@ -1433,16 +1117,12 @@
         {
           "name": "NFC1",
           "direction": "input",
-          "allowedGpio": [
-            "P1.02"
-          ]
+          "allowedGpio": ["P1.02"]
         },
         {
           "name": "NFC2",
           "direction": "input",
-          "allowedGpio": [
-            "P1.03"
-          ]
+          "allowedGpio": ["P1.03"]
         }
       ]
     },
@@ -1455,58 +1135,42 @@
         {
           "name": "CHAN[0]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[4]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[5]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[6]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CHAN[7]",
           "direction": "inout",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1519,58 +1183,42 @@
         {
           "name": "ASO[0]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.04"
-          ]
+          "allowedGpio": ["P1.04"]
         },
         {
           "name": "ASI[0]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.05"
-          ]
+          "allowedGpio": ["P1.05"]
         },
         {
           "name": "ASO[1]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.06"
-          ]
+          "allowedGpio": ["P1.06"]
         },
         {
           "name": "ASI[1]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.07"
-          ]
+          "allowedGpio": ["P1.07"]
         },
         {
           "name": "ASO[2]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.09"
-          ]
+          "allowedGpio": ["P1.09"]
         },
         {
           "name": "ASI[2]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.10"
-          ]
+          "allowedGpio": ["P1.10"]
         },
         {
           "name": "ASO[3]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.11"
-          ]
+          "allowedGpio": ["P1.11"]
         },
         {
           "name": "ASI[3]",
           "direction": "output",
-          "allowedGpio": [
-            "P1.12"
-          ]
+          "allowedGpio": ["P1.12"]
         }
       ]
     },
@@ -1584,40 +1232,30 @@
           "name": "SCK",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ],
+          "allowedGpio": ["P1*"],
           "requiresClockCapablePin": true
         },
         {
           "name": "LRCK",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDIN",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "SDOUT",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "MCK",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ],
+          "allowedGpio": ["P1*"],
           "requiresClockCapablePin": true
         }
       ]
@@ -1632,24 +1270,18 @@
           "name": "A",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "B",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "LED",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1663,24 +1295,18 @@
           "name": "A",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "B",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "LED",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1693,25 +1319,19 @@
         {
           "name": "PWM",
           "direction": "output",
-          "allowedGpio": [
-            "P0.03"
-          ]
+          "allowedGpio": ["P0.03"]
         },
         {
           "name": "LFCLKOUT",
           "direction": "output",
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P0.04"
-          ]
+          "allowedGpio": ["P0.04"]
         },
         {
           "name": "CLK16M",
           "direction": "output",
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P1.08"
-          ]
+          "allowedGpio": ["P1.08"]
         }
       ]
     },
@@ -1726,37 +1346,27 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "SDO",
           "direction": "output",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "SDI",
           "direction": "input",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "CS",
           "direction": "inout",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "DCX",
           "direction": "output",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         }
       ]
     },
@@ -1771,17 +1381,13 @@
           "direction": "inout",
           "isMandatory": true,
           "requiresClockCapablePin": true,
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "SDA",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         }
       ]
     },
@@ -1795,31 +1401,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": [
-            "P1*"
-          ]
+          "allowedGpio": ["P1*"]
         }
       ]
     },
@@ -1832,30 +1430,22 @@
         {
           "name": "CHAN[0]",
           "direction": "inout",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "inout",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "inout",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "inout",
-          "allowedGpio": [
-            "P0*"
-          ]
+          "allowedGpio": ["P0*"]
         }
       ]
     },
@@ -1869,17 +1459,13 @@
         {
           "name": "XL1",
           "direction": "input",
-          "allowedGpio": [
-            "P1.00"
-          ],
+          "allowedGpio": ["P1.00"],
           "isMandatory": true
         },
         {
           "name": "XL2",
           "direction": "input",
-          "allowedGpio": [
-            "P1.01"
-          ],
+          "allowedGpio": ["P1.01"],
           "isMandatory": true
         }
       ]
@@ -1895,49 +1481,37 @@
           "name": "SCK",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.01"
-          ]
+          "allowedGpio": ["P2.01"]
         },
         {
           "name": "CSN",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.05"
-          ]
+          "allowedGpio": ["P2.05"]
         },
         {
           "name": "D0",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.02"
-          ]
+          "allowedGpio": ["P2.02"]
         },
         {
           "name": "D1",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.04"
-          ]
+          "allowedGpio": ["P2.04"]
         },
         {
           "name": "D2",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.03"
-          ]
+          "allowedGpio": ["P2.03"]
         },
         {
           "name": "D3",
           "direction": "inout",
           "isMandatory": true,
-          "allowedGpio": [
-            "P2.00"
-          ]
+          "allowedGpio": ["P2.00"]
         }
       ]
     }
