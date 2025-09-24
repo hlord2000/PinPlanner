@@ -187,6 +187,13 @@
             "default": "normal",
             "description": "A hint for the UI on how to display this peripheral."
           },
+          "tags": {
+            "type": "array",
+            "description": "A list of search tags to help find the peripheral (e.g., 'I2C', 'SPI-Slave').",
+            "items": {
+              "type": "string"
+            }
+          },
           "signals": {
             "type": "array",
             "description": "Defines the individual signals (pins/lines) this peripheral requires or provides.",

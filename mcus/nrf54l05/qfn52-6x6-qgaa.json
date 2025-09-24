@@ -878,6 +878,7 @@
       "type": "TWI",
       "baseAddress": "0x400C6000",
       "description": "Peripheral domain TWIM/TWIS20 for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -964,6 +965,7 @@
       "type": "TWI",
       "baseAddress": "0x400C7000",
       "description": "Peripheral domain TWIM/TWIS21 for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -1050,6 +1052,7 @@
       "type": "TWI",
       "baseAddress": "0x400C8000",
       "description": "Peripheral domain TWIM/TWIS22 for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -1543,6 +1546,7 @@
       "type": "TWI",
       "baseAddress": "0x40104000",
       "description": "Peripheral domain TWIM/TWIS30 for GPIO port 0",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",

@@ -953,6 +953,7 @@
       "type": "TWI",
       "baseAddress": "0x40104000",
       "description": "TWIM/TWIS for GPIO port 0",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -998,6 +999,7 @@
       "type": "TWI",
       "baseAddress": "0x400C6000",
       "description": "TWIM/TWIS for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -1043,6 +1045,7 @@
       "type": "TWI",
       "baseAddress": "0x400C7000",
       "description": "TWIM/TWIS for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -1088,6 +1091,7 @@
       "type": "TWI",
       "baseAddress": "0x400C8000",
       "description": "TWIM/TWIS for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -1133,6 +1137,7 @@
       "type": "TWI",
       "baseAddress": "0x400C9000",
       "description": "TWIM/TWIS for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
@@ -1178,6 +1183,7 @@
       "type": "TWI",
       "baseAddress": "0x400CA000",
       "description": "TWIM/TWIS for GPIO port 1",
+      "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",

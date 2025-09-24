@@ -1129,9 +1129,29 @@ function filterPeripherals() {
   );
 
   items.forEach((item) => {
-    // Use textContent to get the visible text of the element and its children
     const text = item.textContent.toLowerCase();
-    if (text.includes(searchTerm)) {
+
+    let tags = [];
+    if (mcuData.socPeripherals) {
+      if (item.matches(".single-peripheral-btn")) {
+        const p = mcuData.socPeripherals.find((p) => p.id === item.dataset.id);
+        if (p && p.tags) tags = p.tags;
+      } else if (item.matches(".checkbox-group")) {
+        const id = item.querySelector("[data-peripheral-id]").dataset.peripheralId;
+        const p = mcuData.socPeripherals.find((p) => p.id === id);
+        if (p && p.tags) tags = p.tags;
+      } else if (item.matches(".accordion-item")) {
+        item.querySelectorAll(".peripheral-item").forEach((pItem) => {
+          const p = mcuData.socPeripherals.find(
+            (p) => p.id === pItem.dataset.id,
+          );
+          if (p && p.tags) tags = tags.concat(p.tags);
+        });
+      }
+    }
+    const tagsText = tags.join(" ").toLowerCase();
+
+    if (text.includes(searchTerm) || tagsText.includes(searchTerm)) {
       item.style.display = ""; // Show the item if it matches
     } else {
       item.style.display = "none"; // Hide the item if it doesn't match
