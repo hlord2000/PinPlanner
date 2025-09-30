@@ -496,7 +496,6 @@ button:hover,
 .pin.power-ground,
 .pin.debug,
 .pin.crystal-hf,
-.pin.crystal-lf,
 .pin.rf-antenna {
   background-color: var(--pin-bg-special);
   color: white;
