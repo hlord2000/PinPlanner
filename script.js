@@ -866,7 +866,7 @@ function updateModalPinAvailability() {
 function getPinsForSignal(signal) {
   if (!mcuData.pins) return [];
   return mcuData.pins.filter((pin) => {
-    if (pin.defaultType !== "io") return false;
+    if (!Array.isArray(pin.functions) || !pin.functions.includes("Digital I/O")) return false;
     if (signal.requiresClockCapablePin && !pin.isClockCapable) return false;
     return signal.allowedGpio.some((allowed) =>
       allowed.endsWith("*")
