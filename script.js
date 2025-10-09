@@ -114,6 +114,11 @@ document.addEventListener("DOMContentLoaded", function () {
 function enableScrollWheelSelection(selectorId) {
   const selector = document.getElementById(selectorId);
   if (!selector) return;
+  enableScrollWheelSelectionForElement(selector);
+}
+
+function enableScrollWheelSelectionForElement(selector) {
+  if (!selector) return;
 
   selector.addEventListener(
     "wheel",
@@ -792,6 +797,11 @@ function populatePinSelectionTable(peripheral) {
       input.addEventListener("change", handlePinSelectionChange);
     });
 
+  // Add scroll-wheel selection to dropdowns in the modal
+  tableBody.querySelectorAll("select").forEach((select) => {
+    enableScrollWheelSelectionForElement(select);
+  });
+
   updateModalPinAvailability(); // Set initial disabled states
 }
 
@@ -865,14 +875,32 @@ function updateModalPinAvailability() {
 
 function getPinsForSignal(signal) {
   if (!mcuData.pins) return [];
-  return mcuData.pins.filter((pin) => {
-    if (!Array.isArray(pin.functions) || !pin.functions.includes("Digital I/O")) return false;
+  const pins = mcuData.pins.filter((pin) => {
+    if (!Array.isArray(pin.functions) || !pin.functions.includes("Digital I/O"))
+      return false;
     if (signal.requiresClockCapablePin && !pin.isClockCapable) return false;
     return signal.allowedGpio.some((allowed) =>
       allowed.endsWith("*")
         ? pin.port === allowed.slice(0, -1)
         : pin.name === allowed,
     );
+  });
+
+  // Sort pins in ascending order: P0.00, P0.01, ..., P1.00, P1.01, ..., P2.00, etc.
+  return pins.sort((a, b) => {
+    const aMatch = a.name.match(/P(\d+)\.(\d+)/);
+    const bMatch = b.name.match(/P(\d+)\.(\d+)/);
+
+    if (!aMatch || !bMatch) return a.name.localeCompare(b.name);
+
+    const aPort = parseInt(aMatch[1]);
+    const bPort = parseInt(bMatch[1]);
+    const aPin = parseInt(aMatch[2]);
+    const bPin = parseInt(bMatch[2]);
+
+    // First sort by port, then by pin number
+    if (aPort !== bPort) return aPort - bPort;
+    return aPin - bPin;
   });
 }
 
@@ -1137,7 +1165,8 @@ function filterPeripherals() {
         const p = mcuData.socPeripherals.find((p) => p.id === item.dataset.id);
         if (p && p.tags) tags = p.tags;
       } else if (item.matches(".checkbox-group")) {
-        const id = item.querySelector("[data-peripheral-id]").dataset.peripheralId;
+        const id = item.querySelector("[data-peripheral-id]").dataset
+          .peripheralId;
         const p = mcuData.socPeripherals.find((p) => p.id === id);
         if (p && p.tags) tags = p.tags;
       } else if (item.matches(".accordion-item")) {
