@@ -22,11 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("clearAllBtn")
     .addEventListener("click", clearAllPeripherals);
   document
-    .getElementById("exportBtn")
-    .addEventListener("click", exportConfiguration);
-  document
-    .getElementById("importBtn")
-    .addEventListener("click", openImportModal);
+    .getElementById("exportDeviceTreeBtn")
+    .addEventListener("click", openBoardInfoModal);
   document
     .getElementById("searchPeripherals")
     .addEventListener("input", filterPeripherals);
@@ -34,34 +31,29 @@ document.addEventListener("DOMContentLoaded", function () {
     .querySelector("#pinSelectionModal .close")
     .addEventListener("click", closePinSelectionModal);
   document
-    .getElementById("closeImportModal")
-    .addEventListener("click", closeImportModal);
-  document
     .getElementById("cancelPinSelection")
     .addEventListener("click", closePinSelectionModal);
   document
     .getElementById("confirmPinSelection")
     .addEventListener("click", confirmPinSelection);
   document
-    .getElementById("cancelImport")
-    .addEventListener("click", closeImportModal);
+    .getElementById("closeBoardInfoModal")
+    .addEventListener("click", closeBoardInfoModal);
   document
-    .getElementById("confirmImport")
-    .addEventListener("click", importConfiguration);
-
-  document.querySelectorAll(".import-tab-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      document
-        .querySelectorAll(".import-tab-btn")
-        .forEach((b) => b.classList.remove("active"));
-      document
-        .querySelectorAll(".import-tab-content")
-        .forEach((c) => c.classList.remove("active"));
-      this.classList.add("active");
-      document.getElementById(this.dataset.tab).classList.add("active");
-      document.getElementById("importError").style.display = "none";
-    });
-  });
+    .getElementById("cancelBoardInfo")
+    .addEventListener("click", closeBoardInfoModal);
+  document
+    .getElementById("confirmBoardInfo")
+    .addEventListener("click", confirmBoardInfoAndGenerate);
+  document
+    .getElementById("closeOscillatorModal")
+    .addEventListener("click", closeOscillatorConfig);
+  document
+    .getElementById("cancelOscillatorConfig")
+    .addEventListener("click", closeOscillatorConfig);
+  document
+    .getElementById("confirmOscillatorConfig")
+    .addEventListener("click", confirmOscillatorConfig);
 
   // --- THEME SWITCHER LOGIC ---
   const themeToggle = document.getElementById("theme-toggle");
@@ -132,11 +124,23 @@ function enableScrollWheelSelectionForElement(selector) {
 
       if (numOptions === 0) return;
 
-      // Calculate the next index, clamping it to the valid range
+      // Find the next enabled option in the scroll direction
       let nextIndex = currentIndex + direction;
+
+      // Keep moving in the direction until we find an enabled option or reach the end
+      while (nextIndex >= 0 && nextIndex < numOptions) {
+        const option = selector.options[nextIndex];
+        // Skip disabled options and empty value options (like "-- Select Pin --")
+        if (!option.disabled && option.value !== "") {
+          break;
+        }
+        nextIndex += direction;
+      }
+
+      // Clamp to valid range and only change if we found a valid option
       nextIndex = Math.max(0, Math.min(nextIndex, numOptions - 1));
 
-      if (nextIndex !== currentIndex) {
+      if (nextIndex !== currentIndex && !selector.options[nextIndex].disabled) {
         selector.selectedIndex = nextIndex;
         // Dispatch a change event to trigger the application's logic
         selector.dispatchEvent(new Event("change", { bubbles: true }));
@@ -219,6 +223,10 @@ async function loadMCUData(mcu, pkg) {
     }
     mcuData = await response.json();
     console.log(`Loaded data for ${mcuData.partInfo.partNumber}`);
+
+    // Load devicetree templates for this MCU
+    deviceTreeTemplates = await loadDeviceTreeTemplates(mcu);
+
     reinitializeView();
   } catch (error) {
     console.error("Error loading MCU data:", error);
@@ -239,6 +247,12 @@ function reinitializeView(clearOnly = false) {
     return;
   }
 
+  // Add oscillators to peripheral list
+  addOscillatorsToPeripherals();
+
+  // Auto-select HFXO with default configuration
+  autoSelectHFXO();
+
   document.getElementById("chipTitleDisplay").textContent =
     `${mcuData.partInfo.packageType} Pin Layout`;
   organizePeripherals();
@@ -246,6 +260,32 @@ function reinitializeView(clearOnly = false) {
 
   loadStateFromLocalStorage();
 
+  // Ensure HFXO is always selected after loading state (and remove duplicates)
+  const hfxoCount = selectedPeripherals.filter(p => p.id === "HFXO").length;
+  if (hfxoCount === 0) {
+    // No HFXO found, add it
+    const hfxo = mcuData.socPeripherals.find(p => p.id === "HFXO");
+    if (hfxo) {
+      selectedPeripherals.push({
+        id: "HFXO",
+        description: hfxo.description,
+        config: { ...hfxo.config }
+      });
+    }
+  } else if (hfxoCount > 1) {
+    // Multiple HFXO found, keep only the first one
+    const firstHfxo = selectedPeripherals.find(p => p.id === "HFXO");
+    // Remove all HFXO instances
+    for (let i = selectedPeripherals.length - 1; i >= 0; i--) {
+      if (selectedPeripherals[i].id === "HFXO") {
+        selectedPeripherals.splice(i, 1);
+      }
+    }
+    // Add back just one
+    selectedPeripherals.push(firstHfxo);
+  }
+
+  organizePeripherals(); // Re-render to show HFXO as selected
   updateSelectedPeripheralsList();
   updatePinDisplay();
   console.log(
@@ -256,6 +296,90 @@ function reinitializeView(clearOnly = false) {
 
 // --- PERIPHERAL ORGANIZATION AND DISPLAY ---
 
+function addOscillatorsToPeripherals() {
+  if (!mcuData.socPeripherals) {
+    mcuData.socPeripherals = [];
+  }
+
+  // Find existing LFXO (might be defined with checkbox uiHint)
+  const lfxoIndex = mcuData.socPeripherals.findIndex(p => p.id === "LFXO");
+
+  if (lfxoIndex !== -1) {
+    // LFXO exists - convert it to oscillator type
+    const lfxo = mcuData.socPeripherals[lfxoIndex];
+    lfxo.uiHint = "oscillator";
+    lfxo.optional = true;
+    if (!lfxo.config) {
+      lfxo.config = {
+        loadCapacitors: "internal",
+        loadCapacitanceFemtofarad: 15000
+      };
+    }
+  } else {
+    // Add LFXO as optional oscillator
+    mcuData.socPeripherals.push({
+      id: "LFXO",
+      description: "Low Frequency Crystal Oscillator",
+      uiHint: "oscillator",
+      optional: true,
+      signals: [],
+      config: {
+        loadCapacitors: "internal",
+        loadCapacitanceFemtofarad: 15000
+      }
+    });
+  }
+
+  // Find or add HFXO
+  const hfxoIndex = mcuData.socPeripherals.findIndex(p => p.id === "HFXO");
+
+  if (hfxoIndex !== -1) {
+    // HFXO exists - convert it to oscillator type
+    const hfxo = mcuData.socPeripherals[hfxoIndex];
+    hfxo.uiHint = "oscillator";
+    hfxo.optional = false;
+    hfxo.alwaysPresent = true;
+    if (!hfxo.config) {
+      hfxo.config = {
+        loadCapacitors: "internal",
+        loadCapacitanceFemtofarad: 15000
+      };
+    }
+  } else {
+    // Add HFXO as required oscillator
+    mcuData.socPeripherals.push({
+      id: "HFXO",
+      description: "High Frequency Crystal Oscillator",
+      uiHint: "oscillator",
+      optional: false,
+      alwaysPresent: true,
+      signals: [],
+      config: {
+        loadCapacitors: "internal",
+        loadCapacitanceFemtofarad: 15000
+      }
+    });
+  }
+}
+
+function autoSelectHFXO() {
+  // Remove any existing HFXO first (prevent duplicates)
+  const existingIndex = selectedPeripherals.findIndex(p => p.id === "HFXO");
+  if (existingIndex !== -1) {
+    selectedPeripherals.splice(existingIndex, 1);
+  }
+
+  const hfxo = mcuData.socPeripherals.find(p => p.id === "HFXO");
+  if (hfxo) {
+    selectedPeripherals.push({
+      id: "HFXO",
+      description: hfxo.description,
+      config: { ...hfxo.config }
+    });
+    updateSelectedPeripheralsList();
+  }
+}
+
 function organizePeripherals() {
   const peripheralsListContainer = document.getElementById("peripherals-list");
   if (!peripheralsListContainer) return;
@@ -264,12 +388,15 @@ function organizePeripherals() {
   if (!mcuData.socPeripherals) return;
 
   const checkboxPeripherals = [];
+  const oscillators = [];
   const singleInstancePeripherals = [];
   const multiInstanceGroups = {};
 
-  // First, separate out checkbox peripherals and group the rest
+  // First, separate out checkbox peripherals, oscillators, and group the rest
   mcuData.socPeripherals.forEach((p) => {
-    if (p.uiHint === "checkbox") {
+    if (p.uiHint === "oscillator") {
+      oscillators.push(p);
+    } else if (p.uiHint === "checkbox") {
       checkboxPeripherals.push(p);
     } else {
       const baseName = p.id.replace(/\d+$/, "");
@@ -289,9 +416,41 @@ function organizePeripherals() {
   }
 
   // Sort the lists alphabetically
+  oscillators.sort((a, b) => a.id.localeCompare(b.id));
   checkboxPeripherals.sort((a, b) => a.id.localeCompare(b.id));
   singleInstancePeripherals.sort((a, b) => a.id.localeCompare(b.id));
   const sortedMultiInstanceKeys = Object.keys(multiInstanceGroups).sort();
+
+  // Render oscillators
+  oscillators.forEach((p) => {
+    const oscGroup = document.createElement("div");
+    oscGroup.className = "oscillator-group";
+    oscGroup.style.marginBottom = "10px";
+
+    const btn = document.createElement("button");
+    btn.className = "single-peripheral-btn";
+    btn.dataset.id = p.id;
+    btn.style.width = "100%";
+
+    // Check if oscillator is selected
+    const isSelected = selectedPeripherals.some(sp => sp.id === p.id);
+    if (isSelected) {
+      btn.classList.add("selected");
+    }
+
+    // HFXO is always present, show as configured
+    if (p.id === "HFXO") {
+      btn.textContent = `${p.description} (Configure)`;
+      btn.addEventListener("click", () => openOscillatorConfig(p));
+    } else {
+      // LFXO is optional - always opens config modal
+      btn.textContent = isSelected ? `${p.description} (Configure)` : `${p.description} (Add)`;
+      btn.addEventListener("click", () => openOscillatorConfig(p));
+    }
+
+    oscGroup.appendChild(btn);
+    peripheralsListContainer.appendChild(oscGroup);
+  });
 
   // Render checkbox peripherals
   checkboxPeripherals.forEach((p) => {
@@ -616,8 +775,29 @@ function applyConfig(config) {
   for (const p_config of config.selectedPeripherals) {
     const p_data = mcuData.socPeripherals.find((p) => p.id === p_config.id);
     if (p_data) {
+      // Handle oscillators
+      if (p_data.uiHint === "oscillator") {
+        selectedPeripherals.push({
+          id: p_data.id,
+          description: p_data.description,
+          config: p_config.config || p_data.config
+        });
+        // Mark oscillator pins as used if they have signals
+        if (p_data.signals && p_data.signals.length > 0) {
+          p_data.signals.forEach((s) => {
+            if (s.allowedGpio && s.allowedGpio.length > 0) {
+              const pinName = s.allowedGpio[0];
+              usedPins[pinName] = {
+                peripheral: p_data.id,
+                function: s.name,
+                required: s.isMandatory || true,
+              };
+            }
+          });
+        }
+      }
       // Handle simple checkbox peripherals
-      if (p_data.uiHint === "checkbox") {
+      else if (p_data.uiHint === "checkbox") {
         const checkbox = document.getElementById(
           `${p_data.id.toLowerCase()}-checkbox`,
         );
@@ -776,6 +956,7 @@ function populatePinSelectionTable(peripheral) {
     } else {
       let optionsHtml = '<option value="">-- Select Pin --</option>';
       allPossiblePins.forEach((pin) => {
+        // Show all pins - updateModalPinAvailability() will handle disabling used ones
         const isSelected = tempSelectedPins[pin.name] === signal.name;
         optionsHtml += `<option value="${pin.name}" ${isSelected ? "selected" : ""}>${pin.name}${pin.isClockCapable ? " (Clock)" : ""}</option>`;
       });
@@ -964,6 +1145,149 @@ function confirmPinSelection() {
   saveStateToLocalStorage();
 }
 
+// --- OSCILLATOR CONFIGURATION ---
+
+let currentOscillator = null;
+
+function openOscillatorConfig(oscillator) {
+  currentOscillator = oscillator;
+
+  document.getElementById("oscillatorModalTitle").textContent = `Configure ${oscillator.description}`;
+
+  // Get current config if oscillator is already selected
+  const existingConfig = selectedPeripherals.find(p => p.id === oscillator.id);
+  const config = existingConfig ? existingConfig.config : oscillator.config;
+
+  // Set radio buttons
+  const internalRadio = document.getElementById("oscillatorCapInternal");
+  const externalRadio = document.getElementById("oscillatorCapExternal");
+
+  internalRadio.checked = config.loadCapacitors === "internal";
+  externalRadio.checked = config.loadCapacitors === "external";
+
+  // Populate load capacitance dropdown based on oscillator type
+  const loadCapSelect = document.getElementById("oscillatorLoadCapacitance");
+  loadCapSelect.innerHTML = "";
+
+  const template = deviceTreeTemplates ? deviceTreeTemplates[oscillator.id] : null;
+  let min, max, step;
+
+  if (template && template.loadCapacitanceRange) {
+    min = template.loadCapacitanceRange.min;
+    max = template.loadCapacitanceRange.max;
+    step = template.loadCapacitanceRange.step;
+  } else {
+    // Default ranges
+    if (oscillator.id === "LFXO") {
+      min = 4000;
+      max = 18000;
+      step = 500;
+    } else { // HFXO
+      min = 4000;
+      max = 17000;
+      step = 250;
+    }
+  }
+
+  for (let i = min; i <= max; i += step) {
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = `${(i / 1000).toFixed(step === 250 ? 2 : 1)} pF (${i} fF)`;
+    if (config.loadCapacitanceFemtofarad && i === config.loadCapacitanceFemtofarad) {
+      option.selected = true;
+    }
+    loadCapSelect.appendChild(option);
+  }
+
+  // Enable scroll wheel selection on the dropdown
+  enableScrollWheelSelectionForElement(loadCapSelect);
+
+  // Set up event listeners for capacitor radio buttons
+  const toggleLoadCapacitance = () => {
+    const isInternal = internalRadio.checked;
+    loadCapSelect.disabled = !isInternal;
+  };
+
+  internalRadio.onchange = toggleLoadCapacitance;
+  externalRadio.onchange = toggleLoadCapacitance;
+
+  // Initial state
+  toggleLoadCapacitance();
+
+  document.getElementById("oscillatorConfigModal").style.display = "block";
+}
+
+function closeOscillatorConfig() {
+  document.getElementById("oscillatorConfigModal").style.display = "none";
+  currentOscillator = null;
+}
+
+function confirmOscillatorConfig() {
+  if (!currentOscillator) return;
+
+  const loadCapacitors = document.querySelector('input[name="oscillatorCapacitors"]:checked').value;
+
+  const config = {
+    loadCapacitors
+  };
+
+  // Only include load capacitance if internal
+  if (loadCapacitors === "internal") {
+    config.loadCapacitanceFemtofarad = parseInt(document.getElementById("oscillatorLoadCapacitance").value);
+  }
+
+  // Remove ALL existing instances of this oscillator (prevent duplicates)
+  let removed = false;
+  do {
+    const existingIndex = selectedPeripherals.findIndex(p => p.id === currentOscillator.id);
+    if (existingIndex !== -1) {
+      selectedPeripherals.splice(existingIndex, 1);
+      removed = true;
+    } else {
+      removed = false;
+    }
+  } while (removed);
+
+  // Clear pins used by this oscillator
+  if (currentOscillator.signals && currentOscillator.signals.length > 0) {
+    currentOscillator.signals.forEach(s => {
+      if (s.allowedGpio && s.allowedGpio.length > 0) {
+        const pinName = s.allowedGpio[0];
+        if (usedPins[pinName] && usedPins[pinName].peripheral === currentOscillator.id) {
+          delete usedPins[pinName];
+        }
+      }
+    });
+  }
+
+  // Add oscillator with configuration
+  selectedPeripherals.push({
+    id: currentOscillator.id,
+    description: currentOscillator.description,
+    config
+  });
+
+  // Mark oscillator pins as used
+  if (currentOscillator.signals && currentOscillator.signals.length > 0) {
+    currentOscillator.signals.forEach(s => {
+      if (s.allowedGpio && s.allowedGpio.length > 0) {
+        const pinName = s.allowedGpio[0];
+        usedPins[pinName] = {
+          peripheral: currentOscillator.id,
+          function: s.name,
+          required: s.isMandatory || true,
+        };
+      }
+    });
+  }
+
+  updateSelectedPeripheralsList();
+  organizePeripherals(); // Refresh to update button text
+  updatePinDisplay(); // Update pin display to show pins as used
+  closeOscillatorConfig();
+  saveStateToLocalStorage();
+}
+
 // --- UI UPDATES ---
 
 function updateSelectedPeripheralsList() {
@@ -976,21 +1300,69 @@ function updateSelectedPeripheralsList() {
     return;
   }
 
+  // Remove duplicates (safety check)
+  const uniquePeripherals = [];
+  const seenIds = new Set();
+  selectedPeripherals.forEach(p => {
+    if (!seenIds.has(p.id)) {
+      seenIds.add(p.id);
+      uniquePeripherals.push(p);
+    }
+  });
+
+  // Update the actual array if we found duplicates
+  if (uniquePeripherals.length !== selectedPeripherals.length) {
+    selectedPeripherals.length = 0;
+    uniquePeripherals.forEach(p => selectedPeripherals.push(p));
+  }
+
   selectedPeripherals.forEach((p) => {
     const item = document.createElement("li");
     item.className = "selected-item";
-    const pinList =
-      Object.entries(p.pinFunctions)
+
+    let details;
+    if (p.config) {
+      // Oscillator - show configuration
+      const capLabel = p.config.loadCapacitors === "internal" ? "Internal" : "External";
+      if (p.config.loadCapacitors === "external") {
+        details = `${capLabel} caps`;
+      } else {
+        const capValue = (p.config.loadCapacitanceFemtofarad / 1000).toFixed(p.id === "HFXO" ? 2 : 1);
+        details = `${capLabel} caps, ${capValue} pF`;
+      }
+
+      // Add pin info for oscillators with signals (like LFXO)
+      const oscData = mcuData.socPeripherals.find(sp => sp.id === p.id);
+      if (oscData && oscData.signals && oscData.signals.length > 0) {
+        const pins = oscData.signals
+          .filter(s => s.allowedGpio && s.allowedGpio.length > 0)
+          .map(s => s.allowedGpio[0])
+          .join(", ");
+        if (pins) {
+          details += ` (${pins})`;
+        }
+      }
+    } else {
+      // Regular peripheral - show pin assignments
+      details = Object.entries(p.pinFunctions || {})
         .map(([pin, func]) => `${pin}: ${func}`)
         .join(", ") || "Auto-assigned";
+    }
+
+    const removeBtn = p.id === "HFXO" ? "" : `<button class="remove-btn" data-id="${p.id}">Remove</button>`;
+
     item.innerHTML = `
-            <div><strong>${p.id}</strong><div>${pinList}</div></div>
-            <button class="remove-btn" data-id="${p.id}">Remove</button>
+            <div><strong>${p.id}</strong><div>${details}</div></div>
+            ${removeBtn}
         `;
-    item.querySelector(".remove-btn").addEventListener("click", (e) => {
-      e.stopPropagation();
-      removePeripheral(p.id);
-    });
+
+    if (p.id !== "HFXO") {
+      item.querySelector(".remove-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        removePeripheral(p.id);
+      });
+    }
+
     item.addEventListener("click", () => editPeripheral(p.id));
     selectedList.appendChild(item);
   });
@@ -1035,21 +1407,40 @@ function removePeripheral(id) {
   if (index === -1) return;
 
   const peripheral = selectedPeripherals[index];
+  const peripheralData = mcuData.socPeripherals.find((p) => p.id === id);
+
   // For checkbox-based (simple) peripherals, uncheck the box
   const checkbox = document.getElementById(`${id.toLowerCase()}-checkbox`);
   if (checkbox) {
     checkbox.checked = false;
   }
 
-  for (const pinName in peripheral.pinFunctions) {
-    delete usedPins[pinName];
+  // Handle oscillators - clear their signal pins
+  if (peripheralData && peripheralData.uiHint === "oscillator") {
+    if (peripheralData.signals && peripheralData.signals.length > 0) {
+      peripheralData.signals.forEach(s => {
+        if (s.allowedGpio && s.allowedGpio.length > 0) {
+          const pinName = s.allowedGpio[0];
+          if (usedPins[pinName] && usedPins[pinName].peripheral === id) {
+            delete usedPins[pinName];
+          }
+        }
+      });
+    }
+  } else {
+    // Handle regular peripherals with pinFunctions
+    for (const pinName in peripheral.pinFunctions) {
+      delete usedPins[pinName];
+    }
   }
-  if (peripheral.peripheral.baseAddress) {
+
+  if (peripheral.peripheral && peripheral.peripheral.baseAddress) {
     delete usedAddresses[peripheral.peripheral.baseAddress];
   }
   selectedPeripherals.splice(index, 1);
 
   updateSelectedPeripheralsList();
+  organizePeripherals(); // Re-render to update button states
   updatePinDisplay();
   saveStateToLocalStorage();
 }
@@ -1057,6 +1448,12 @@ function removePeripheral(id) {
 function editPeripheral(id) {
   const peripheralData = mcuData.socPeripherals.find((p) => p.id === id);
   if (!peripheralData) return;
+
+  // Handle oscillators
+  if (peripheralData.uiHint === "oscillator") {
+    openOscillatorConfig(peripheralData);
+    return;
+  }
 
   // Checkbox peripherals are not editable via modal
   if (peripheralData.uiHint === "checkbox") {
@@ -1068,81 +1465,1258 @@ function editPeripheral(id) {
   openPinSelectionModal(selected.peripheral, selected.pinFunctions);
 }
 
-// --- IMPORT/EXPORT ---
+// --- BOARD DEFINITION EXPORT ---
 
-function exportConfiguration() {
+let deviceTreeTemplates = null; // Will be loaded per-MCU
+let boardInfo = null; // Stores board metadata from user input
+
+async function loadDeviceTreeTemplates(mcuId) {
+  try {
+    const response = await fetch(`mcus/${mcuId}/devicetree-templates.json`);
+    if (!response.ok) {
+      console.warn(`No DeviceTree templates found for ${mcuId}`);
+      return null;
+    }
+    const data = await response.json();
+    return data.templates;
+  } catch (error) {
+    console.error("Failed to load DeviceTree templates:", error);
+    return null;
+  }
+}
+
+// Helper function to parse pin names like "P1.05" into {port: 1, pin: 5}
+function parsePinName(pinName) {
+  const match = pinName.match(/P(\d+)\.(\d+)/);
+  if (!match) return null;
+  return {
+    port: parseInt(match[1]),
+    pin: parseInt(match[2]),
+    name: pinName,
+  };
+}
+
+function openBoardInfoModal() {
+  if (selectedPeripherals.length === 0) {
+    alert("No peripherals selected. Please select peripherals first.");
+    return;
+  }
+
+  // Set up inline validation for board name fields
+  setupBoardNameValidation();
+
+  document.getElementById("boardInfoModal").style.display = "block";
+  document.getElementById("boardInfoError").style.display = "none";
+}
+
+function setupBoardNameValidation() {
+  const boardNameInput = document.getElementById("boardNameInput");
+  const boardVendorInput = document.getElementById("boardVendorInput");
+
+  // Create or get validation error elements
+  let boardNameError = document.getElementById("boardNameInputError");
+  if (!boardNameError) {
+    boardNameError = document.createElement("small");
+    boardNameError.id = "boardNameInputError";
+    boardNameError.style.color = "var(--error-color)";
+    boardNameError.style.display = "none";
+    boardNameError.style.marginTop = "4px";
+    boardNameInput.parentElement.appendChild(boardNameError);
+  }
+
+  let vendorError = document.getElementById("boardVendorInputError");
+  if (!vendorError) {
+    vendorError = document.createElement("small");
+    vendorError.id = "boardVendorInputError";
+    vendorError.style.color = "var(--error-color)";
+    vendorError.style.display = "none";
+    vendorError.style.marginTop = "4px";
+    boardVendorInput.parentElement.appendChild(vendorError);
+  }
+
+  // Validation function
+  const validateInput = (input, errorElement) => {
+    const pattern = /^[a-z0-9_]+$/;
+    const value = input.value.trim();
+
+    if (value && !pattern.test(value)) {
+      errorElement.textContent = "Only lowercase letters, numbers, and underscores allowed";
+      errorElement.style.display = "block";
+      input.style.borderColor = "var(--error-color)";
+      return false;
+    } else {
+      errorElement.style.display = "none";
+      input.style.borderColor = "var(--border-color)";
+      return true;
+    }
+  };
+
+  // Add event listeners
+  boardNameInput.addEventListener("input", () => validateInput(boardNameInput, boardNameError));
+  boardVendorInput.addEventListener("input", () => validateInput(boardVendorInput, vendorError));
+}
+
+function closeBoardInfoModal() {
+  document.getElementById("boardInfoModal").style.display = "none";
+}
+
+function validateBoardName(name) {
+  return /^[a-z0-9_]+$/.test(name);
+}
+
+async function confirmBoardInfoAndGenerate() {
+  const boardName = document.getElementById("boardNameInput").value.trim();
+  const fullName = document.getElementById("boardFullNameInput").value.trim();
+  const vendor = document.getElementById("boardVendorInput").value.trim() || "custom";
+  const revision = document.getElementById("boardRevisionInput").value.trim();
+  const description = document.getElementById("boardDescriptionInput").value.trim();
+
+  const errorElement = document.getElementById("boardInfoError");
+
+  // Validation
+  if (!boardName) {
+    errorElement.textContent = "Board name is required.";
+    errorElement.style.display = "block";
+    return;
+  }
+
+  if (!validateBoardName(boardName)) {
+    errorElement.textContent = "Board name must contain only lowercase letters, numbers, and underscores.";
+    errorElement.style.display = "block";
+    return;
+  }
+
+  if (!fullName) {
+    errorElement.textContent = "Full board name is required.";
+    errorElement.style.display = "block";
+    return;
+  }
+
+  if (vendor && !validateBoardName(vendor)) {
+    errorElement.textContent = "Vendor name must contain only lowercase letters, numbers, and underscores.";
+    errorElement.style.display = "block";
+    return;
+  }
+
+  // Store board info
+  boardInfo = {
+    name: boardName,
+    fullName: fullName,
+    vendor: vendor,
+    revision: revision,
+    description: description
+  };
+
+  closeBoardInfoModal();
+  await exportBoardDefinition();
+}
+
+async function exportBoardDefinition() {
   const mcu = document.getElementById("mcuSelector").value;
   const pkg = document.getElementById("packageSelector").value;
-  const config = {
-    mcu: mcu,
-    package: pkg,
-    selectedPeripherals: selectedPeripherals.map((p) => ({
-      id: p.id,
-      pinFunctions: p.pinFunctions,
-    })),
-  };
-  const blob = new Blob([JSON.stringify(config, null, 2)], {
-    type: "application/json",
+
+  // Load templates if not already loaded
+  if (!deviceTreeTemplates) {
+    deviceTreeTemplates = await loadDeviceTreeTemplates(mcu);
+    if (!deviceTreeTemplates) {
+      alert("DeviceTree templates not available for this MCU yet.");
+      return;
+    }
+  }
+
+  try {
+    // Generate all board files
+    const files = await generateBoardFiles(mcu, pkg);
+    await downloadBoardAsZip(files, boardInfo.name);
+  } catch (error) {
+    console.error("Board definition generation failed:", error);
+    alert(`Failed to generate board definition: ${error.message}`);
+  }
+}
+
+function getMcuSupportsNonSecure(mcuId) {
+  const mcuInfo = mcuManifest.mcus.find((m) => m.id === mcuId);
+  return mcuInfo ? mcuInfo.supportsNonSecure === true : false;
+}
+
+function getMcuSupportsFLPR(mcuId) {
+  const mcuInfo = mcuManifest.mcus.find((m) => m.id === mcuId);
+  return mcuInfo ? mcuInfo.supportsFLPR === true : false;
+}
+
+async function generateBoardFiles(mcu, pkg) {
+  const supportsNS = getMcuSupportsNonSecure(mcu);
+  const supportsFLPR = getMcuSupportsFLPR(mcu);
+  const files = {};
+
+  files["board.yml"] = generateBoardYml(mcu, supportsNS, supportsFLPR);
+  files["board.cmake"] = generateBoardCmake(mcu, supportsNS, supportsFLPR);
+  files["Kconfig.defconfig"] = generateKconfigDefconfig(mcu, supportsNS);
+  files[`Kconfig.${boardInfo.name}`] = generateKconfigBoard(mcu, supportsNS);
+  files[`${boardInfo.name}_common.dtsi`] = generateCommonDtsi(mcu);
+  files[`${mcu}_cpuapp_common.dtsi`] = generateCpuappCommonDtsi(mcu);
+  files[`${boardInfo.name}_${mcu}-pinctrl.dtsi`] = generatePinctrlFile();
+  files[`${boardInfo.name}_${mcu}_cpuapp.dts`] = generateMainDts(mcu);
+  files[`${boardInfo.name}_${mcu}_cpuapp.yaml`] = generateYamlCapabilities(mcu, false);
+  files[`${boardInfo.name}_${mcu}_cpuapp_defconfig`] = generateDefconfig(false);
+  files["README.md"] = generateReadme(mcu, pkg, supportsNS, supportsFLPR);
+
+  // Generate NS-specific files if MCU supports TrustZone-M
+  if (supportsNS) {
+    files["Kconfig"] = generateKconfigTrustZone(mcu);
+    files[`${boardInfo.name}_${mcu}_cpuapp_ns.dts`] = generateNSDts(mcu);
+    files[`${boardInfo.name}_${mcu}_cpuapp_ns.yaml`] = generateYamlCapabilities(mcu, true);
+    files[`${boardInfo.name}_${mcu}_cpuapp_ns_defconfig`] = generateDefconfig(true);
+  }
+
+  // Generate FLPR-specific files if MCU supports FLPR
+  if (supportsFLPR) {
+    files[`${boardInfo.name}_${mcu}_cpuflpr.dts`] = generateFLPRDts(mcu);
+    files[`${boardInfo.name}_${mcu}_cpuflpr.yaml`] = generateFLPRYaml(mcu, false);
+    files[`${boardInfo.name}_${mcu}_cpuflpr_defconfig`] = generateFLPRDefconfig(false);
+    files[`${boardInfo.name}_${mcu}_cpuflpr_xip.dts`] = generateFLPRXIPDts(mcu);
+    files[`${boardInfo.name}_${mcu}_cpuflpr_xip.yaml`] = generateFLPRYaml(mcu, true);
+    files[`${boardInfo.name}_${mcu}_cpuflpr_xip_defconfig`] = generateFLPRDefconfig(true);
+  }
+
+  return files;
+}
+
+function generateBoardYml(mcu, supportsNS, supportsFLPR) {
+  const socName = mcu.replace("nrf", "");
+
+  let socSection = `  socs:
+    - name: ${mcu}`;
+
+  // Add variants if needed
+  if (supportsNS || supportsFLPR) {
+    socSection += `
+      variants:`;
+    if (supportsFLPR) {
+      socSection += `
+        - name: xip
+          cpucluster: cpuflpr`;
+    }
+    if (supportsNS) {
+      socSection += `
+        - name: ns
+          cpucluster: cpuapp`;
+    }
+  }
+
+  let boardsList = `${boardInfo.name}/${mcu}/cpuapp`;
+  if (supportsNS) {
+    boardsList += `
+              - ${boardInfo.name}/${mcu}/cpuapp/ns`;
+  }
+  if (supportsFLPR) {
+    boardsList += `
+              - ${boardInfo.name}/${mcu}/cpuflpr
+              - ${boardInfo.name}/${mcu}/cpuflpr/xip`;
+  }
+
+  return `board:
+  name: ${boardInfo.name}
+  full_name: ${boardInfo.fullName}
+  vendor: ${boardInfo.vendor}
+${socSection}
+runners:
+  run_once:
+    '--recover':
+      - runners:
+          - nrfjprog
+          - nrfutil
+        run: first
+        groups:
+          - boards:
+              - ${boardsList}
+    '--erase':
+      - runners:
+          - nrfjprog
+          - jlink
+          - nrfutil
+        run: first
+        groups:
+          - boards:
+              - ${boardsList}
+    '--reset':
+      - runners:
+          - nrfjprog
+          - jlink
+          - nrfutil
+        run: last
+        groups:
+          - boards:
+              - ${boardsList}
+`;
+}
+
+function generateBoardCmake(mcu, supportsNS, supportsFLPR) {
+  const mcuUpper = mcu.toUpperCase();
+  const boardNameUpper = boardInfo.name.toUpperCase();
+
+  let content = `# Copyright (c) 2024 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+if(CONFIG_SOC_${mcuUpper}_CPUAPP)
+\tboard_runner_args(jlink "--device=nRF${mcuUpper.substring(3)}_M33" "--speed=4000")
+`;
+
+  if (supportsFLPR) {
+    if (mcu === 'nrf54l15') {
+      content += `elseif(CONFIG_SOC_${mcuUpper}_CPUFLPR)
+\tboard_runner_args(jlink "--device=nRF${mcuUpper.substring(3)}_RV32")
+`;
+    } else {
+      // L05 and L10 need a JLink script
+      content += `elseif(CONFIG_SOC_${mcuUpper}_CPUFLPR)
+\tset(JLINKSCRIPTFILE \${CMAKE_CURRENT_LIST_DIR}/support/${mcu}_cpuflpr.JLinkScript)
+\tboard_runner_args(jlink "--device=RISC-V" "--speed=4000" "-if SW" "--tool-opt=-jlinkscriptfile \${JLINKSCRIPTFILE}")
+`;
+    }
+  }
+
+  content += `endif()
+
+`;
+
+  if (supportsNS) {
+    content += `if(CONFIG_BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS)
+\tset(TFM_PUBLIC_KEY_FORMAT "full")
+endif()
+
+if(CONFIG_TFM_FLASH_MERGED_BINARY)
+\tset_property(TARGET runners_yaml_props_target PROPERTY hex_file tfm_merged.hex)
+endif()
+
+`;
+  }
+
+  content += `include(\${ZEPHYR_BASE}/boards/common/nrfutil.board.cmake)
+include(\${ZEPHYR_BASE}/boards/common/jlink.board.cmake)
+`;
+
+  return content;
+}
+
+function generateKconfigTrustZone(mcu) {
+  const boardNameUpper = boardInfo.name.toUpperCase();
+  const mcuUpper = mcu.toUpperCase();
+  return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+# ${boardInfo.fullName} board configuration
+
+if BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
+
+DT_NRF_MPC := $(dt_nodelabel_path,nrf_mpc)
+
+config NRF_TRUSTZONE_FLASH_REGION_SIZE
+\thex
+\tdefault $(dt_node_int_prop_hex,$(DT_NRF_MPC),override-granularity)
+\thelp
+\t  This defines the flash region size from the TrustZone perspective.
+\t  It is used when configuring the TrustZone and when setting alignments
+\t  requirements for the partitions.
+\t  This abstraction allows us to configure TrustZone without depending
+\t  on peripheral-specific symbols.
+
+config NRF_TRUSTZONE_RAM_REGION_SIZE
+\thex
+\tdefault $(dt_node_int_prop_hex,$(DT_NRF_MPC),override-granularity)
+\thelp
+\t  This defines the RAM region size from the TrustZone perspective.
+\t  It is used when configuring the TrustZone and when setting alignments
+\t  requirements for the partitions.
+\t  This abstraction allows us to configure TrustZone without depending
+\t  on peripheral specific symbols.
+
+endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
+`;
+}
+
+function generateKconfigDefconfig(mcu, supportsNS) {
+  const boardNameUpper = boardInfo.name.toUpperCase();
+  const mcuUpper = mcu.toUpperCase();
+
+  let content = `# Copyright (c) 2024 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config HW_STACK_PROTECTION
+\tdefault ARCH_HAS_STACK_PROTECTION
+
+if BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP
+
+config ROM_START_OFFSET
+\tdefault 0 if PARTITION_MANAGER_ENABLED
+\tdefault 0x800 if BOOTLOADER_MCUBOOT
+
+endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP
+`;
+
+  if (supportsNS) {
+    content += `
+if BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
+
+config BOARD_${boardNameUpper}
+\tselect USE_DT_CODE_PARTITION if BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
+
+config BT_CTLR
+\tdefault BT
+
+# By default, if we build for a Non-Secure version of the board,
+# enable building with TF-M as the Secure Execution Environment.
+config BUILD_WITH_TFM
+\tdefault y
+
+endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
+`;
+  }
+
+  return content;
+}
+
+function generateKconfigBoard(mcu, supportsNS) {
+  const boardNameUpper = boardInfo.name.toUpperCase();
+  const mcuUpper = mcu.toUpperCase();
+
+  let selectCondition = `BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP`;
+  if (supportsNS) {
+    selectCondition += ` || BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS`;
+  }
+
+  return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_${boardNameUpper}
+\tselect SOC_${mcuUpper}_CPUAPP if ${selectCondition}
+`;
+}
+
+function generatePinctrlFile() {
+  let content = `/*
+ * Copyright (c) 2024 Nordic Semiconductor ASA
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&pinctrl {
+`;
+
+  selectedPeripherals.forEach((p) => {
+    const template = deviceTreeTemplates[p.id];
+    if (!template) {
+      console.warn(`No template found for ${p.id}`);
+      return;
+    }
+
+    // Generate pinctrl configurations
+    content += generatePinctrlForPeripheral(p, template);
+  });
+
+  content += "};\n";
+  return content;
+}
+
+function generateCommonDtsi(mcu) {
+  let content = `/*
+ * Copyright (c) 2024 Nordic Semiconductor ASA
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "${boardInfo.name}_${mcu}-pinctrl.dtsi"
+
+`;
+
+  // Generate peripheral node configurations with pinctrl and status
+  // Skip oscillators - they go in cpuapp_common.dtsi instead
+  selectedPeripherals.forEach((p) => {
+    // Skip oscillators (LFXO, HFXO)
+    if (p.config) return;
+
+    const template = deviceTreeTemplates[p.id];
+    if (!template) return;
+    content += generatePeripheralNode(p, template);
+  });
+
+  return content;
+}
+
+function generateCpuappCommonDtsi(mcu) {
+  let content = `/*
+ * Copyright (c) 2024 Nordic Semiconductor ASA
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/* This file is common to the secure and non-secure domain */
+
+#include "${boardInfo.name}_common.dtsi"
+
+/ {
+\tchosen {
+`;
+
+  // Add console/uart aliases in chosen section if UART is selected
+  let hasUart = false;
+  selectedPeripherals.forEach((p) => {
+    const template = deviceTreeTemplates[p.id];
+    if (template && template.dtNodeName && template.type === "UART" && !hasUart) {
+      content += `\t\tzephyr,console = &${template.dtNodeName};\n`;
+      content += `\t\tzephyr,shell-uart = &${template.dtNodeName};\n`;
+      content += `\t\tzephyr,uart-mcumgr = &${template.dtNodeName};\n`;
+      content += `\t\tzephyr,bt-mon-uart = &${template.dtNodeName};\n`;
+      content += `\t\tzephyr,bt-c2h-uart = &${template.dtNodeName};\n`;
+      hasUart = true;
+    }
+  });
+
+  content += `\t\tzephyr,flash-controller = &rram_controller;
+\t\tzephyr,flash = &cpuapp_rram;
+\t\tzephyr,ieee802154 = &ieee802154;
+\t\tzephyr,boot-mode = &boot_mode0;
+\t};
+};
+
+&cpuapp_sram {
+\tstatus = "okay";
+};
+`;
+
+  // Add LFXO configuration if enabled
+  const lfxo = selectedPeripherals.find(p => p.id === "LFXO");
+  if (lfxo && lfxo.config) {
+    content += `
+&lfxo {
+\tload-capacitors = "${lfxo.config.loadCapacitors}";`;
+    if (lfxo.config.loadCapacitors === "internal" && lfxo.config.loadCapacitanceFemtofarad) {
+      content += `
+\tload-capacitance-femtofarad = <${lfxo.config.loadCapacitanceFemtofarad}>;`;
+    }
+    content += `
+};
+`;
+  }
+
+  // Add HFXO configuration (always present)
+  const hfxo = selectedPeripherals.find(p => p.id === "HFXO");
+  const hfxoConfig = hfxo && hfxo.config ? hfxo.config : { loadCapacitors: "internal", loadCapacitanceFemtofarad: 15000 };
+  content += `
+&hfxo {
+\tload-capacitors = "${hfxoConfig.loadCapacitors}";`;
+  if (hfxoConfig.loadCapacitors === "internal" && hfxoConfig.loadCapacitanceFemtofarad) {
+    content += `
+\tload-capacitance-femtofarad = <${hfxoConfig.loadCapacitanceFemtofarad}>;`;
+  }
+  content += `
+};
+`;
+
+  content += `
+&regulators {
+\tstatus = "okay";
+};
+
+&vregmain {
+\tstatus = "okay";
+\tregulator-initial-mode = <NRF5X_REG_MODE_DCDC>;
+};
+
+&grtc {
+\towned-channels = <0 1 2 3 4 5 6 7 8 9 10 11>;
+\t/* Channels 7-11 reserved for Zero Latency IRQs, 3-4 for FLPR */
+\tchild-owned-channels = <3 4 7 8 9 10 11>;
+\tstatus = "okay";
+};
+
+&gpio0 {
+\tstatus = "okay";
+};
+
+&gpio1 {
+\tstatus = "okay";
+};
+
+&gpio2 {
+\tstatus = "okay";
+};
+
+&gpiote20 {
+\tstatus = "okay";
+};
+
+&gpiote30 {
+\tstatus = "okay";
+};
+
+&radio {
+\tstatus = "okay";
+};
+
+&ieee802154 {
+\tstatus = "okay";
+};
+
+&temp {
+\tstatus = "okay";
+};
+
+&clock {
+\tstatus = "okay";
+};
+
+&gpregret1 {
+\tstatus = "okay";
+
+\tboot_mode0: boot_mode@0 {
+\t\tcompatible = "zephyr,retention";
+\t\tstatus = "okay";
+\t\treg = <0x0 0x1>;
+\t};
+};
+`;
+
+  return content;
+}
+
+function generateMainDts(mcu) {
+  const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
+  return `/dts-v1/;
+
+#include <nordic/${mcu}_cpuapp.dtsi>
+#include "${mcu}_cpuapp_common.dtsi"
+
+/ {
+\tcompatible = "${boardInfo.vendor},${boardInfo.name}-${mcu}-cpuapp";
+\tmodel = "${boardInfo.fullName} ${mcuUpper} Application MCU";
+
+\tchosen {
+\t\tzephyr,code-partition = &slot0_partition;
+\t\tzephyr,sram = &cpuapp_sram;
+\t};
+};
+
+/* Include default memory partition configuration file */
+#include <nordic/${mcu}_partition.dtsi>
+`;
+}
+
+function generateYamlCapabilities(mcu, isNonSecure) {
+  const supportedFeatures = new Set();
+
+  selectedPeripherals.forEach((p) => {
+    const template = deviceTreeTemplates[p.id];
+    if (template) {
+      switch (template.type) {
+        case "UART":
+          supportedFeatures.add("uart");
+          break;
+        case "SPI":
+          supportedFeatures.add("spi");
+          break;
+        case "I2C":
+          supportedFeatures.add("i2c");
+          break;
+        case "PWM":
+          supportedFeatures.add("pwm");
+          break;
+        case "ADC":
+          supportedFeatures.add("adc");
+          break;
+        case "NFCT":
+          supportedFeatures.add("nfc");
+          break;
+      }
+    }
+  });
+
+  // Always add these
+  supportedFeatures.add("gpio");
+  supportedFeatures.add("watchdog");
+
+  const featuresArray = Array.from(supportedFeatures).sort();
+
+  const identifier = isNonSecure ? `${boardInfo.name}/${mcu}/cpuapp/ns` : `${boardInfo.name}/${mcu}/cpuapp`;
+  const name = isNonSecure ? `${boardInfo.fullName}-Non-Secure` : boardInfo.fullName;
+  const ram = isNonSecure ? 256 : 188;
+  const flash = isNonSecure ? 1524 : 1428;
+
+  return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: ${identifier}
+name: ${name}
+type: mcu
+arch: arm
+toolchain:
+  - gnuarmemb
+  - zephyr
+sysbuild: true
+ram: ${ram}
+flash: ${flash}
+supported:
+${featuresArray.map(f => `  - ${f}`).join("\n")}
+vendor: ${boardInfo.vendor}
+`;
+}
+
+function generateDefconfig(isNonSecure) {
+  let config = `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+`;
+
+  if (isNonSecure) {
+    // NS-specific configuration
+    config += `CONFIG_ARM_MPU=y
+CONFIG_HW_STACK_PROTECTION=y
+CONFIG_NULL_POINTER_EXCEPTION_DETECTION_NONE=y
+CONFIG_ARM_TRUSTZONE_M=y
+
+# This Board implies building Non-Secure firmware
+CONFIG_TRUSTED_EXECUTION_NONSECURE=y
+
+# Don't enable the cache in the non-secure image as it is a
+# secure-only peripheral on 54l
+CONFIG_CACHE_MANAGEMENT=n
+CONFIG_EXTERNAL_CACHE=n
+
+CONFIG_UART_CONSOLE=y
+CONFIG_CONSOLE=y
+CONFIG_SERIAL=y
+CONFIG_GPIO=y
+
+# Start SYSCOUNTER on driver init
+CONFIG_NRF_GRTC_START_SYSCOUNTER=y
+
+# Disable TFM BL2 since it is not supported
+CONFIG_TFM_BL2=n
+
+# Support for silence logging is not supported at the moment
+CONFIG_TFM_LOG_LEVEL_SILENCE=n
+
+# The oscillators are configured as secure and cannot be configured
+# from the non secure application directly. This needs to be set
+# otherwise nrfx will try to configure them, resulting in a bus
+# fault.
+CONFIG_SOC_NRF54LX_SKIP_CLOCK_CONFIG=y
+`;
+  } else {
+    // Regular secure build configuration
+    const hasUart = selectedPeripherals.some(p => {
+      const template = deviceTreeTemplates[p.id];
+      return template && template.type === "UART";
+    });
+
+    if (hasUart) {
+      config += `# Enable UART driver
+CONFIG_SERIAL=y
+
+# Enable console
+CONFIG_CONSOLE=y
+CONFIG_UART_CONSOLE=y
+
+`;
+    }
+
+    config += `# Enable GPIO
+CONFIG_GPIO=y
+
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Enable hardware stack protection
+CONFIG_HW_STACK_PROTECTION=y
+`;
+
+    // Only add RC oscillator config if LFXO is not enabled
+    const lfxoEnabled = selectedPeripherals.some(p => p.id === "LFXO");
+    if (!lfxoEnabled) {
+      config += `
+# Use RC oscillator for low-frequency clock
+CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y
+`;
+    }
+  }
+
+  return config;
+}
+
+function generateNSDts(mcu) {
+  const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
+
+  // Find the UART used for console (if any) - TF-M will use it
+  let uartNodeName = null;
+  selectedPeripherals.forEach((p) => {
+    const template = deviceTreeTemplates[p.id];
+    if (template && template.dtNodeName && template.type === "UART" && !uartNodeName) {
+      uartNodeName = template.dtNodeName;
+    }
+  });
+
+  let uartDisableSection = '';
+  if (uartNodeName) {
+    uartDisableSection = `
+&${uartNodeName} {
+\t/* Disable so that TF-M can use this UART */
+\tstatus = "disabled";
+
+\tcurrent-speed = <115200>;
+\tpinctrl-0 = <&${uartNodeName.replace(/uart/, 'uart')}_default>;
+\tpinctrl-1 = <&${uartNodeName.replace(/uart/, 'uart')}_sleep>;
+\tpinctrl-names = "default", "sleep";
+};
+
+`;
+  }
+
+  return `/dts-v1/;
+
+#define USE_NON_SECURE_ADDRESS_MAP 1
+
+#include <nordic/${mcu}_cpuapp.dtsi>
+#include "${mcu}_cpuapp_common.dtsi"
+
+/ {
+\tcompatible = "${boardInfo.vendor},${boardInfo.name}-${mcu}-cpuapp";
+\tmodel = "${boardInfo.fullName} ${mcuUpper} Application MCU";
+
+\tchosen {
+\t\tzephyr,code-partition = &slot0_ns_partition;
+\t\tzephyr,sram = &sram0_ns;
+\t\tzephyr,entropy = &psa_rng;
+\t};
+
+\t/delete-node/ rng;
+
+\tpsa_rng: psa-rng {
+\t\tstatus = "okay";
+\t};
+};
+
+/ {
+\t/*
+\t * Default SRAM planning when building for ${mcuUpper} with ARM TrustZone-M support
+\t * - Lowest 80 kB SRAM allocated to Secure image (sram0_s).
+\t * - Upper 80 kB SRAM allocated to Non-Secure image (sram0_ns).
+\t *
+\t * ${mcuUpper} has 256 kB of volatile memory (SRAM) but the last 96kB are reserved for
+\t * the FLPR MCU.
+\t * This static layout needs to be the same with the upstream TF-M layout in the
+\t * header flash_layout.h of the relevant platform. Any updates in the layout
+\t * needs to happen both in the flash_layout.h and in this file at the same time.
+\t */
+\treserved-memory {
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\tranges;
+
+\t\tsram0_s: image_s@20000000 {
+\t\t\t/* Secure image memory */
+\t\t\treg = <0x20000000 DT_SIZE_K(80)>;
+\t\t};
+
+\t\tsram0_ns: image_ns@20014000 {
+\t\t\t/* Non-Secure image memory */
+\t\t\treg = <0x20014000 DT_SIZE_K(80)>;
+\t\t};
+\t};
+};
+
+${uartDisableSection}/* Include default memory partition configuration file */
+#include <nordic/${mcu}_ns_partition.dtsi>
+`;
+}
+
+function generateFLPRDts(mcu) {
+  const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
+  return `/dts-v1/;
+#include <nordic/${mcu}_cpuflpr.dtsi>
+#include "${boardInfo.name}_common.dtsi"
+
+/ {
+\tmodel = "${boardInfo.fullName} ${mcuUpper} FLPR MCU";
+\tcompatible = "${boardInfo.vendor},${boardInfo.name}-${mcu}-cpuflpr";
+
+\tchosen {
+\t\tzephyr,console = &uart30;
+\t\tzephyr,shell-uart = &uart30;
+\t\tzephyr,code-partition = &cpuflpr_code_partition;
+\t\tzephyr,flash = &cpuflpr_rram;
+\t\tzephyr,sram = &cpuflpr_sram;
+\t};
+};
+
+&cpuflpr_sram {
+\tstatus = "okay";
+\t/* size must be increased due to booting from SRAM */
+\treg = <0x20028000 DT_SIZE_K(96)>;
+\tranges = <0x0 0x20028000 0x18000>;
+};
+
+&cpuflpr_rram {
+\tpartitions {
+\t\tcompatible = "fixed-partitions";
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+
+\t\tcpuflpr_code_partition: partition@0 {
+\t\t\tlabel = "image-0";
+\t\t\treg = <0x0 DT_SIZE_K(96)>;
+\t\t};
+\t};
+};
+
+&grtc {
+\towned-channels = <3 4>;
+\tstatus = "okay";
+};
+
+&uart30 {
+\tstatus = "okay";
+};
+
+&gpio0 {
+\tstatus = "okay";
+};
+
+&gpio1 {
+\tstatus = "okay";
+};
+
+&gpio2 {
+\tstatus = "okay";
+};
+
+&gpiote20 {
+\tstatus = "okay";
+};
+
+&gpiote30 {
+\tstatus = "okay";
+};
+`;
+}
+
+function generateFLPRXIPDts(mcu) {
+  return `/*
+ * Copyright (c) 2025 Generated by nRF54L Pin Planner
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "${boardInfo.name}_${mcu}_cpuflpr.dts"
+
+&cpuflpr_sram {
+\treg = <0x2002f000 DT_SIZE_K(68)>;
+\tranges = <0x0 0x2002f000 0x11000>;
+};
+`;
+}
+
+function generateFLPRYaml(mcu, isXIP) {
+  const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
+  const identifier = isXIP ? `${boardInfo.name}/${mcu}/cpuflpr/xip` : `${boardInfo.name}/${mcu}/cpuflpr`;
+  const name = isXIP ? `${boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor (RRAM XIP)` : `${boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor`;
+  const ram = isXIP ? 68 : 96;
+
+  return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+identifier: ${identifier}
+name: ${name}
+type: mcu
+arch: riscv
+toolchain:
+  - zephyr
+sysbuild: true
+ram: ${ram}
+flash: 96
+supported:
+  - counter
+  - gpio
+  - i2c
+  - spi
+  - watchdog
+`;
+}
+
+function generateFLPRDefconfig(isXIP) {
+  return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+# Enable UART driver
+CONFIG_SERIAL=y
+
+# Enable console
+CONFIG_CONSOLE=y
+CONFIG_UART_CONSOLE=y
+
+# Enable GPIO
+CONFIG_GPIO=y
+
+${isXIP ? '# Execute from RRAM\nCONFIG_XIP=y' : '# Execute from SRAM\nCONFIG_USE_DT_CODE_PARTITION=y\nCONFIG_XIP=n'}
+`;
+}
+
+function generateReadme(mcu, pkg, supportsNS, supportsFLPR) {
+  let readme = `# ${boardInfo.fullName}
+
+**Generated by:** nRF54L Pin Planner
+**MCU:** ${mcu.toUpperCase()}
+**Package:** ${pkg}
+${boardInfo.revision ? `**Revision:** ${boardInfo.revision}\n` : ""}${boardInfo.description ? `\n${boardInfo.description}\n` : ""}
+
+## Usage
+
+1. Copy this directory to your Zephyr boards directory:
+   \`\`\`bash
+   cp -r ${boardInfo.name} $ZEPHYR_BASE/boards/${boardInfo.vendor}/
+   \`\`\`
+
+2. Build your application for this board:
+   \`\`\`bash
+   west build -b ${boardInfo.name}/${mcu}/cpuapp samples/hello_world
+   \`\`\`
+`;
+
+  if (supportsNS) {
+    readme += `
+   Or build for Non-Secure target with TF-M:
+   \`\`\`bash
+   west build -b ${boardInfo.name}/${mcu}/cpuapp/ns samples/hello_world
+   \`\`\`
+`;
+  }
+
+  if (supportsFLPR) {
+    readme += `
+   Or build for FLPR (Fast Lightweight Processor):
+   \`\`\`bash
+   west build -b ${boardInfo.name}/${mcu}/cpuflpr samples/hello_world
+   \`\`\`
+
+   Or build for FLPR with XIP (Execute In Place from RRAM):
+   \`\`\`bash
+   west build -b ${boardInfo.name}/${mcu}/cpuflpr/xip samples/hello_world
+   \`\`\`
+`;
+  }
+
+  readme += `
+3. Flash to your device:
+   \`\`\`bash
+   west flash
+   \`\`\`
+
+## Selected Peripherals
+
+${selectedPeripherals.map(p => {
+  if (p.config) {
+    // Oscillator - show configuration
+    const capLabel = p.config.loadCapacitors === "internal" ? "Internal" : "External";
+    const oscData = mcuData.socPeripherals.find(sp => sp.id === p.id);
+    let info = `${capLabel} capacitors`;
+    if (p.config.loadCapacitors === "internal" && p.config.loadCapacitanceFemtofarad) {
+      info += `, ${(p.config.loadCapacitanceFemtofarad / 1000).toFixed(p.id === "HFXO" ? 2 : 1)} pF`;
+    }
+    if (oscData && oscData.signals && oscData.signals.length > 0) {
+      const pins = oscData.signals
+        .filter(s => s.allowedGpio && s.allowedGpio.length > 0)
+        .map(s => s.allowedGpio[0])
+        .join(", ");
+      if (pins) {
+        info += ` (${pins})`;
+      }
+    }
+    return `- **${p.id}**: ${info}`;
+  } else if (p.pinFunctions) {
+    // Regular peripheral - show pin assignments
+    const pins = Object.entries(p.pinFunctions)
+      .map(([pin, func]) => `${pin}: ${func}`)
+      .join(", ");
+    return `- **${p.id}**: ${pins}`;
+  } else {
+    // No pin info available
+    return `- **${p.id}**`;
+  }
+}).join("\n")}
+
+## Pin Configuration
+
+See \`${boardInfo.name}_${mcu}-pinctrl.dtsi\` for complete pin mapping.
+
+## Notes
+
+- This is a generated board definition. Verify pin assignments match your hardware.
+- Modify \`${boardInfo.name}_common.dtsi\` to add additional peripherals or features.
+- Consult the [nRF Connect SDK documentation](https://docs.nordicsemi.com/) for more information.
+`;
+}
+
+function generatePinctrlForPeripheral(peripheral, template) {
+  // Skip pinctrl generation for peripherals that don't need it
+  if (template.noPinctrl) {
+    return '';
+  }
+
+  const pinctrlName = template.pinctrlBaseName;
+  let content = `\n\t/omit-if-no-ref/ ${pinctrlName}_default: ${pinctrlName}_default {\n`;
+
+  // Group pins by their characteristics (outputs vs inputs with pull-ups)
+  const outputSignals = [];
+  const inputSignals = [];
+
+  for (const [pinName, signalName] of Object.entries(peripheral.pinFunctions)) {
+    const pinInfo = parsePinName(pinName);
+    if (!pinInfo) continue;
+
+    const dtSignalName = template.signalMappings[signalName];
+    if (!dtSignalName) {
+      console.warn(`No DT mapping for signal ${signalName} in ${peripheral.id}`);
+      continue;
+    }
+
+    const signal = peripheral.peripheral.signals.find((s) => s.name === signalName);
+    if (signal && signal.direction === "input") {
+      inputSignals.push({ pinInfo, dtSignalName });
+    } else {
+      outputSignals.push({ pinInfo, dtSignalName });
+    }
+  }
+
+  const allSignals = [...outputSignals, ...inputSignals];
+
+  // Don't generate empty pinctrl blocks
+  if (allSignals.length === 0) {
+    console.warn(`No pins configured for ${peripheral.id}, skipping pinctrl generation`);
+    return '';
+  }
+
+  // Generate group1 (outputs and bidirectional)
+  if (outputSignals.length > 0) {
+    content += `\t\tgroup1 {\n\t\t\tpsels = `;
+    content += outputSignals
+      .map((s) => `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`)
+      .join(",\n\t\t\t\t");
+    content += `;\n\t\t};\n`;
+  }
+
+  // Generate group2 (inputs with pull-up)
+  if (inputSignals.length > 0) {
+    content += `\n\t\tgroup2 {\n\t\t\tpsels = `;
+    content += inputSignals
+      .map((s) => `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`)
+      .join(",\n\t\t\t\t");
+    content += `;\n\t\t\tbias-pull-up;\n\t\t};\n`;
+  }
+
+  content += `\t};\n`;
+
+  // Generate sleep state
+  content += `\n\t/omit-if-no-ref/ ${pinctrlName}_sleep: ${pinctrlName}_sleep {\n`;
+  content += `\t\tgroup1 {\n\t\t\tpsels = `;
+
+  content += allSignals
+    .map((s) => `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`)
+    .join(",\n\t\t\t\t");
+  content += `;\n\t\t\tlow-power-enable;\n\t\t};\n`;
+  content += `\t};\n`;
+
+  return content;
+}
+
+function generatePeripheralNode(peripheral, template) {
+  const nodeName = template.dtNodeName;
+  const pinctrlName = template.pinctrlBaseName;
+
+  let content = `\n&${nodeName} {\n`;
+  content += `\tstatus = "okay";\n`;
+
+  // Only add pinctrl if the peripheral needs it
+  if (!template.noPinctrl && pinctrlName) {
+    content += `\tpinctrl-0 = <&${pinctrlName}_default>;\n`;
+    content += `\tpinctrl-1 = <&${pinctrlName}_sleep>;\n`;
+    content += `\tpinctrl-names = "default", "sleep";\n`;
+  }
+
+  // Add type-specific properties
+  switch (template.type) {
+    case "UART":
+      content += `\tcurrent-speed = <115200>;\n`;
+      break;
+    case "SPI":
+      // Check for out-of-band signals (CS, DCX) and add as comments
+      if (template.outOfBandSignals) {
+        template.outOfBandSignals.forEach(signal => {
+          const pin = Object.keys(peripheral.pinFunctions).find(
+            (p) => peripheral.pinFunctions[p] === signal
+          );
+          if (pin) {
+            const pinInfo = parsePinName(pin);
+            if (pinInfo) {
+              content += `\t/* ${signal} pin: P${pinInfo.port}.${pinInfo.pin} */\n`;
+            }
+          }
+        });
+      }
+
+      // Check if CS pin is selected - set cs-gpios
+      const csPin = Object.keys(peripheral.pinFunctions).find(
+        (pin) => peripheral.pinFunctions[pin] === "CS"
+      );
+      if (csPin) {
+        const csPinInfo = parsePinName(csPin);
+        if (csPinInfo) {
+          content += `\tcs-gpios = <&gpio${csPinInfo.port} ${csPinInfo.pin} GPIO_ACTIVE_LOW>;\n`;
+        }
+      }
+      break;
+    case "I2C":
+      content += `\tclock-frequency = <I2C_BITRATE_STANDARD>;\n`;
+      break;
+  }
+
+  content += `};\n`;
+  return content;
+}
+
+async function downloadBoardAsZip(files, boardName) {
+  // Load JSZip library dynamically if not already loaded
+  if (typeof JSZip === "undefined") {
+    const script = document.createElement("script");
+    script.src =
+      "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    await new Promise((resolve) => {
+      script.onload = resolve;
+      document.head.appendChild(script);
+    });
+  }
+
+  const zip = new JSZip();
+  const boardFolder = zip.folder(boardName);
+
+  // Use current date/time for all files to avoid CMake reconfiguration loops
+  // Set to a stable past date to prevent future timestamps
+  const stableDate = new Date(2024, 0, 1, 12, 0, 0); // Jan 1, 2024 12:00:00
+
+  // Add all generated files to the board directory with stable timestamp
+  for (const [filename, content] of Object.entries(files)) {
+    boardFolder.file(filename, content, { date: stableDate });
+  }
+
+  // Generate and download the ZIP with proper options
+  const blob = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 9 }
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `nrf-pin-config-${mcu}-${pkg}.json`;
+  a.download = `${boardName}.zip`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-}
-
-function openImportModal() {
-  document.getElementById("importModal").style.display = "block";
-}
-
-function closeImportModal() {
-  document.getElementById("importModal").style.display = "none";
-}
-
-function importConfiguration() {
-  const fileInput = document.getElementById("importFileInput");
-  const jsonInput = document.getElementById("importJsonInput").value;
-
-  if (fileInput.files.length > 0) {
-    const reader = new FileReader();
-    reader.onload = (e) => processImportedJson(e.target.result);
-    reader.readAsText(fileInput.files[0]);
-  } else if (jsonInput) {
-    processImportedJson(jsonInput);
-  } else {
-    document.getElementById("importError").textContent =
-      "Please select a file or paste JSON.";
-    document.getElementById("importError").style.display = "block";
-  }
-}
-
-async function processImportedJson(json) {
-  try {
-    const config = JSON.parse(json);
-    if (!config.mcu || !config.package || !config.selectedPeripherals) {
-      throw new Error("Invalid configuration file.");
-    }
-
-    document.getElementById("mcuSelector").value = config.mcu;
-    await handleMcuChange();
-    document.getElementById("packageSelector").value = config.package;
-    await loadCurrentMcuData();
-
-    resetState();
-    applyConfig(config);
-
-    updateSelectedPeripheralsList();
-    updatePinDisplay();
-    saveStateToLocalStorage();
-    closeImportModal();
-  } catch (error) {
-    document.getElementById("importError").textContent =
-      `Error: ${error.message}`;
-    document.getElementById("importError").style.display = "block";
-    console.error("Import failed:", error);
-  }
+  URL.revokeObjectURL(url);
 }
 
 function filterPeripherals() {

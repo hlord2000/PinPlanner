@@ -1,0 +1,174 @@
+{
+  "$schema": "devicetree-templates-schema",
+  "description": "DeviceTree templates for nRF54L15 peripherals",
+  "note": "These templates use {{SIGNAL_NAME}} placeholders for dynamic pin insertion",
+  "templates": {
+    "UARTE00": {
+      "dtNodeName": "uart00",
+      "pinctrlBaseName": "uart00",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "UARTE20": {
+      "dtNodeName": "uart20",
+      "pinctrlBaseName": "uart20",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "UARTE21": {
+      "dtNodeName": "uart21",
+      "pinctrlBaseName": "uart21",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "UARTE30": {
+      "dtNodeName": "uart30",
+      "pinctrlBaseName": "uart30",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "SPIM/SPIS00": {
+      "dtNodeName": "spi00",
+      "pinctrlBaseName": "spi00",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "SPIM/SPIS20": {
+      "dtNodeName": "spi20",
+      "pinctrlBaseName": "spi20",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "SPIM/SPIS21": {
+      "dtNodeName": "spi21",
+      "pinctrlBaseName": "spi21",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "SPIM/SPIS22": {
+      "dtNodeName": "spi22",
+      "pinctrlBaseName": "spi22",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "TWIM/TWIS20": {
+      "dtNodeName": "i2c20",
+      "pinctrlBaseName": "i2c20",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "TWIM/TWIS21": {
+      "dtNodeName": "i2c21",
+      "pinctrlBaseName": "i2c21",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "TWIM/TWIS22": {
+      "dtNodeName": "i2c22",
+      "pinctrlBaseName": "i2c22",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "PWM20": {
+      "dtNodeName": "pwm20",
+      "pinctrlBaseName": "pwm20",
+      "type": "PWM",
+      "signalMappings": {
+        "OUT0": "PWM_OUT0",
+        "OUT1": "PWM_OUT1",
+        "OUT2": "PWM_OUT2",
+        "OUT3": "PWM_OUT3"
+      }
+    },
+    "PWM21": {
+      "dtNodeName": "pwm21",
+      "pinctrlBaseName": "pwm21",
+      "type": "PWM",
+      "signalMappings": {
+        "OUT0": "PWM_OUT0",
+        "OUT1": "PWM_OUT1",
+        "OUT2": "PWM_OUT2",
+        "OUT3": "PWM_OUT3"
+      }
+    },
+    "PWM22": {
+      "dtNodeName": "pwm22",
+      "pinctrlBaseName": "pwm22",
+      "type": "PWM",
+      "signalMappings": {
+        "OUT0": "PWM_OUT0",
+        "OUT1": "PWM_OUT1",
+        "OUT2": "PWM_OUT2",
+        "OUT3": "PWM_OUT3"
+      }
+    },
+    "RADIO": {
+      "dtNodeName": "radio",
+      "pinctrlBaseName": "radio",
+      "type": "RADIO",
+      "signalMappings": {
+        "RADIO[0]": "RADIO_DFEGPIO0",
+        "RADIO[1]": "RADIO_DFEGPIO1",
+        "RADIO[2]": "RADIO_DFEGPIO2",
+        "RADIO[3]": "RADIO_DFEGPIO3",
+        "RADIO[4]": "RADIO_DFEGPIO4",
+        "RADIO[5]": "RADIO_DFEGPIO5",
+        "RADIO[6]": "RADIO_DFEGPIO6",
+        "RADIO[7]": "RADIO_DFEGPIO7"
+      }
+    }
+  }
+}

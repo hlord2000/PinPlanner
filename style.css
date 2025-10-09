@@ -567,6 +567,13 @@ button:hover,
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Smaller modal for simple forms */
+#oscillatorConfigModal .modal-content,
+#boardInfoModal .modal-content {
+  max-width: 600px;
 }
 .modal-header {
   padding: 1rem 1.5rem;
@@ -591,9 +598,26 @@ button:hover,
   color: var(--text-color);
 }
 #importModalBody,
-#modalBody {
-  padding: 1.5rem;
+#modalBody,
+#boardInfoModalBody,
+#oscillatorModalBody {
+  padding: 1.5rem 2rem;
   overflow-y: auto;
+}
+
+/* Disabled form elements */
+select:disabled,
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--secondary-color);
+  color: var(--light-text);
+}
+
+option:disabled {
+  opacity: 0.5;
+  color: var(--light-text);
+  font-style: italic;
 }
 .modal-footer {
   padding: 1rem 1.5rem;
@@ -652,4 +676,90 @@ button:hover,
   width: 90px;
   font-weight: 600;
   color: var(--light-text);
+}
+
+/* --- FORM STYLING --- */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+.form-group label[style*="cursor: pointer"] {
+  font-weight: normal;
+}
+
+.form-group .required {
+  color: var(--error-color);
+  margin-left: 3px;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(122, 214, 230, 0.1);
+}
+
+.form-group small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--light-text);
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+  border-color: var(--error-color);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.oscillator-config {
+  padding: 12px 16px;
+  background-color: var(--secondary-color);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+.oscillator-config label {
+  margin: 0;
+  font-weight: normal;
+}
+
+.oscillator-config select {
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.oscillator-group .single-peripheral-btn.selected {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
 }

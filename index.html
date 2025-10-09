@@ -166,8 +166,7 @@
             </ul>
             <div class="button-group-vertical">
               <button id="clearAllBtn">Clear All</button>
-              <button id="exportBtn">Export Configuration</button>
-              <button id="importBtn">Import Configuration</button>
+              <button id="exportDeviceTreeBtn">Generate DeviceTree</button>
             </div>
           </div>
         </aside>
@@ -203,54 +202,88 @@
       </footer>
     </div>
 
-    <!-- Import Configuration Modal -->
-    <div id="importModal" class="modal">
+    <!-- Board Information Modal -->
+    <div id="boardInfoModal" class="modal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Import Configuration</h2>
-          <span class="close" id="closeImportModal">&times;</span>
+          <h2>Board Information</h2>
+          <span class="close" id="closeBoardInfoModal">&times;</span>
         </div>
-        <div id="importModalBody">
-          <div class="import-tabs">
-            <button class="import-tab-btn active" data-tab="file-upload">
-              File Upload
-            </button>
-            <button class="import-tab-btn" data-tab="paste-json">
-              Paste JSON
-            </button>
-          </div>
+        <div id="boardInfoModalBody">
+          <p>
+            Provide information about your custom board. This will be used to
+            generate a complete Zephyr board definition.
+          </p>
 
-          <div class="import-tab-content active" id="file-upload">
-            <p>Select a JSON configuration file to import:</p>
+          <div class="form-group">
+            <label for="boardNameInput"
+              >Board Name<span class="required">*</span></label
+            >
             <input
-              type="file"
-              id="importFileInput"
-              accept=".json"
-              style="margin-bottom: 15px"
+              type="text"
+              id="boardNameInput"
+              placeholder="myboard"
+              pattern="[a-z0-9_]+"
+              required
             />
+            <small
+              >Lowercase letters, numbers, and underscores only (e.g.,
+              "my_custom_board")</small
+            >
           </div>
 
-          <div class="import-tab-content" id="paste-json">
-            <p>Paste your exported JSON configuration below:</p>
+          <div class="form-group">
+            <label for="boardFullNameInput"
+              >Full Board Name<span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="boardFullNameInput"
+              placeholder="My Custom Board v1.0"
+              required
+            />
+            <small>Display name for the board (e.g., "My nRF54L15 Board v1.0")</small>
+          </div>
+
+          <div class="form-group">
+            <label for="boardVendorInput">Vendor/Manufacturer</label>
+            <input
+              type="text"
+              id="boardVendorInput"
+              placeholder="custom"
+              pattern="[a-z0-9_]+"
+              value="custom"
+            />
+            <small>Lowercase letters, numbers, and underscores only</small>
+          </div>
+
+          <div class="form-group">
+            <label for="boardRevisionInput">Revision (Optional)</label>
+            <input
+              type="text"
+              id="boardRevisionInput"
+              placeholder="1.0"
+            />
+            <small>Board revision (e.g., "1.0", "rev_a")</small>
+          </div>
+
+          <div class="form-group">
+            <label for="boardDescriptionInput">Description (Optional)</label>
             <textarea
-              id="importJsonInput"
-              style="
-                width: 100%;
-                height: 200px;
-                margin-bottom: 15px;
-                font-family: monospace;
-              "
+              id="boardDescriptionInput"
+              rows="3"
+              placeholder="Brief description of your board..."
             ></textarea>
           </div>
 
           <div
-            id="importError"
-            style="color: red; margin-bottom: 10px; display: none"
+            id="boardInfoError"
+            style="color: red; margin-top: 10px; display: none"
           ></div>
         </div>
         <div class="modal-footer">
-          <button id="cancelImport">Cancel</button>
-          <button id="confirmImport">Import</button>
+          <button id="cancelBoardInfo">Cancel</button>
+          <button id="confirmBoardInfo">Generate Board Definition</button>
         </div>
       </div>
     </div>
@@ -298,6 +331,43 @@
         <div class="modal-footer">
           <button id="cancelPinSelection">Cancel</button>
           <button id="confirmPinSelection">Confirm Selection</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Oscillator Configuration Modal -->
+    <div id="oscillatorConfigModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="oscillatorModalTitle">Configure Oscillator</h2>
+          <span class="close" id="closeOscillatorModal">&times;</span>
+        </div>
+        <div id="oscillatorModalBody">
+          <div class="form-group">
+            <label>Capacitors:</label>
+            <div style="display: flex; gap: 20px;">
+              <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="radio" name="oscillatorCapacitors" value="internal" checked style="margin-right: 8px;" id="oscillatorCapInternal" />
+                Internal
+              </label>
+              <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="radio" name="oscillatorCapacitors" value="external" style="margin-right: 8px;" id="oscillatorCapExternal" />
+                External
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="oscillatorLoadCapacitance">Load Capacitance:</label>
+            <select id="oscillatorLoadCapacitance">
+              <!-- Will be populated dynamically -->
+            </select>
+            <small>Only used when internal capacitors are selected</small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelOscillatorConfig">Cancel</button>
+          <button id="confirmOscillatorConfig">Confirm Configuration</button>
         </div>
       </div>
     </div>

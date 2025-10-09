@@ -668,43 +668,45 @@
       "functions": ["Power"]
     }
   ],
-  "socPeripherals": [
+"socPeripherals": [
     {
       "id": "SPIM/SPIS00",
       "type": "SPI",
+      "baseAddress": "0x4004D000",
       "description": "SPIM/SPIS for GPIO port 2",
       "signals": [
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": ["P2.01"],
+          "allowedGpio": ["P2.01", "P2.06"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P2.02"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P2.04"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P2.05"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P2.00"] }
+        { "name": "SDO", "direction": "output", "allowedGpio": ["P2.02", "P2.08"] },
+        { "name": "SDI", "direction": "input", "allowedGpio": ["P2.04", "P2.09"] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": ["P2.05", "P2.10"] },
+        { "name": "DCX", "direction": "output", "allowedGpio": ["P2.00", "P2.07"] }
       ]
     },
     {
       "id": "UARTE00",
       "type": "UART",
+      "baseAddress": "0x4004D000",
       "description": "UARTE for GPIO port 2",
       "signals": [
         {
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": ["P2.02"]
+          "allowedGpio": ["P2.02", "P2.08"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": ["P2.00"]
+          "allowedGpio": ["P2.00", "P2.07"]
         },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P2.04"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P2.05"] }
+        { "name": "CTS", "direction": "input", "allowedGpio": ["P2.04", "P2.09"] },
+        { "name": "RTS", "direction": "output", "allowedGpio": ["P2.05", "P2.10"] }
       ]
     },
     {
@@ -754,6 +756,7 @@
     {
       "id": "RADIO",
       "type": "RADIO",
+      "baseAddress": "0x4008A000",
       "description": "Radio controlled GPIO for DFE",
       "signals": [
         { "name": "RADIO[0]", "direction": "output", "allowedGpio": ["P1.15"] },
@@ -767,6 +770,7 @@
     {
       "id": "SAADC",
       "type": "SAADC",
+      "baseAddress": "0x400D5000",
       "description": "SAADC, 8 channels",
       "signals": [
         {
@@ -820,6 +824,7 @@
       "id": "NFCT",
       "type": "NFCT",
       "description": "NFC Active Tag",
+      "baseAddress": "0x400D6000",
       "uiHint": "checkbox",
       "signals": [
         { "name": "NFC1", "direction": "input", "allowedGpio": ["P1.01"] },
@@ -830,6 +835,7 @@
       "id": "TAMPC",
       "type": "TAMPC",
       "description": "Tamper Controller",
+      "baseAddress": "0x500EF000",
       "signals": [
         { "name": "ASO[0]", "direction": "output", "allowedGpio": ["P1.05"] },
         { "name": "ASI[0]", "direction": "input", "allowedGpio": ["P1.06"] },
@@ -843,6 +849,7 @@
       "id": "GRTC",
       "type": "GRTC",
       "description": "Global Real-time Clock",
+      "baseAddress": "0x400E2000",
       "signals": [
         {
           "name": "PWM",
@@ -868,6 +875,7 @@
       "id": "LFXO",
       "type": "LFXO",
       "description": "Low Frequency Crystal Oscillator",
+      "baseAddress": "0x40120000",
       "uiHint": "checkbox",
       "signals": [
         {
@@ -888,6 +896,7 @@
       "id": "USBHS",
       "type": "USB",
       "description": "High-speed USB 2.0 device",
+      "baseAddress": "0x4005A000",
       "uiHint": "checkbox",
       "signals": [
         {
@@ -908,6 +917,7 @@
       "id": "GPIOTE20",
       "type": "GPIOTE",
       "description": "GPIOTE for P1 pins, 8 channels",
+      "baseAddress": "0x400DA000",
       "signals": [
         { "name": "CHAN[0]", "direction": "inout", "allowedGpio": ["P1*"] },
         { "name": "CHAN[1]", "direction": "inout", "allowedGpio": ["P1*"] },
@@ -923,6 +933,7 @@
       "id": "GPIOTE30",
       "type": "GPIOTE",
       "description": "GPIOTE for P0 pins, 4 channels",
+      "baseAddress": "0x4010C000",
       "signals": [
         { "name": "CHAN[0]", "direction": "inout", "allowedGpio": ["P0*"] },
         { "name": "CHAN[1]", "direction": "inout", "allowedGpio": ["P0*"] },
@@ -1117,7 +1128,7 @@
     {
       "id": "SPIM/SPIS23",
       "type": "SPI",
-      "baseAddress": "0x400C9000",
+      "baseAddress": "0x400ED000",
       "description": "SPIM/SPIS for GPIO port 1",
       "signals": [
         {
@@ -1135,7 +1146,7 @@
     {
       "id": "TWIM/TWIS23",
       "type": "TWI",
-      "baseAddress": "0x400C9000",
+      "baseAddress": "0x400ED000",
       "description": "TWIM/TWIS for GPIO port 1",
       "tags": ["I2C"],
       "signals": [
@@ -1151,7 +1162,7 @@
     {
       "id": "UARTE23",
       "type": "UART",
-      "baseAddress": "0x400C9000",
+      "baseAddress": "0x400ED000",
       "description": "UARTE for GPIO port 1",
       "signals": [
         { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
@@ -1163,7 +1174,7 @@
     {
       "id": "SPIM/SPIS24",
       "type": "SPI",
-      "baseAddress": "0x400CA000",
+      "baseAddress": "0x400EE000",
       "description": "SPIM/SPIS for GPIO port 1",
       "signals": [
         {
@@ -1181,7 +1192,7 @@
     {
       "id": "TWIM/TWIS24",
       "type": "TWI",
-      "baseAddress": "0x400CA000",
+      "baseAddress": "0x400EE000",
       "description": "TWIM/TWIS for GPIO port 1",
       "tags": ["I2C"],
       "signals": [
@@ -1197,7 +1208,7 @@
     {
       "id": "UARTE24",
       "type": "UART",
-      "baseAddress": "0x400CA000",
+      "baseAddress": "0x400EE000",
       "description": "UARTE for GPIO port 1",
       "signals": [
         { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
@@ -1210,6 +1221,7 @@
       "id": "PDM20",
       "type": "PDM",
       "description": "PDM interface for GPIO port 1",
+      "baseAddress": "0x400D0000",
       "signals": [
         {
           "name": "CLK",
@@ -1224,6 +1236,7 @@
       "id": "PDM21",
       "type": "PDM",
       "description": "PDM interface for GPIO port 1",
+      "baseAddress": "0x400D1000",
       "signals": [
         {
           "name": "CLK",
@@ -1238,6 +1251,7 @@
       "id": "TDM",
       "type": "TDM",
       "description": "TDM interface for GPIO port 1",
+      "baseAddress": "0x400E8000",
       "signals": [
         {
           "name": "MCK",
@@ -1260,6 +1274,7 @@
       "id": "QDEC20",
       "type": "QDEC",
       "description": "Quadrature Decoder for GPIO port 1",
+      "baseAddress": "0x400E0000",
       "signals": [
         { "name": "A", "direction": "input", "allowedGpio": ["P1*"] },
         { "name": "B", "direction": "input", "allowedGpio": ["P1*"] },
@@ -1270,6 +1285,7 @@
       "id": "QDEC21",
       "type": "QDEC",
       "description": "Quadrature Decoder for GPIO port 1",
+      "baseAddress": "0x400E1000",
       "signals": [
         { "name": "A", "direction": "input", "allowedGpio": ["P1*"] },
         { "name": "B", "direction": "input", "allowedGpio": ["P1*"] },
