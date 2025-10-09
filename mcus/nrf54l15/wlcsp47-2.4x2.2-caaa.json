@@ -65,7 +65,7 @@
       "pinIndex": 12,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P1.12", "ASI[3]", "RADIO[3]", "AIN5"],
+      "functions": ["Digital I/O", "ASI[3]", "RADIO[3]", "AIN5"],
       "gridCoordinates": "A3"
     },
     {
@@ -125,7 +125,7 @@
       "pinIndex": 9,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.09", "ASO[2]", "RADIO[0]"],
+      "functions": ["Digital I/O", "ASO[2]", "RADIO[0]"],
       "gridCoordinates": "B3"
     },
     {
@@ -135,7 +135,7 @@
       "pinIndex": 13,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.13", "RADIO[4]", "AIN6"],
+      "functions": ["Digital I/O", "RADIO[4]", "AIN6"],
       "gridCoordinates": "B4"
     },
     {
@@ -145,7 +145,7 @@
       "pinIndex": 14,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.14", "RADIO[5]", "AIN7"],
+      "functions": ["Digital I/O", "RADIO[5]", "AIN7"],
       "gridCoordinates": "B5"
     },
     {
@@ -155,7 +155,7 @@
       "pinIndex": 15,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["General purpose I/O"],
+      "functions": ["Digital I/O"],
       "gridCoordinates": "B6"
     },
     {
@@ -185,7 +185,7 @@
       "pinIndex": 10,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.10", "ASI[2]", "RADIO[1]"],
+      "functions": ["Digital I/O", "ASI[2]", "RADIO[1]"],
       "gridCoordinates": "C3"
     },
     {
@@ -195,7 +195,7 @@
       "pinIndex": 11,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P1.11", "ASO[3]", "RADIO[2]", "AIN4"],
+      "functions": ["Digital I/O", "ASO[3]", "RADIO[2]", "AIN4"],
       "gridCoordinates": "C4"
     },
     {
@@ -205,7 +205,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.00", "XL1"],
+      "functions": ["Digital I/O", "XL1"],
       "gridCoordinates": "C5"
     },
     {
@@ -215,7 +215,7 @@
       "pinIndex": 1,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.01", "XL2"],
+      "functions": ["Digital I/O", "XL2"],
       "gridCoordinates": "C6"
     },
     {
@@ -225,7 +225,7 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.02", "NFC1"],
+      "functions": ["Digital I/O", "NFC1"],
       "gridCoordinates": "C7"
     },
     {
@@ -255,7 +255,7 @@
       "pinIndex": 4,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P0.04", "GRTC CLKOUT32K"],
+      "functions": ["Digital I/O", "GRTC CLKOUT32K"],
       "gridCoordinates": "D3"
     },
     {
@@ -282,7 +282,7 @@
       "pinIndex": 3,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P1.03", "NFC2"],
+      "functions": ["Digital I/O", "NFC2"],
       "gridCoordinates": "D5"
     },
     {
@@ -292,7 +292,7 @@
       "pinIndex": 4,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P1.04", "ASO[0]", "AIN0"],
+      "functions": ["Digital I/O", "ASO[0]", "AIN0"],
       "gridCoordinates": "D6"
     },
     {
@@ -302,7 +302,7 @@
       "pinIndex": 6,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.06", "ASO[1]", "AIN2"],
+      "functions": ["Digital I/O", "ASO[1]", "AIN2"],
       "gridCoordinates": "D7"
     },
     {
@@ -312,7 +312,7 @@
       "pinIndex": 3,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P0.03", "GRTC PWM"],
+      "functions": ["Digital I/O", "GRTC PWM"],
       "gridCoordinates": "E1"
     },
     {
@@ -322,7 +322,7 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["General purpose I/O"],
+      "functions": ["Digital I/O"],
       "gridCoordinates": "E2"
     },
     {
@@ -359,7 +359,7 @@
       "pinIndex": 3,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P2.03", "FLPR.3", "QSPI D2"],
+      "functions": ["Digital I/O", "FLPR.3", "QSPI D2"],
       "gridCoordinates": "E5"
     },
     {
@@ -369,7 +369,7 @@
       "pinIndex": 5,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.05", "ASI[0]", "RADIO[6]", "AIN1"],
+      "functions": ["Digital I/O", "ASI[0]", "RADIO[6]", "AIN1"],
       "gridCoordinates": "E6"
     },
     {
@@ -379,7 +379,7 @@
       "pinIndex": 7,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P1.07", "ASI[1]", "AIN3"],
+      "functions": ["Digital I/O", "ASI[1]", "AIN3"],
       "gridCoordinates": "E7"
     },
     {
@@ -389,7 +389,7 @@
       "pinIndex": 1,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["General purpose I/O"],
+      "functions": ["Digital I/O"],
       "gridCoordinates": "F1"
     },
     {
@@ -426,7 +426,13 @@
       "pinIndex": 6,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P2.06", "TRACECLK", "FLPR.6", "SPIM SCK", "SPIS SCK"],
+      "functions": [
+        "Digital I/O",
+        "TRACECLK",
+        "FLPR.6",
+        "SPIM SCK",
+        "SPIS SCK"
+      ],
       "gridCoordinates": "F4"
     },
     {
@@ -470,7 +476,7 @@
       "pinIndex": 8,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P1.08", "EXTREF", "GRTC CLKOUTFAST"],
+      "functions": ["Digital I/O", "EXTREF", "GRTC CLKOUTFAST"],
       "gridCoordinates": "F7"
     },
     {
@@ -480,7 +486,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["General purpose I/O"],
+      "functions": ["Digital I/O"],
       "gridCoordinates": "G1"
     },
     {
@@ -544,7 +550,13 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
-      "functions": ["P2.00", "SPIM DCX", "UARTE RXD", "FLPR.4", "QSPI D3"],
+      "functions": [
+        "Digital I/O",
+        "SPIM DCX",
+        "UARTE RXD",
+        "FLPR.4",
+        "QSPI D3"
+      ],
       "gridCoordinates": "G6"
     },
     {
@@ -554,7 +566,13 @@
       "pinIndex": 1,
       "isClockCapable": true,
       "defaultType": "io",
-      "functions": ["P2.01", "SPIM SCK", "SPIS SCK", "FLPR.0", "QSPI SCK"],
+      "functions": [
+        "Digital I/O",
+        "SPIM SCK",
+        "SPIS SCK",
+        "FLPR.0",
+        "QSPI SCK"
+      ],
       "gridCoordinates": "G7"
     }
   ],
