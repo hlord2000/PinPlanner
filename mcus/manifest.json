@@ -3,6 +3,7 @@
     {
       "id": "nrf54lm20a",
       "name": "nRF54LM20A",
+      "supportsNonSecure": false,
       "packages": [
         {
           "file": "fccsp98-3.67x3.85-paaa",
@@ -17,6 +18,8 @@
     {
       "id": "nrf54l15",
       "name": "nRF54L15",
+      "supportsNonSecure": true,
+      "supportsFLPR": true,
       "packages": [
         {
           "file": "qfn52-6x6-qgaa",
@@ -39,6 +42,8 @@
     {
       "id": "nrf54l10",
       "name": "nRF54L10",
+      "supportsNonSecure": true,
+      "supportsFLPR": true,
       "packages": [
         {
           "file": "qfn52-6x6-qgaa",
@@ -57,6 +62,8 @@
     {
       "id": "nrf54l05",
       "name": "nRF54L05",
+      "supportsNonSecure": false,
+      "supportsFLPR": true,
       "packages": [
         {
           "file": "qfn52-6x6-qgaa",
