@@ -65,6 +65,7 @@
       "pinIndex": 12,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASI[3]", "RADIO[3]", "AIN5"],
       "gridCoordinates": "A3"
     },
@@ -125,6 +126,7 @@
       "pinIndex": 9,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASO[2]", "RADIO[0]"],
       "gridCoordinates": "B3"
     },
@@ -135,6 +137,7 @@
       "pinIndex": 13,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "RADIO[4]", "AIN6"],
       "gridCoordinates": "B4"
     },
@@ -145,6 +148,7 @@
       "pinIndex": 14,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "RADIO[5]", "AIN7"],
       "gridCoordinates": "B5"
     },
@@ -155,6 +159,7 @@
       "pinIndex": 15,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O"],
       "gridCoordinates": "B6"
     },
@@ -185,6 +190,7 @@
       "pinIndex": 10,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASI[2]", "RADIO[1]"],
       "gridCoordinates": "C3"
     },
@@ -195,6 +201,7 @@
       "pinIndex": 11,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASO[3]", "RADIO[2]", "AIN4"],
       "gridCoordinates": "C4"
     },
@@ -205,6 +212,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "XL1"],
       "gridCoordinates": "C5"
     },
@@ -215,6 +223,7 @@
       "pinIndex": 1,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "XL2"],
       "gridCoordinates": "C6"
     },
@@ -225,6 +234,7 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "NFC1"],
       "gridCoordinates": "C7"
     },
@@ -255,6 +265,7 @@
       "pinIndex": 4,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "low_power",
       "functions": ["Digital I/O", "GRTC CLKOUT32K"],
       "gridCoordinates": "D3"
     },
@@ -265,7 +276,9 @@
       "pinIndex": 8,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.08",
         "TRACEDATA[1]",
         "FLPR.8",
@@ -282,6 +295,7 @@
       "pinIndex": 3,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "NFC2"],
       "gridCoordinates": "D5"
     },
@@ -292,6 +306,7 @@
       "pinIndex": 4,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASO[0]", "AIN0"],
       "gridCoordinates": "D6"
     },
@@ -302,6 +317,7 @@
       "pinIndex": 6,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASO[1]", "AIN2"],
       "gridCoordinates": "D7"
     },
@@ -312,6 +328,7 @@
       "pinIndex": 3,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "low_power",
       "functions": ["Digital I/O", "GRTC PWM"],
       "gridCoordinates": "E1"
     },
@@ -322,6 +339,7 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "low_power",
       "functions": ["Digital I/O"],
       "gridCoordinates": "E2"
     },
@@ -342,7 +360,9 @@
       "pinIndex": 7,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.07",
         "TRACEDATA[0]",
         "SWO",
@@ -359,6 +379,7 @@
       "pinIndex": 3,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": ["Digital I/O", "FLPR.3", "QSPI D2"],
       "gridCoordinates": "E5"
     },
@@ -369,6 +390,7 @@
       "pinIndex": 5,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASI[0]", "RADIO[6]", "AIN1"],
       "gridCoordinates": "E6"
     },
@@ -379,6 +401,7 @@
       "pinIndex": 7,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "ASI[1]", "AIN3"],
       "gridCoordinates": "E7"
     },
@@ -389,6 +412,7 @@
       "pinIndex": 1,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "low_power",
       "functions": ["Digital I/O"],
       "gridCoordinates": "F1"
     },
@@ -409,7 +433,9 @@
       "pinIndex": 9,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.09",
         "TRACEDATA[2]",
         "FLPR.9",
@@ -426,6 +452,7 @@
       "pinIndex": 6,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
         "Digital I/O",
         "TRACECLK",
@@ -442,7 +469,9 @@
       "pinIndex": 4,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.04",
         "SPIM SDI",
         "SPIS SDI",
@@ -459,7 +488,9 @@
       "pinIndex": 2,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.02",
         "SPIM SDO",
         "SPIS SDO",
@@ -476,6 +507,7 @@
       "pinIndex": 8,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "peripheral",
       "functions": ["Digital I/O", "EXTREF", "GRTC CLKOUTFAST"],
       "gridCoordinates": "F7"
     },
@@ -486,6 +518,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "low_power",
       "functions": ["Digital I/O"],
       "gridCoordinates": "G1"
     },
@@ -496,7 +529,9 @@
       "pinIndex": 10,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.10",
         "TRACEDATA[3]",
         "FLPR.10",
@@ -533,7 +568,9 @@
       "pinIndex": 5,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
+        "Digital I/O",
         "P2.05",
         "SPIM CSN",
         "SPIS CSN",
@@ -550,6 +587,7 @@
       "pinIndex": 0,
       "isClockCapable": false,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
         "Digital I/O",
         "SPIM DCX",
@@ -566,6 +604,7 @@
       "pinIndex": 1,
       "isClockCapable": true,
       "defaultType": "io",
+      "powerDomain": "mcu",
       "functions": [
         "Digital I/O",
         "SPIM SCK",
@@ -1423,23 +1462,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         }
       ]
     },

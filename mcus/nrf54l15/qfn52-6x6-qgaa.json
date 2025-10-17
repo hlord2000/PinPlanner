@@ -1574,23 +1574,23 @@
           "name": "TXD",
           "direction": "output",
           "isMandatory": true,
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "RXD",
           "direction": "input",
           "isMandatory": true,
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "CTS",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         },
         {
           "name": "RTS",
           "direction": "input",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P0*"]
         }
       ]
     },
