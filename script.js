@@ -1938,6 +1938,21 @@ function generateCommonDtsi(mcu) {
     content += generatePeripheralNode(p, template);
   });
 
+  // Check if NFC pins are not being used as NFC
+  let nfcUsed = false;
+  selectedPeripherals.forEach((p) => {
+    const template = deviceTreeTemplates[p.id];
+    if (template && template.type == "NFCT") {
+      nfcUsed = true;
+    }
+  });
+  if (!nfcUsed) {
+    content += `&uicr {
+\tnfct-pins-as-gpios;
+};
+`
+  }
+
   return content;
 }
 
