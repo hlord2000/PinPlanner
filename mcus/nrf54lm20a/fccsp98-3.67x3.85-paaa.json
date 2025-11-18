@@ -1252,6 +1252,90 @@
       ]
     },
     {
+      "id": "PWM20",
+      "type": "PWM",
+      "baseAddress": "0x400D2000",
+      "description": "Peripheral domain PWM20 for GPIO port 1, 4 channels",
+      "signals": [
+        {
+          "name": "CHAN[0]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[1]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[2]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[3]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        }
+      ]
+    },
+    {
+      "id": "PWM21",
+      "type": "PWM",
+      "baseAddress": "0x400D3000",
+      "description": "Peripheral domain PWM21 for GPIO port 1, 4 channels",
+      "signals": [
+        {
+          "name": "CHAN[0]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[1]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[2]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[3]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        }
+      ]
+    },
+    {
+      "id": "PWM22",
+      "type": "PWM",
+      "baseAddress": "0x400D4000",
+      "description": "Peripheral domain PWM22 for GPIO port 1, 4 channels",
+      "signals": [
+        {
+          "name": "CHAN[0]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[1]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[2]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        },
+        {
+          "name": "CHAN[3]",
+          "direction": "output",
+          "allowedGpio": ["P1*"]
+        }
+      ]
+    },
+    {
       "id": "SAADC",
       "type": "SAADC",
       "baseAddress": "0x400D5000",
