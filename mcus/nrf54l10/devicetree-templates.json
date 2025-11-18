@@ -169,6 +169,49 @@
         "RADIO[6]": "RADIO_DFEGPIO6",
         "RADIO[7]": "RADIO_DFEGPIO7"
       }
+    },
+    "ADC": {
+      "dtNodeName": "adc",
+      "pinctrlBaseName": null,
+      "type": "ADC",
+      "signalMappings": {},
+      "noPinctrl": true
+    },
+    "NFCT": {
+      "dtNodeName": "nfct",
+      "pinctrlBaseName": null,
+      "type": "NFCT",
+      "signalMappings": {},
+      "noPinctrl": true
+    },
+    "LFXO": {
+      "dtNodeName": "lfxo",
+      "pinctrlBaseName": null,
+      "type": "OSCILLATOR",
+      "signalMappings": {},
+      "noPinctrl": true,
+      "optional": true,
+      "loadCapacitanceRange": {
+        "min": 4000,
+        "max": 18000,
+        "step": 500,
+        "note": "Load capacitance only applies when using internal capacitors"
+      }
+    },
+    "HFXO": {
+      "dtNodeName": "hfxo",
+      "pinctrlBaseName": null,
+      "type": "OSCILLATOR",
+      "signalMappings": {},
+      "noPinctrl": true,
+      "optional": false,
+      "alwaysPresent": true,
+      "loadCapacitanceRange": {
+        "min": 4000,
+        "max": 17000,
+        "step": 250,
+        "note": "Load capacitance only applies when using internal capacitors"
+      }
     }
   }
 }

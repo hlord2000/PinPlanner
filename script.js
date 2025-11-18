@@ -261,20 +261,20 @@ function reinitializeView(clearOnly = false) {
   loadStateFromLocalStorage();
 
   // Ensure HFXO is always selected after loading state (and remove duplicates)
-  const hfxoCount = selectedPeripherals.filter(p => p.id === "HFXO").length;
+  const hfxoCount = selectedPeripherals.filter((p) => p.id === "HFXO").length;
   if (hfxoCount === 0) {
     // No HFXO found, add it
-    const hfxo = mcuData.socPeripherals.find(p => p.id === "HFXO");
+    const hfxo = mcuData.socPeripherals.find((p) => p.id === "HFXO");
     if (hfxo) {
       selectedPeripherals.push({
         id: "HFXO",
         description: hfxo.description,
-        config: { ...hfxo.config }
+        config: { ...hfxo.config },
       });
     }
   } else if (hfxoCount > 1) {
     // Multiple HFXO found, keep only the first one
-    const firstHfxo = selectedPeripherals.find(p => p.id === "HFXO");
+    const firstHfxo = selectedPeripherals.find((p) => p.id === "HFXO");
     // Remove all HFXO instances
     for (let i = selectedPeripherals.length - 1; i >= 0; i--) {
       if (selectedPeripherals[i].id === "HFXO") {
@@ -302,7 +302,7 @@ function addOscillatorsToPeripherals() {
   }
 
   // Find existing LFXO (might be defined with checkbox uiHint)
-  const lfxoIndex = mcuData.socPeripherals.findIndex(p => p.id === "LFXO");
+  const lfxoIndex = mcuData.socPeripherals.findIndex((p) => p.id === "LFXO");
 
   if (lfxoIndex !== -1) {
     // LFXO exists - convert it to oscillator type
@@ -312,7 +312,7 @@ function addOscillatorsToPeripherals() {
     if (!lfxo.config) {
       lfxo.config = {
         loadCapacitors: "internal",
-        loadCapacitanceFemtofarad: 15000
+        loadCapacitanceFemtofarad: 15000,
       };
     }
   } else {
@@ -325,13 +325,13 @@ function addOscillatorsToPeripherals() {
       signals: [],
       config: {
         loadCapacitors: "internal",
-        loadCapacitanceFemtofarad: 15000
-      }
+        loadCapacitanceFemtofarad: 15000,
+      },
     });
   }
 
   // Find or add HFXO
-  const hfxoIndex = mcuData.socPeripherals.findIndex(p => p.id === "HFXO");
+  const hfxoIndex = mcuData.socPeripherals.findIndex((p) => p.id === "HFXO");
 
   if (hfxoIndex !== -1) {
     // HFXO exists - convert it to oscillator type
@@ -342,7 +342,7 @@ function addOscillatorsToPeripherals() {
     if (!hfxo.config) {
       hfxo.config = {
         loadCapacitors: "internal",
-        loadCapacitanceFemtofarad: 15000
+        loadCapacitanceFemtofarad: 15000,
       };
     }
   } else {
@@ -356,25 +356,25 @@ function addOscillatorsToPeripherals() {
       signals: [],
       config: {
         loadCapacitors: "internal",
-        loadCapacitanceFemtofarad: 15000
-      }
+        loadCapacitanceFemtofarad: 15000,
+      },
     });
   }
 }
 
 function autoSelectHFXO() {
   // Remove any existing HFXO first (prevent duplicates)
-  const existingIndex = selectedPeripherals.findIndex(p => p.id === "HFXO");
+  const existingIndex = selectedPeripherals.findIndex((p) => p.id === "HFXO");
   if (existingIndex !== -1) {
     selectedPeripherals.splice(existingIndex, 1);
   }
 
-  const hfxo = mcuData.socPeripherals.find(p => p.id === "HFXO");
+  const hfxo = mcuData.socPeripherals.find((p) => p.id === "HFXO");
   if (hfxo) {
     selectedPeripherals.push({
       id: "HFXO",
       description: hfxo.description,
-      config: { ...hfxo.config }
+      config: { ...hfxo.config },
     });
     updateSelectedPeripheralsList();
   }
@@ -433,7 +433,7 @@ function organizePeripherals() {
     btn.style.width = "100%";
 
     // Check if oscillator is selected
-    const isSelected = selectedPeripherals.some(sp => sp.id === p.id);
+    const isSelected = selectedPeripherals.some((sp) => sp.id === p.id);
     if (isSelected) {
       btn.classList.add("selected");
     }
@@ -444,7 +444,9 @@ function organizePeripherals() {
       btn.addEventListener("click", () => openOscillatorConfig(p));
     } else {
       // LFXO is optional - always opens config modal
-      btn.textContent = isSelected ? `${p.description} (Configure)` : `${p.description} (Add)`;
+      btn.textContent = isSelected
+        ? `${p.description} (Configure)`
+        : `${p.description} (Add)`;
       btn.addEventListener("click", () => openOscillatorConfig(p));
     }
 
@@ -780,7 +782,7 @@ function applyConfig(config) {
         selectedPeripherals.push({
           id: p_data.id,
           description: p_data.description,
-          config: p_config.config || p_data.config
+          config: p_config.config || p_data.config,
         });
         // Mark oscillator pins as used if they have signals
         if (p_data.signals && p_data.signals.length > 0) {
@@ -1152,10 +1154,13 @@ let currentOscillator = null;
 function openOscillatorConfig(oscillator) {
   currentOscillator = oscillator;
 
-  document.getElementById("oscillatorModalTitle").textContent = `Configure ${oscillator.description}`;
+  document.getElementById("oscillatorModalTitle").textContent =
+    `Configure ${oscillator.description}`;
 
   // Get current config if oscillator is already selected
-  const existingConfig = selectedPeripherals.find(p => p.id === oscillator.id);
+  const existingConfig = selectedPeripherals.find(
+    (p) => p.id === oscillator.id,
+  );
   const config = existingConfig ? existingConfig.config : oscillator.config;
 
   // Set radio buttons
@@ -1169,7 +1174,9 @@ function openOscillatorConfig(oscillator) {
   const loadCapSelect = document.getElementById("oscillatorLoadCapacitance");
   loadCapSelect.innerHTML = "";
 
-  const template = deviceTreeTemplates ? deviceTreeTemplates[oscillator.id] : null;
+  const template = deviceTreeTemplates
+    ? deviceTreeTemplates[oscillator.id]
+    : null;
   let min, max, step;
 
   if (template && template.loadCapacitanceRange) {
@@ -1182,7 +1189,8 @@ function openOscillatorConfig(oscillator) {
       min = 4000;
       max = 18000;
       step = 500;
-    } else { // HFXO
+    } else {
+      // HFXO
       min = 4000;
       max = 17000;
       step = 250;
@@ -1193,7 +1201,10 @@ function openOscillatorConfig(oscillator) {
     const option = document.createElement("option");
     option.value = i;
     option.textContent = `${(i / 1000).toFixed(step === 250 ? 2 : 1)} pF (${i} fF)`;
-    if (config.loadCapacitanceFemtofarad && i === config.loadCapacitanceFemtofarad) {
+    if (
+      config.loadCapacitanceFemtofarad &&
+      i === config.loadCapacitanceFemtofarad
+    ) {
       option.selected = true;
     }
     loadCapSelect.appendChild(option);
@@ -1225,21 +1236,27 @@ function closeOscillatorConfig() {
 function confirmOscillatorConfig() {
   if (!currentOscillator) return;
 
-  const loadCapacitors = document.querySelector('input[name="oscillatorCapacitors"]:checked').value;
+  const loadCapacitors = document.querySelector(
+    'input[name="oscillatorCapacitors"]:checked',
+  ).value;
 
   const config = {
-    loadCapacitors
+    loadCapacitors,
   };
 
   // Only include load capacitance if internal
   if (loadCapacitors === "internal") {
-    config.loadCapacitanceFemtofarad = parseInt(document.getElementById("oscillatorLoadCapacitance").value);
+    config.loadCapacitanceFemtofarad = parseInt(
+      document.getElementById("oscillatorLoadCapacitance").value,
+    );
   }
 
   // Remove ALL existing instances of this oscillator (prevent duplicates)
   let removed = false;
   do {
-    const existingIndex = selectedPeripherals.findIndex(p => p.id === currentOscillator.id);
+    const existingIndex = selectedPeripherals.findIndex(
+      (p) => p.id === currentOscillator.id,
+    );
     if (existingIndex !== -1) {
       selectedPeripherals.splice(existingIndex, 1);
       removed = true;
@@ -1250,10 +1267,13 @@ function confirmOscillatorConfig() {
 
   // Clear pins used by this oscillator
   if (currentOscillator.signals && currentOscillator.signals.length > 0) {
-    currentOscillator.signals.forEach(s => {
+    currentOscillator.signals.forEach((s) => {
       if (s.allowedGpio && s.allowedGpio.length > 0) {
         const pinName = s.allowedGpio[0];
-        if (usedPins[pinName] && usedPins[pinName].peripheral === currentOscillator.id) {
+        if (
+          usedPins[pinName] &&
+          usedPins[pinName].peripheral === currentOscillator.id
+        ) {
           delete usedPins[pinName];
         }
       }
@@ -1264,12 +1284,12 @@ function confirmOscillatorConfig() {
   selectedPeripherals.push({
     id: currentOscillator.id,
     description: currentOscillator.description,
-    config
+    config,
   });
 
   // Mark oscillator pins as used
   if (currentOscillator.signals && currentOscillator.signals.length > 0) {
-    currentOscillator.signals.forEach(s => {
+    currentOscillator.signals.forEach((s) => {
       if (s.allowedGpio && s.allowedGpio.length > 0) {
         const pinName = s.allowedGpio[0];
         usedPins[pinName] = {
@@ -1303,7 +1323,7 @@ function updateSelectedPeripheralsList() {
   // Remove duplicates (safety check)
   const uniquePeripherals = [];
   const seenIds = new Set();
-  selectedPeripherals.forEach(p => {
+  selectedPeripherals.forEach((p) => {
     if (!seenIds.has(p.id)) {
       seenIds.add(p.id);
       uniquePeripherals.push(p);
@@ -1313,7 +1333,7 @@ function updateSelectedPeripheralsList() {
   // Update the actual array if we found duplicates
   if (uniquePeripherals.length !== selectedPeripherals.length) {
     selectedPeripherals.length = 0;
-    uniquePeripherals.forEach(p => selectedPeripherals.push(p));
+    uniquePeripherals.forEach((p) => selectedPeripherals.push(p));
   }
 
   selectedPeripherals.forEach((p) => {
@@ -1323,20 +1343,23 @@ function updateSelectedPeripheralsList() {
     let details;
     if (p.config) {
       // Oscillator - show configuration
-      const capLabel = p.config.loadCapacitors === "internal" ? "Internal" : "External";
+      const capLabel =
+        p.config.loadCapacitors === "internal" ? "Internal" : "External";
       if (p.config.loadCapacitors === "external") {
         details = `${capLabel} caps`;
       } else {
-        const capValue = (p.config.loadCapacitanceFemtofarad / 1000).toFixed(p.id === "HFXO" ? 2 : 1);
+        const capValue = (p.config.loadCapacitanceFemtofarad / 1000).toFixed(
+          p.id === "HFXO" ? 2 : 1,
+        );
         details = `${capLabel} caps, ${capValue} pF`;
       }
 
       // Add pin info for oscillators with signals (like LFXO)
-      const oscData = mcuData.socPeripherals.find(sp => sp.id === p.id);
+      const oscData = mcuData.socPeripherals.find((sp) => sp.id === p.id);
       if (oscData && oscData.signals && oscData.signals.length > 0) {
         const pins = oscData.signals
-          .filter(s => s.allowedGpio && s.allowedGpio.length > 0)
-          .map(s => s.allowedGpio[0])
+          .filter((s) => s.allowedGpio && s.allowedGpio.length > 0)
+          .map((s) => s.allowedGpio[0])
           .join(", ");
         if (pins) {
           details += ` (${pins})`;
@@ -1344,12 +1367,16 @@ function updateSelectedPeripheralsList() {
       }
     } else {
       // Regular peripheral - show pin assignments
-      details = Object.entries(p.pinFunctions || {})
-        .map(([pin, func]) => `${pin}: ${func}`)
-        .join(", ") || "Auto-assigned";
+      details =
+        Object.entries(p.pinFunctions || {})
+          .map(([pin, func]) => `${pin}: ${func}`)
+          .join(", ") || "Auto-assigned";
     }
 
-    const removeBtn = p.id === "HFXO" ? "" : `<button class="remove-btn" data-id="${p.id}">Remove</button>`;
+    const removeBtn =
+      p.id === "HFXO"
+        ? ""
+        : `<button class="remove-btn" data-id="${p.id}">Remove</button>`;
 
     item.innerHTML = `
             <div><strong>${p.id}</strong><div>${details}</div></div>
@@ -1418,7 +1445,7 @@ function removePeripheral(id) {
   // Handle oscillators - clear their signal pins
   if (peripheralData && peripheralData.uiHint === "oscillator") {
     if (peripheralData.signals && peripheralData.signals.length > 0) {
-      peripheralData.signals.forEach(s => {
+      peripheralData.signals.forEach((s) => {
         if (s.allowedGpio && s.allowedGpio.length > 0) {
           const pinName = s.allowedGpio[0];
           if (usedPins[pinName] && usedPins[pinName].peripheral === id) {
@@ -1540,7 +1567,8 @@ function setupBoardNameValidation() {
     const value = input.value.trim();
 
     if (value && !pattern.test(value)) {
-      errorElement.textContent = "Only lowercase letters, numbers, and underscores allowed";
+      errorElement.textContent =
+        "Only lowercase letters, numbers, and underscores allowed";
       errorElement.style.display = "block";
       input.style.borderColor = "var(--error-color)";
       return false;
@@ -1552,8 +1580,12 @@ function setupBoardNameValidation() {
   };
 
   // Add event listeners
-  boardNameInput.addEventListener("input", () => validateInput(boardNameInput, boardNameError));
-  boardVendorInput.addEventListener("input", () => validateInput(boardVendorInput, vendorError));
+  boardNameInput.addEventListener("input", () =>
+    validateInput(boardNameInput, boardNameError),
+  );
+  boardVendorInput.addEventListener("input", () =>
+    validateInput(boardVendorInput, vendorError),
+  );
 }
 
 function closeBoardInfoModal() {
@@ -1567,9 +1599,12 @@ function validateBoardName(name) {
 async function confirmBoardInfoAndGenerate() {
   const boardName = document.getElementById("boardNameInput").value.trim();
   const fullName = document.getElementById("boardFullNameInput").value.trim();
-  const vendor = document.getElementById("boardVendorInput").value.trim() || "custom";
+  const vendor =
+    document.getElementById("boardVendorInput").value.trim() || "custom";
   const revision = document.getElementById("boardRevisionInput").value.trim();
-  const description = document.getElementById("boardDescriptionInput").value.trim();
+  const description = document
+    .getElementById("boardDescriptionInput")
+    .value.trim();
 
   const errorElement = document.getElementById("boardInfoError");
 
@@ -1581,7 +1616,8 @@ async function confirmBoardInfoAndGenerate() {
   }
 
   if (!validateBoardName(boardName)) {
-    errorElement.textContent = "Board name must contain only lowercase letters, numbers, and underscores.";
+    errorElement.textContent =
+      "Board name must contain only lowercase letters, numbers, and underscores.";
     errorElement.style.display = "block";
     return;
   }
@@ -1593,7 +1629,8 @@ async function confirmBoardInfoAndGenerate() {
   }
 
   if (vendor && !validateBoardName(vendor)) {
-    errorElement.textContent = "Vendor name must contain only lowercase letters, numbers, and underscores.";
+    errorElement.textContent =
+      "Vendor name must contain only lowercase letters, numbers, and underscores.";
     errorElement.style.display = "block";
     return;
   }
@@ -1604,7 +1641,7 @@ async function confirmBoardInfoAndGenerate() {
     fullName: fullName,
     vendor: vendor,
     revision: revision,
-    description: description
+    description: description,
   };
 
   closeBoardInfoModal();
@@ -1657,7 +1694,10 @@ async function generateBoardFiles(mcu, pkg) {
   files[`${mcu}_cpuapp_common.dtsi`] = generateCpuappCommonDtsi(mcu);
   files[`${boardInfo.name}_${mcu}-pinctrl.dtsi`] = generatePinctrlFile();
   files[`${boardInfo.name}_${mcu}_cpuapp.dts`] = generateMainDts(mcu);
-  files[`${boardInfo.name}_${mcu}_cpuapp.yaml`] = generateYamlCapabilities(mcu, false);
+  files[`${boardInfo.name}_${mcu}_cpuapp.yaml`] = generateYamlCapabilities(
+    mcu,
+    false,
+  );
   files[`${boardInfo.name}_${mcu}_cpuapp_defconfig`] = generateDefconfig(false);
   files["README.md"] = generateReadme(mcu, pkg, supportsNS, supportsFLPR);
 
@@ -1665,18 +1705,30 @@ async function generateBoardFiles(mcu, pkg) {
   if (supportsNS) {
     files["Kconfig"] = generateKconfigTrustZone(mcu);
     files[`${boardInfo.name}_${mcu}_cpuapp_ns.dts`] = generateNSDts(mcu);
-    files[`${boardInfo.name}_${mcu}_cpuapp_ns.yaml`] = generateYamlCapabilities(mcu, true);
-    files[`${boardInfo.name}_${mcu}_cpuapp_ns_defconfig`] = generateDefconfig(true);
+    files[`${boardInfo.name}_${mcu}_cpuapp_ns.yaml`] = generateYamlCapabilities(
+      mcu,
+      true,
+    );
+    files[`${boardInfo.name}_${mcu}_cpuapp_ns_defconfig`] =
+      generateDefconfig(true);
   }
 
   // Generate FLPR-specific files if MCU supports FLPR
   if (supportsFLPR) {
     files[`${boardInfo.name}_${mcu}_cpuflpr.dts`] = generateFLPRDts(mcu);
-    files[`${boardInfo.name}_${mcu}_cpuflpr.yaml`] = generateFLPRYaml(mcu, false);
-    files[`${boardInfo.name}_${mcu}_cpuflpr_defconfig`] = generateFLPRDefconfig(false);
+    files[`${boardInfo.name}_${mcu}_cpuflpr.yaml`] = generateFLPRYaml(
+      mcu,
+      false,
+    );
+    files[`${boardInfo.name}_${mcu}_cpuflpr_defconfig`] =
+      generateFLPRDefconfig(false);
     files[`${boardInfo.name}_${mcu}_cpuflpr_xip.dts`] = generateFLPRXIPDts(mcu);
-    files[`${boardInfo.name}_${mcu}_cpuflpr_xip.yaml`] = generateFLPRYaml(mcu, true);
-    files[`${boardInfo.name}_${mcu}_cpuflpr_xip_defconfig`] = generateFLPRDefconfig(true);
+    files[`${boardInfo.name}_${mcu}_cpuflpr_xip.yaml`] = generateFLPRYaml(
+      mcu,
+      true,
+    );
+    files[`${boardInfo.name}_${mcu}_cpuflpr_xip_defconfig`] =
+      generateFLPRDefconfig(true);
   }
 
   return files;
@@ -1763,7 +1815,7 @@ if(CONFIG_SOC_${mcuUpper}_CPUAPP)
 `;
 
   if (supportsFLPR) {
-    if (mcu === 'nrf54l15') {
+    if (mcu === "nrf54l15") {
       content += `elseif(CONFIG_SOC_${mcuUpper}_CPUFLPR)
 \tboard_runner_args(jlink "--device=nRF${mcuUpper.substring(3)}_RV32")
 `;
@@ -1960,7 +2012,12 @@ function generateCpuappCommonDtsi(mcu) {
   let hasUart = false;
   selectedPeripherals.forEach((p) => {
     const template = deviceTreeTemplates[p.id];
-    if (template && template.dtNodeName && template.type === "UART" && !hasUart) {
+    if (
+      template &&
+      template.dtNodeName &&
+      template.type === "UART" &&
+      !hasUart
+    ) {
       content += `\t\tzephyr,console = &${template.dtNodeName};\n`;
       content += `\t\tzephyr,shell-uart = &${template.dtNodeName};\n`;
       content += `\t\tzephyr,uart-mcumgr = &${template.dtNodeName};\n`;
@@ -1983,12 +2040,15 @@ function generateCpuappCommonDtsi(mcu) {
 `;
 
   // Add LFXO configuration if enabled
-  const lfxo = selectedPeripherals.find(p => p.id === "LFXO");
+  const lfxo = selectedPeripherals.find((p) => p.id === "LFXO");
   if (lfxo && lfxo.config) {
     content += `
 &lfxo {
 \tload-capacitors = "${lfxo.config.loadCapacitors}";`;
-    if (lfxo.config.loadCapacitors === "internal" && lfxo.config.loadCapacitanceFemtofarad) {
+    if (
+      lfxo.config.loadCapacitors === "internal" &&
+      lfxo.config.loadCapacitanceFemtofarad
+    ) {
       content += `
 \tload-capacitance-femtofarad = <${lfxo.config.loadCapacitanceFemtofarad}>;`;
     }
@@ -1998,12 +2058,18 @@ function generateCpuappCommonDtsi(mcu) {
   }
 
   // Add HFXO configuration (always present)
-  const hfxo = selectedPeripherals.find(p => p.id === "HFXO");
-  const hfxoConfig = hfxo && hfxo.config ? hfxo.config : { loadCapacitors: "internal", loadCapacitanceFemtofarad: 15000 };
+  const hfxo = selectedPeripherals.find((p) => p.id === "HFXO");
+  const hfxoConfig =
+    hfxo && hfxo.config
+      ? hfxo.config
+      : { loadCapacitors: "internal", loadCapacitanceFemtofarad: 15000 };
   content += `
 &hfxo {
 \tload-capacitors = "${hfxoConfig.loadCapacitors}";`;
-  if (hfxoConfig.loadCapacitors === "internal" && hfxoConfig.loadCapacitanceFemtofarad) {
+  if (
+    hfxoConfig.loadCapacitors === "internal" &&
+    hfxoConfig.loadCapacitanceFemtofarad
+  ) {
     content += `
 \tload-capacitance-femtofarad = <${hfxoConfig.loadCapacitanceFemtofarad}>;`;
   }
@@ -2075,6 +2141,24 @@ function generateCpuappCommonDtsi(mcu) {
 };
 `;
 
+  // Check if NFC pins are not being used as NFC
+  let nfcUsed = false;
+  selectedPeripherals.forEach((p) => {
+    const template = deviceTreeTemplates[p.id];
+    if (template && template.type === "NFCT") {
+      nfcUsed = true;
+    }
+  });
+
+  // If NFCT is not enabled, configure UICR to use NFC pins as GPIO
+  if (!nfcUsed) {
+    content += `
+&uicr {
+\tnfct-pins-as-gpios;
+};
+`;
+  }
+
   return content;
 }
 
@@ -2135,8 +2219,12 @@ function generateYamlCapabilities(mcu, isNonSecure) {
 
   const featuresArray = Array.from(supportedFeatures).sort();
 
-  const identifier = isNonSecure ? `${boardInfo.name}/${mcu}/cpuapp/ns` : `${boardInfo.name}/${mcu}/cpuapp`;
-  const name = isNonSecure ? `${boardInfo.fullName}-Non-Secure` : boardInfo.fullName;
+  const identifier = isNonSecure
+    ? `${boardInfo.name}/${mcu}/cpuapp/ns`
+    : `${boardInfo.name}/${mcu}/cpuapp`;
+  const name = isNonSecure
+    ? `${boardInfo.fullName}-Non-Secure`
+    : boardInfo.fullName;
   const ram = isNonSecure ? 256 : 188;
   const flash = isNonSecure ? 1524 : 1428;
 
@@ -2154,7 +2242,7 @@ sysbuild: true
 ram: ${ram}
 flash: ${flash}
 supported:
-${featuresArray.map(f => `  - ${f}`).join("\n")}
+${featuresArray.map((f) => `  - ${f}`).join("\n")}
 vendor: ${boardInfo.vendor}
 `;
 }
@@ -2202,7 +2290,7 @@ CONFIG_SOC_NRF54LX_SKIP_CLOCK_CONFIG=y
 `;
   } else {
     // Regular secure build configuration
-    const hasUart = selectedPeripherals.some(p => {
+    const hasUart = selectedPeripherals.some((p) => {
       const template = deviceTreeTemplates[p.id];
       return template && template.type === "UART";
     });
@@ -2229,7 +2317,7 @@ CONFIG_HW_STACK_PROTECTION=y
 `;
 
     // Only add RC oscillator config if LFXO is not enabled
-    const lfxoEnabled = selectedPeripherals.some(p => p.id === "LFXO");
+    const lfxoEnabled = selectedPeripherals.some((p) => p.id === "LFXO");
     if (!lfxoEnabled) {
       config += `
 # Use RC oscillator for low-frequency clock
@@ -2248,12 +2336,17 @@ function generateNSDts(mcu) {
   let uartNodeName = null;
   selectedPeripherals.forEach((p) => {
     const template = deviceTreeTemplates[p.id];
-    if (template && template.dtNodeName && template.type === "UART" && !uartNodeName) {
+    if (
+      template &&
+      template.dtNodeName &&
+      template.type === "UART" &&
+      !uartNodeName
+    ) {
       uartNodeName = template.dtNodeName;
     }
   });
 
-  let uartDisableSection = '';
+  let uartDisableSection = "";
   if (uartNodeName) {
     uartDisableSection = `
 &${uartNodeName} {
@@ -2261,8 +2354,8 @@ function generateNSDts(mcu) {
 \tstatus = "disabled";
 
 \tcurrent-speed = <115200>;
-\tpinctrl-0 = <&${uartNodeName.replace(/uart/, 'uart')}_default>;
-\tpinctrl-1 = <&${uartNodeName.replace(/uart/, 'uart')}_sleep>;
+\tpinctrl-0 = <&${uartNodeName.replace(/uart/, "uart")}_default>;
+\tpinctrl-1 = <&${uartNodeName.replace(/uart/, "uart")}_sleep>;
 \tpinctrl-names = "default", "sleep";
 };
 
@@ -2414,8 +2507,12 @@ function generateFLPRXIPDts(mcu) {
 
 function generateFLPRYaml(mcu, isXIP) {
   const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
-  const identifier = isXIP ? `${boardInfo.name}/${mcu}/cpuflpr/xip` : `${boardInfo.name}/${mcu}/cpuflpr`;
-  const name = isXIP ? `${boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor (RRAM XIP)` : `${boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor`;
+  const identifier = isXIP
+    ? `${boardInfo.name}/${mcu}/cpuflpr/xip`
+    : `${boardInfo.name}/${mcu}/cpuflpr`;
+  const name = isXIP
+    ? `${boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor (RRAM XIP)`
+    : `${boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor`;
   const ram = isXIP ? 68 : 96;
 
   return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
@@ -2453,7 +2550,7 @@ CONFIG_UART_CONSOLE=y
 # Enable GPIO
 CONFIG_GPIO=y
 
-${isXIP ? '# Execute from RRAM\nCONFIG_XIP=y' : '# Execute from SRAM\nCONFIG_USE_DT_CODE_PARTITION=y\nCONFIG_XIP=n'}
+${isXIP ? "# Execute from RRAM\nCONFIG_XIP=y" : "# Execute from SRAM\nCONFIG_USE_DT_CODE_PARTITION=y\nCONFIG_XIP=n"}
 `;
 }
 
@@ -2509,36 +2606,42 @@ ${boardInfo.revision ? `**Revision:** ${boardInfo.revision}\n` : ""}${boardInfo.
 
 ## Selected Peripherals
 
-${selectedPeripherals.map(p => {
-  if (p.config) {
-    // Oscillator - show configuration
-    const capLabel = p.config.loadCapacitors === "internal" ? "Internal" : "External";
-    const oscData = mcuData.socPeripherals.find(sp => sp.id === p.id);
-    let info = `${capLabel} capacitors`;
-    if (p.config.loadCapacitors === "internal" && p.config.loadCapacitanceFemtofarad) {
-      info += `, ${(p.config.loadCapacitanceFemtofarad / 1000).toFixed(p.id === "HFXO" ? 2 : 1)} pF`;
-    }
-    if (oscData && oscData.signals && oscData.signals.length > 0) {
-      const pins = oscData.signals
-        .filter(s => s.allowedGpio && s.allowedGpio.length > 0)
-        .map(s => s.allowedGpio[0])
-        .join(", ");
-      if (pins) {
-        info += ` (${pins})`;
+${selectedPeripherals
+  .map((p) => {
+    if (p.config) {
+      // Oscillator - show configuration
+      const capLabel =
+        p.config.loadCapacitors === "internal" ? "Internal" : "External";
+      const oscData = mcuData.socPeripherals.find((sp) => sp.id === p.id);
+      let info = `${capLabel} capacitors`;
+      if (
+        p.config.loadCapacitors === "internal" &&
+        p.config.loadCapacitanceFemtofarad
+      ) {
+        info += `, ${(p.config.loadCapacitanceFemtofarad / 1000).toFixed(p.id === "HFXO" ? 2 : 1)} pF`;
       }
+      if (oscData && oscData.signals && oscData.signals.length > 0) {
+        const pins = oscData.signals
+          .filter((s) => s.allowedGpio && s.allowedGpio.length > 0)
+          .map((s) => s.allowedGpio[0])
+          .join(", ");
+        if (pins) {
+          info += ` (${pins})`;
+        }
+      }
+      return `- **${p.id}**: ${info}`;
+    } else if (p.pinFunctions) {
+      // Regular peripheral - show pin assignments
+      const pins = Object.entries(p.pinFunctions)
+        .map(([pin, func]) => `${pin}: ${func}`)
+        .join(", ");
+      return `- **${p.id}**: ${pins}`;
+    } else {
+      // No pin info available
+      return `- **${p.id}**`;
     }
-    return `- **${p.id}**: ${info}`;
-  } else if (p.pinFunctions) {
-    // Regular peripheral - show pin assignments
-    const pins = Object.entries(p.pinFunctions)
-      .map(([pin, func]) => `${pin}: ${func}`)
-      .join(", ");
-    return `- **${p.id}**: ${pins}`;
-  } else {
-    // No pin info available
-    return `- **${p.id}**`;
-  }
-}).join("\n")}
+  })
+  .join("\n")}
 
 ## Pin Configuration
 
@@ -2555,7 +2658,7 @@ See \`${boardInfo.name}_${mcu}-pinctrl.dtsi\` for complete pin mapping.
 function generatePinctrlForPeripheral(peripheral, template) {
   // Skip pinctrl generation for peripherals that don't need it
   if (template.noPinctrl) {
-    return '';
+    return "";
   }
 
   const pinctrlName = template.pinctrlBaseName;
@@ -2571,11 +2674,15 @@ function generatePinctrlForPeripheral(peripheral, template) {
 
     const dtSignalName = template.signalMappings[signalName];
     if (!dtSignalName) {
-      console.warn(`No DT mapping for signal ${signalName} in ${peripheral.id}`);
+      console.warn(
+        `No DT mapping for signal ${signalName} in ${peripheral.id}`,
+      );
       continue;
     }
 
-    const signal = peripheral.peripheral.signals.find((s) => s.name === signalName);
+    const signal = peripheral.peripheral.signals.find(
+      (s) => s.name === signalName,
+    );
     if (signal && signal.direction === "input") {
       inputSignals.push({ pinInfo, dtSignalName });
     } else {
@@ -2587,15 +2694,20 @@ function generatePinctrlForPeripheral(peripheral, template) {
 
   // Don't generate empty pinctrl blocks
   if (allSignals.length === 0) {
-    console.warn(`No pins configured for ${peripheral.id}, skipping pinctrl generation`);
-    return '';
+    console.warn(
+      `No pins configured for ${peripheral.id}, skipping pinctrl generation`,
+    );
+    return "";
   }
 
   // Generate group1 (outputs and bidirectional)
   if (outputSignals.length > 0) {
     content += `\t\tgroup1 {\n\t\t\tpsels = `;
     content += outputSignals
-      .map((s) => `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`)
+      .map(
+        (s) =>
+          `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`,
+      )
       .join(",\n\t\t\t\t");
     content += `;\n\t\t};\n`;
   }
@@ -2604,7 +2716,10 @@ function generatePinctrlForPeripheral(peripheral, template) {
   if (inputSignals.length > 0) {
     content += `\n\t\tgroup2 {\n\t\t\tpsels = `;
     content += inputSignals
-      .map((s) => `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`)
+      .map(
+        (s) =>
+          `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`,
+      )
       .join(",\n\t\t\t\t");
     content += `;\n\t\t\tbias-pull-up;\n\t\t};\n`;
   }
@@ -2616,7 +2731,10 @@ function generatePinctrlForPeripheral(peripheral, template) {
   content += `\t\tgroup1 {\n\t\t\tpsels = `;
 
   content += allSignals
-    .map((s) => `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`)
+    .map(
+      (s) =>
+        `<NRF_PSEL(${s.dtSignalName}, ${s.pinInfo.port}, ${s.pinInfo.pin})>`,
+    )
     .join(",\n\t\t\t\t");
   content += `;\n\t\t\tlow-power-enable;\n\t\t};\n`;
   content += `\t};\n`;
@@ -2646,9 +2764,9 @@ function generatePeripheralNode(peripheral, template) {
     case "SPI":
       // Check for out-of-band signals (CS, DCX) and add as comments
       if (template.outOfBandSignals) {
-        template.outOfBandSignals.forEach(signal => {
+        template.outOfBandSignals.forEach((signal) => {
           const pin = Object.keys(peripheral.pinFunctions).find(
-            (p) => peripheral.pinFunctions[p] === signal
+            (p) => peripheral.pinFunctions[p] === signal,
           );
           if (pin) {
             const pinInfo = parsePinName(pin);
@@ -2661,7 +2779,7 @@ function generatePeripheralNode(peripheral, template) {
 
       // Check if CS pin is selected - set cs-gpios
       const csPin = Object.keys(peripheral.pinFunctions).find(
-        (pin) => peripheral.pinFunctions[pin] === "CS"
+        (pin) => peripheral.pinFunctions[pin] === "CS",
       );
       if (csPin) {
         const csPinInfo = parsePinName(csPin);
@@ -2707,7 +2825,7 @@ async function downloadBoardAsZip(files, boardName) {
   const blob = await zip.generateAsync({
     type: "blob",
     compression: "DEFLATE",
-    compressionOptions: { level: 9 }
+    compressionOptions: { level: 9 },
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
