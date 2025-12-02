@@ -1,6 +1,22 @@
 {
   "mcus": [
     {
+      "id": "nrf54lv10a",
+      "name": "nRF54LV10A",
+      "supportsNonSecure": true,
+      "supportsFLPR": true,
+      "packages": [
+        {
+          "file": "qfn48-6x6-qfaa",
+          "name": "QFN-48 (6x6)"
+        },
+        {
+          "file": "csp29-1.93x2.29-caaa",
+          "name": "CSP-29 (1.93x2.29)"
+        }
+      ]
+    },
+    {
       "id": "nrf54lm20a",
       "name": "nRF54LM20A",
       "supportsNonSecure": false,

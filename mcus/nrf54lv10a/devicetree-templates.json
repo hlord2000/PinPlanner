@@ -1,0 +1,153 @@
+{
+  "$schema": "devicetree-templates-schema",
+  "description": "DeviceTree templates for nRF54LV10A peripherals",
+  "note": "These templates use {{SIGNAL_NAME}} placeholders for dynamic pin insertion",
+  "templates": {
+    "UARTE20": {
+      "dtNodeName": "uart20",
+      "pinctrlBaseName": "uart20",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "UARTE21": {
+      "dtNodeName": "uart21",
+      "pinctrlBaseName": "uart21",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "UARTE30": {
+      "dtNodeName": "uart30",
+      "pinctrlBaseName": "uart30",
+      "type": "UART",
+      "signalMappings": {
+        "TXD": "UART_TX",
+        "RXD": "UART_RX",
+        "RTS": "UART_RTS",
+        "CTS": "UART_CTS"
+      }
+    },
+    "SPIM/SPIS20": {
+      "dtNodeName": "spi20",
+      "pinctrlBaseName": "spi20",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "SPIM/SPIS21": {
+      "dtNodeName": "spi21",
+      "pinctrlBaseName": "spi21",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "SPIM/SPIS30": {
+      "dtNodeName": "spi30",
+      "pinctrlBaseName": "spi30",
+      "type": "SPI",
+      "signalMappings": {
+        "SCK": "SPIM_SCK",
+        "SDO": "SPIM_MOSI",
+        "SDI": "SPIM_MISO",
+        "CS": "SPIM_CSN",
+        "DCX": "SPIM_DCX"
+      }
+    },
+    "TWIM/TWIS20": {
+      "dtNodeName": "i2c20",
+      "pinctrlBaseName": "i2c20",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "TWIM/TWIS21": {
+      "dtNodeName": "i2c21",
+      "pinctrlBaseName": "i2c21",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "TWIM/TWIS30": {
+      "dtNodeName": "i2c30",
+      "pinctrlBaseName": "i2c30",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "RADIO": {
+      "dtNodeName": "radio",
+      "pinctrlBaseName": "radio",
+      "type": "RADIO",
+      "signalMappings": {
+        "RADIO[0]": "RADIO_DFEGPIO0",
+        "RADIO[1]": "RADIO_DFEGPIO1",
+        "RADIO[2]": "RADIO_DFEGPIO2",
+        "RADIO[3]": "RADIO_DFEGPIO3",
+        "RADIO[4]": "RADIO_DFEGPIO4",
+        "RADIO[5]": "RADIO_DFEGPIO5",
+        "RADIO[6]": "RADIO_DFEGPIO6"
+      }
+    },
+    "ADC": {
+      "dtNodeName": "adc",
+      "pinctrlBaseName": null,
+      "type": "ADC",
+      "signalMappings": {},
+      "noPinctrl": true
+    },
+    "LFXO": {
+      "dtNodeName": "lfxo",
+      "pinctrlBaseName": null,
+      "type": "OSCILLATOR",
+      "signalMappings": {},
+      "noPinctrl": true,
+      "optional": true,
+      "loadCapacitanceRange": {
+        "min": 4000,
+        "max": 18000,
+        "step": 500,
+        "note": "Load capacitance only applies when using internal capacitors"
+      }
+    },
+    "HFXO": {
+      "dtNodeName": "hfxo",
+      "pinctrlBaseName": null,
+      "type": "OSCILLATOR",
+      "signalMappings": {},
+      "noPinctrl": true,
+      "optional": false,
+      "alwaysPresent": true,
+      "loadCapacitanceRange": {
+        "min": 4000,
+        "max": 17000,
+        "step": 250,
+        "note": "Load capacitance only applies when using internal capacitors"
+      }
+    }
+  }
+}
