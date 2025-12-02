@@ -530,6 +530,28 @@ function organizePeripherals() {
     });
     peripheralsListContainer.appendChild(accordionContainer);
   }
+
+  // Add GPIO allocation section
+  const gpioSection = document.createElement("div");
+  gpioSection.className = "gpio-section";
+  gpioSection.style.marginTop = "20px";
+  gpioSection.style.paddingTop = "20px";
+  gpioSection.style.paddingBottom = "10px";
+  gpioSection.style.borderTop = "1px solid var(--border-color)";
+
+  const gpioHeader = document.createElement("h4");
+  gpioHeader.textContent = "GPIO Pins";
+  gpioHeader.style.marginBottom = "10px";
+  gpioSection.appendChild(gpioHeader);
+
+  const addGpioBtn = document.createElement("button");
+  addGpioBtn.className = "single-peripheral-btn";
+  addGpioBtn.textContent = "+ Add GPIO Pin";
+  addGpioBtn.style.width = "100%";
+  addGpioBtn.addEventListener("click", openGpioModal);
+  gpioSection.appendChild(addGpioBtn);
+
+  peripheralsListContainer.appendChild(gpioSection);
 }
 
 function handlePeripheralClick(peripheral) {
@@ -927,13 +949,43 @@ function toggleSimplePeripheral(event) {
 
 // --- PIN SELECTION MODAL ---
 
-function openPinSelectionModal(peripheral, existingPins = {}) {
+function openPinSelectionModal(
+  peripheral,
+  existingPins = {},
+  existingConfig = {},
+) {
   currentPeripheral = peripheral;
   tempSelectedPins = { ...existingPins }; // Pre-populate if editing
 
   document.getElementById("modalTitle").textContent =
     `Select Pins for ${peripheral.id}`;
   populatePinSelectionTable(peripheral);
+
+  // Show/hide UART config section based on peripheral type
+  const uartConfigSection = document.getElementById("uartConfigSection");
+  const uartDisableRxCheckbox = document.getElementById("uartDisableRx");
+  if (peripheral.type === "UART") {
+    uartConfigSection.style.display = "block";
+    uartDisableRxCheckbox.checked = existingConfig.disableRx || false;
+    // Add event listener to update RXD required status
+    uartDisableRxCheckbox.onchange = updateRxdRequiredStatus;
+    // Update initial state
+    updateRxdRequiredStatus();
+  } else {
+    uartConfigSection.style.display = "none";
+    uartDisableRxCheckbox.checked = false;
+    uartDisableRxCheckbox.onchange = null;
+  }
+
+  // Show/hide SPI config section based on peripheral type
+  const spiConfigSection = document.getElementById("spiConfigSection");
+  if (peripheral.type === "SPI") {
+    spiConfigSection.style.display = "block";
+    initSpiCsGpioList(existingConfig.extraCsGpios || []);
+  } else {
+    spiConfigSection.style.display = "none";
+  }
+
   document.getElementById("pinSelectionModal").style.display = "block";
 }
 
@@ -942,6 +994,272 @@ function closePinSelectionModal() {
   currentPeripheral = null;
   tempSelectedPins = {};
 }
+
+function updateRxdRequiredStatus() {
+  const disableRxChecked = document.getElementById("uartDisableRx").checked;
+  const tableBody = document.getElementById("pinSelectionTableBody");
+  const rows = tableBody.querySelectorAll("tr");
+
+  rows.forEach((row) => {
+    const functionCell = row.querySelector("td:first-child");
+    const requiredCell = row.querySelector("td:nth-child(2)");
+    if (functionCell && requiredCell && functionCell.textContent === "RXD") {
+      requiredCell.textContent = disableRxChecked ? "No" : "Yes";
+    }
+  });
+}
+
+// --- SPI CS GPIO MANAGEMENT ---
+
+let tempSpiCsGpios = [];
+
+function initSpiCsGpioList(existingCsGpios) {
+  tempSpiCsGpios = [...existingCsGpios];
+  renderSpiCsGpioList();
+}
+
+function renderSpiCsGpioList() {
+  const container = document.getElementById("spiCsGpioList");
+  container.innerHTML = "";
+
+  tempSpiCsGpios.forEach((gpio, index) => {
+    // Get list of other CS GPIOs (exclude current one from the exclude list)
+    const otherCsGpios = tempSpiCsGpios.filter((g, i) => i !== index && g);
+
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display: flex; align-items: center; gap: 10px; margin-bottom: 8px;";
+    row.innerHTML = `
+      <select data-cs-index="${index}" style="flex: 1;">
+        ${getGpioPinOptions(gpio, true, otherCsGpios)}
+      </select>
+      <button type="button" class="remove-cs-btn" data-cs-index="${index}" style="padding: 4px 8px;">Remove</button>
+    `;
+    container.appendChild(row);
+  });
+
+  // Attach event listeners
+  container.querySelectorAll("select").forEach((select) => {
+    select.addEventListener("change", (e) => {
+      const index = parseInt(e.target.dataset.csIndex);
+      tempSpiCsGpios[index] = e.target.value;
+      // Re-render to update disabled states
+      renderSpiCsGpioList();
+    });
+    enableScrollWheelSelectionForElement(select);
+  });
+
+  container.querySelectorAll(".remove-cs-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const index = parseInt(e.target.dataset.csIndex);
+      tempSpiCsGpios.splice(index, 1);
+      renderSpiCsGpioList();
+    });
+  });
+}
+
+function getGpioPinOptions(selectedPin, filterUsed = false, excludePins = []) {
+  if (!mcuData.pins) return '<option value="">-- Select GPIO --</option>';
+
+  const gpioPins = mcuData.pins
+    .filter(
+      (pin) =>
+        Array.isArray(pin.functions) && pin.functions.includes("Digital I/O"),
+    )
+    .sort((a, b) => {
+      const aMatch = a.name.match(/P(\d+)\.(\d+)/);
+      const bMatch = b.name.match(/P(\d+)\.(\d+)/);
+      if (!aMatch || !bMatch) return a.name.localeCompare(b.name);
+      const aPort = parseInt(aMatch[1]);
+      const bPort = parseInt(bMatch[1]);
+      const aPin = parseInt(aMatch[2]);
+      const bPin = parseInt(bMatch[2]);
+      if (aPort !== bPort) return aPort - bPort;
+      return aPin - bPin;
+    });
+
+  let options = '<option value="">-- Select GPIO --</option>';
+  gpioPins.forEach((pin) => {
+    const isSelected = pin.name === selectedPin;
+
+    // Check if pin should be disabled
+    let isDisabled = false;
+    if (filterUsed && !isSelected) {
+      // Check if used by other peripherals
+      if (usedPins[pin.name]) {
+        isDisabled = true;
+      }
+      // Check if used by pins selected in the current modal
+      if (tempSelectedPins[pin.name]) {
+        isDisabled = true;
+      }
+      // Check if in the exclude list (other CS pins in the same list)
+      if (excludePins.includes(pin.name)) {
+        isDisabled = true;
+      }
+    }
+
+    options += `<option value="${pin.name}" ${isSelected ? "selected" : ""} ${isDisabled ? "disabled" : ""}>${pin.name}${isDisabled ? " (in use)" : ""}</option>`;
+  });
+  return options;
+}
+
+function addSpiCsGpio() {
+  tempSpiCsGpios.push("");
+  renderSpiCsGpioList();
+}
+
+// Set up SPI CS GPIO add button listener
+document
+  .getElementById("addSpiCsGpioBtn")
+  .addEventListener("click", addSpiCsGpio);
+
+// --- GPIO PIN ALLOCATION ---
+
+let currentGpioEdit = null; // Track if we're editing an existing GPIO
+
+function openGpioModal(existingGpio = null) {
+  currentGpioEdit = existingGpio;
+
+  const titleEl = document.getElementById("gpioModalTitle");
+  const labelInput = document.getElementById("gpioLabelInput");
+  const pinSelect = document.getElementById("gpioPinSelect");
+  const activeStateSelect = document.getElementById("gpioActiveStateSelect");
+  const errorEl = document.getElementById("gpioError");
+
+  // Set title based on edit/add mode
+  titleEl.textContent = existingGpio ? "Edit GPIO Pin" : "Add GPIO Pin";
+
+  // Populate pin dropdown (filter used pins)
+  pinSelect.innerHTML = getGpioPinOptions(
+    existingGpio ? existingGpio.pin : "",
+    true,
+  );
+  enableScrollWheelSelectionForElement(pinSelect);
+
+  // Set values if editing
+  if (existingGpio) {
+    labelInput.value = existingGpio.label;
+    activeStateSelect.value = existingGpio.activeState || "active-high";
+  } else {
+    labelInput.value = "";
+    activeStateSelect.value = "active-high";
+  }
+
+  errorEl.style.display = "none";
+  document.getElementById("gpioModal").style.display = "block";
+}
+
+function closeGpioModal() {
+  document.getElementById("gpioModal").style.display = "none";
+  currentGpioEdit = null;
+}
+
+function confirmGpioModal() {
+  const labelInput = document.getElementById("gpioLabelInput");
+  const pinSelect = document.getElementById("gpioPinSelect");
+  const activeStateSelect = document.getElementById("gpioActiveStateSelect");
+  const errorEl = document.getElementById("gpioError");
+
+  const label = labelInput.value.trim().toLowerCase();
+  const pin = pinSelect.value;
+  const activeState = activeStateSelect.value;
+
+  // Validate label
+  if (!label) {
+    errorEl.textContent = "Label is required";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  if (!/^[a-z0-9_]+$/.test(label)) {
+    errorEl.textContent =
+      "Label must contain only lowercase letters, numbers, and underscores";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  // Check for duplicate label (excluding current edit)
+  const duplicateLabel = selectedPeripherals.find(
+    (p) =>
+      p.type === "GPIO" &&
+      p.label === label &&
+      (!currentGpioEdit || p.id !== currentGpioEdit.id),
+  );
+  if (duplicateLabel) {
+    errorEl.textContent = "A GPIO with this label already exists";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  // Validate pin selection
+  if (!pin) {
+    errorEl.textContent = "Please select a GPIO pin";
+    errorEl.style.display = "block";
+    return;
+  }
+
+  // Check if pin is already used (excluding current edit)
+  if (
+    usedPins[pin] &&
+    (!currentGpioEdit || usedPins[pin].peripheral !== currentGpioEdit.id)
+  ) {
+    errorEl.textContent = `Pin ${pin} is already used by ${usedPins[pin].peripheral}`;
+    errorEl.style.display = "block";
+    return;
+  }
+
+  // Remove old GPIO if editing
+  if (currentGpioEdit) {
+    const oldIndex = selectedPeripherals.findIndex(
+      (p) => p.id === currentGpioEdit.id,
+    );
+    if (oldIndex !== -1) {
+      delete usedPins[currentGpioEdit.pin];
+      selectedPeripherals.splice(oldIndex, 1);
+    }
+  }
+
+  // Generate unique ID for GPIO
+  const gpioId = `GPIO_${label.toUpperCase()}`;
+
+  // Add new GPIO to selected peripherals
+  selectedPeripherals.push({
+    id: gpioId,
+    type: "GPIO",
+    label: label,
+    pin: pin,
+    activeState: activeState,
+  });
+
+  // Mark pin as used
+  usedPins[pin] = {
+    peripheral: gpioId,
+    function: "GPIO",
+    required: true,
+  };
+
+  updateSelectedPeripheralsList();
+  updatePinDisplay();
+  closeGpioModal();
+  saveStateToLocalStorage();
+}
+
+// Set up GPIO modal event listeners
+document
+  .getElementById("closeGpioModal")
+  .addEventListener("click", closeGpioModal);
+document
+  .getElementById("cancelGpioModal")
+  .addEventListener("click", closeGpioModal);
+document
+  .getElementById("confirmGpioModal")
+  .addEventListener("click", confirmGpioModal);
+document.getElementById("gpioModal").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("gpioModal")) {
+    closeGpioModal();
+  }
+});
 
 function populatePinSelectionTable(peripheral) {
   const tableBody = document.getElementById("pinSelectionTableBody");
@@ -1088,9 +1406,16 @@ function getPinsForSignal(signal) {
 }
 
 function confirmPinSelection() {
-  const missingSignals = currentPeripheral.signals.filter(
-    (s) => s.isMandatory && !Object.values(tempSelectedPins).includes(s.name),
-  );
+  // Check if Disable RX is checked for UART - if so, RXD is not mandatory
+  const disableRxChecked =
+    currentPeripheral.type === "UART" &&
+    document.getElementById("uartDisableRx").checked;
+
+  const missingSignals = currentPeripheral.signals.filter((s) => {
+    // Skip RXD requirement if Disable RX is checked
+    if (disableRxChecked && s.name === "RXD") return false;
+    return s.isMandatory && !Object.values(tempSelectedPins).includes(s.name);
+  });
 
   if (missingSignals.length > 0) {
     alert(
@@ -1122,11 +1447,33 @@ function confirmPinSelection() {
     selectedPeripherals.splice(existingIndex, 1);
   }
 
-  selectedPeripherals.push({
+  // Build peripheral entry with optional config
+  const peripheralEntry = {
     id: currentPeripheral.id,
     peripheral: currentPeripheral,
     pinFunctions: { ...tempSelectedPins },
-  });
+  };
+
+  // Add UART-specific config if applicable
+  if (currentPeripheral.type === "UART") {
+    const disableRx = document.getElementById("uartDisableRx").checked;
+    if (disableRx) {
+      peripheralEntry.config = { disableRx: true };
+    }
+  }
+
+  // Add SPI-specific config if applicable
+  if (currentPeripheral.type === "SPI") {
+    const validCsGpios = tempSpiCsGpios.filter(
+      (gpio) => gpio && gpio.trim() !== "",
+    );
+    if (validCsGpios.length > 0) {
+      peripheralEntry.config = peripheralEntry.config || {};
+      peripheralEntry.config.extraCsGpios = validCsGpios;
+    }
+  }
+
+  selectedPeripherals.push(peripheralEntry);
 
   for (const pinName in tempSelectedPins) {
     usedPins[pinName] = {
@@ -1341,7 +1688,12 @@ function updateSelectedPeripheralsList() {
     item.className = "selected-item";
 
     let details;
-    if (p.config) {
+    if (p.type === "GPIO") {
+      // GPIO pin - show pin and active state
+      const activeLabel =
+        p.activeState === "active-low" ? "active-low" : "active-high";
+      details = `${p.pin} (${activeLabel})`;
+    } else if (p.config && p.config.loadCapacitors) {
       // Oscillator - show configuration
       const capLabel =
         p.config.loadCapacitors === "internal" ? "Internal" : "External";
@@ -1371,6 +1723,20 @@ function updateSelectedPeripheralsList() {
         Object.entries(p.pinFunctions || {})
           .map(([pin, func]) => `${pin}: ${func}`)
           .join(", ") || "Auto-assigned";
+
+      // Add UART config info if applicable
+      if (p.config && p.config.disableRx) {
+        details += " [RX disabled]";
+      }
+
+      // Add SPI extra CS GPIOs info if applicable
+      if (
+        p.config &&
+        p.config.extraCsGpios &&
+        p.config.extraCsGpios.length > 0
+      ) {
+        details += ` [+${p.config.extraCsGpios.length} CS: ${p.config.extraCsGpios.join(", ")}]`;
+      }
     }
 
     const removeBtn =
@@ -1378,8 +1744,11 @@ function updateSelectedPeripheralsList() {
         ? ""
         : `<button class="remove-btn" data-id="${p.id}">Remove</button>`;
 
+    // Use label for GPIO pins, id for everything else
+    const displayName = p.type === "GPIO" ? `GPIO: ${p.label}` : p.id;
+
     item.innerHTML = `
-            <div><strong>${p.id}</strong><div>${details}</div></div>
+            <div><strong>${displayName}</strong><div>${details}</div></div>
             ${removeBtn}
         `;
 
@@ -1442,8 +1811,14 @@ function removePeripheral(id) {
     checkbox.checked = false;
   }
 
+  // Handle GPIO pins
+  if (peripheral.type === "GPIO") {
+    if (peripheral.pin && usedPins[peripheral.pin]) {
+      delete usedPins[peripheral.pin];
+    }
+  }
   // Handle oscillators - clear their signal pins
-  if (peripheralData && peripheralData.uiHint === "oscillator") {
+  else if (peripheralData && peripheralData.uiHint === "oscillator") {
     if (peripheralData.signals && peripheralData.signals.length > 0) {
       peripheralData.signals.forEach((s) => {
         if (s.allowedGpio && s.allowedGpio.length > 0) {
@@ -1473,6 +1848,15 @@ function removePeripheral(id) {
 }
 
 function editPeripheral(id) {
+  // Handle GPIO pins
+  const gpioPeripheral = selectedPeripherals.find(
+    (p) => p.id === id && p.type === "GPIO",
+  );
+  if (gpioPeripheral) {
+    openGpioModal(gpioPeripheral);
+    return;
+  }
+
   const peripheralData = mcuData.socPeripherals.find((p) => p.id === id);
   if (!peripheralData) return;
 
@@ -1489,7 +1873,11 @@ function editPeripheral(id) {
 
   const selected = selectedPeripherals.find((p) => p.id === id);
   if (!selected) return;
-  openPinSelectionModal(selected.peripheral, selected.pinFunctions);
+  openPinSelectionModal(
+    selected.peripheral,
+    selected.pinFunctions,
+    selected.config || {},
+  );
 }
 
 // --- BOARD DEFINITION EXPORT ---
@@ -1981,15 +2369,44 @@ function generateCommonDtsi(mcu) {
 
   // Generate peripheral node configurations with pinctrl and status
   // Skip oscillators - they go in cpuapp_common.dtsi instead
+  // Skip GPIO pins - they are handled separately
   selectedPeripherals.forEach((p) => {
-    // Skip oscillators (LFXO, HFXO)
-    if (p.config) return;
+    // Skip oscillators (LFXO, HFXO) and GPIO pins
+    if (p.config && p.config.loadCapacitors) return;
+    if (p.type === "GPIO") return;
 
     const template = deviceTreeTemplates[p.id];
     if (!template) return;
     content += generatePeripheralNode(p, template);
   });
 
+  // Generate GPIO pin nodes
+  const gpioPins = selectedPeripherals.filter((p) => p.type === "GPIO");
+  if (gpioPins.length > 0) {
+    content += generateGpioNodes(gpioPins);
+  }
+
+  return content;
+}
+
+function generateGpioNodes(gpioPins) {
+  let content = "\n/ {\n";
+
+  gpioPins.forEach((gpio) => {
+    const pinInfo = parsePinName(gpio.pin);
+    if (!pinInfo) return;
+
+    const activeFlag =
+      gpio.activeState === "active-low"
+        ? "GPIO_ACTIVE_LOW"
+        : "GPIO_ACTIVE_HIGH";
+
+    content += `\t${gpio.label}: ${gpio.label} {\n`;
+    content += `\t\tgpios = <&gpio${pinInfo.port} ${pinInfo.pin} ${activeFlag}>;\n`;
+    content += `\t};\n`;
+  });
+
+  content += "};\n";
   return content;
 }
 
@@ -2760,6 +3177,10 @@ function generatePeripheralNode(peripheral, template) {
   switch (template.type) {
     case "UART":
       content += `\tcurrent-speed = <115200>;\n`;
+      // Check for disable-rx config
+      if (peripheral.config && peripheral.config.disableRx) {
+        content += `\tdisable-rx;\n`;
+      }
       break;
     case "SPI":
       // Check for out-of-band signals (CS, DCX) and add as comments
@@ -2777,14 +3198,40 @@ function generatePeripheralNode(peripheral, template) {
         });
       }
 
-      // Check if CS pin is selected - set cs-gpios
+      // Build cs-gpios array including primary CS and extra CS GPIOs
+      const csGpioEntries = [];
+
+      // Check if primary CS pin is selected
       const csPin = Object.keys(peripheral.pinFunctions).find(
         (pin) => peripheral.pinFunctions[pin] === "CS",
       );
       if (csPin) {
         const csPinInfo = parsePinName(csPin);
         if (csPinInfo) {
-          content += `\tcs-gpios = <&gpio${csPinInfo.port} ${csPinInfo.pin} GPIO_ACTIVE_LOW>;\n`;
+          csGpioEntries.push(
+            `<&gpio${csPinInfo.port} ${csPinInfo.pin} GPIO_ACTIVE_LOW>`,
+          );
+        }
+      }
+
+      // Add extra CS GPIOs from config
+      if (peripheral.config && peripheral.config.extraCsGpios) {
+        peripheral.config.extraCsGpios.forEach((gpio) => {
+          const pinInfo = parsePinName(gpio);
+          if (pinInfo) {
+            csGpioEntries.push(
+              `<&gpio${pinInfo.port} ${pinInfo.pin} GPIO_ACTIVE_LOW>`,
+            );
+          }
+        });
+      }
+
+      // Output cs-gpios if any
+      if (csGpioEntries.length > 0) {
+        if (csGpioEntries.length === 1) {
+          content += `\tcs-gpios = ${csGpioEntries[0]};\n`;
+        } else {
+          content += `\tcs-gpios = ${csGpioEntries.join(",\n\t\t   ")};\n`;
         }
       }
       break;

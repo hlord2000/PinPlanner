@@ -166,7 +166,9 @@
             </ul>
             <div class="button-group-vertical">
               <button id="clearAllBtn">Clear All</button>
-              <button id="exportDeviceTreeBtn">Generate DeviceTree (BETA)</button>
+              <button id="exportDeviceTreeBtn">
+                Generate DeviceTree (BETA)
+              </button>
             </div>
           </div>
         </aside>
@@ -242,7 +244,10 @@
               placeholder="My Custom Board v1.0"
               required
             />
-            <small>Display name for the board (e.g., "My nRF54L15 Board v1.0")</small>
+            <small
+              >Display name for the board (e.g., "My nRF54L15 Board
+              v1.0")</small
+            >
           </div>
 
           <div class="form-group">
@@ -259,11 +264,7 @@
 
           <div class="form-group">
             <label for="boardRevisionInput">Revision (Optional)</label>
-            <input
-              type="text"
-              id="boardRevisionInput"
-              placeholder="1.0"
-            />
+            <input type="text" id="boardRevisionInput" placeholder="1.0" />
             <small>Board revision (e.g., "1.0", "rev_a")</small>
           </div>
 
@@ -327,10 +328,110 @@
               <!-- Will be filled dynamically -->
             </tbody>
           </table>
+
+          <!-- UART-specific configuration options -->
+          <div
+            id="uartConfigSection"
+            style="
+              display: none;
+              margin-top: 20px;
+              padding-top: 15px;
+              border-top: 1px solid var(--border-color);
+            "
+          >
+            <h4 style="margin-bottom: 10px">UART Configuration</h4>
+            <div class="form-group">
+              <label
+                style="display: flex; align-items: center; cursor: pointer"
+              >
+                <input
+                  type="checkbox"
+                  id="uartDisableRx"
+                  style="margin-right: 8px"
+                />
+                Disable RX
+              </label>
+              <small
+                >Disable UART reception capabilities (only required to disable
+                reception if CONFIG_PINCTRL is enabled)</small
+              >
+            </div>
+          </div>
+
+          <!-- SPI-specific configuration options -->
+          <div
+            id="spiConfigSection"
+            style="
+              display: none;
+              margin-top: 20px;
+              padding-top: 15px;
+              border-top: 1px solid var(--border-color);
+            "
+          >
+            <h4 style="margin-bottom: 10px">Additional Chip Select GPIOs</h4>
+            <div id="spiCsGpioList"></div>
+            <button type="button" id="addSpiCsGpioBtn" style="margin-top: 10px">
+              + Add CS GPIO
+            </button>
+            <small style="display: block; margin-top: 5px"
+              >Add extra chip select GPIOs for multiple SPI devices</small
+            >
+          </div>
         </div>
         <div class="modal-footer">
           <button id="cancelPinSelection">Cancel</button>
           <button id="confirmPinSelection">Confirm Selection</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GPIO Pin Allocation Modal -->
+    <div id="gpioModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="gpioModalTitle">Add GPIO Pin</h2>
+          <span class="close" id="closeGpioModal">&times;</span>
+        </div>
+        <div id="gpioModalBody" style="padding: 15px 20px">
+          <div class="form-group">
+            <label for="gpioLabelInput"
+              >Label<span class="required">*</span></label
+            >
+            <input
+              type="text"
+              id="gpioLabelInput"
+              placeholder="e.g., led0, button0, spi_cs_display"
+              pattern="[a-z0-9_]+"
+              required
+            />
+            <small>Lowercase letters, numbers, and underscores only</small>
+          </div>
+
+          <div class="form-group">
+            <label for="gpioPinSelect"
+              >GPIO Pin<span class="required">*</span></label
+            >
+            <select id="gpioPinSelect" required>
+              <option value="">-- Select GPIO --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="gpioActiveStateSelect">Active State</label>
+            <select id="gpioActiveStateSelect">
+              <option value="active-high">Active High</option>
+              <option value="active-low">Active Low</option>
+            </select>
+          </div>
+
+          <div
+            id="gpioError"
+            style="color: red; margin-top: 10px; display: none"
+          ></div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelGpioModal">Cancel</button>
+          <button id="confirmGpioModal">Add GPIO</button>
         </div>
       </div>
     </div>
@@ -345,13 +446,30 @@
         <div id="oscillatorModalBody">
           <div class="form-group">
             <label>Capacitors:</label>
-            <div style="display: flex; gap: 20px;">
-              <label style="display: flex; align-items: center; cursor: pointer;">
-                <input type="radio" name="oscillatorCapacitors" value="internal" checked style="margin-right: 8px;" id="oscillatorCapInternal" />
+            <div style="display: flex; gap: 20px">
+              <label
+                style="display: flex; align-items: center; cursor: pointer"
+              >
+                <input
+                  type="radio"
+                  name="oscillatorCapacitors"
+                  value="internal"
+                  checked
+                  style="margin-right: 8px"
+                  id="oscillatorCapInternal"
+                />
                 Internal
               </label>
-              <label style="display: flex; align-items: center; cursor: pointer;">
-                <input type="radio" name="oscillatorCapacitors" value="external" style="margin-right: 8px;" id="oscillatorCapExternal" />
+              <label
+                style="display: flex; align-items: center; cursor: pointer"
+              >
+                <input
+                  type="radio"
+                  name="oscillatorCapacitors"
+                  value="external"
+                  style="margin-right: 8px"
+                  id="oscillatorCapExternal"
+                />
                 External
               </label>
             </div>

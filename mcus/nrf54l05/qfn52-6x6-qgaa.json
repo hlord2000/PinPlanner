@@ -662,7 +662,7 @@
       "pinIndex": 15,
       "defaultType": "io",
       "isClockCapable": false,
-	  "functions": ["Digital I/O"],
+      "functions": ["Digital I/O"],
       "powerDomain": "peripheral",
       "side": "top"
     },

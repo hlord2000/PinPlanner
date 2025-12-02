@@ -1152,7 +1152,7 @@
       "gridCoordinates": "K10"
     }
   ],
-"socPeripherals": [
+  "socPeripherals": [
     {
       "id": "SPIM/SPIS00",
       "type": "SPI",
@@ -1165,10 +1165,26 @@
           "allowedGpio": ["P2.01", "P2.06"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P2.02", "P2.08"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P2.04", "P2.09"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P2.05", "P2.10"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P2.00", "P2.07"] }
+        {
+          "name": "SDO",
+          "direction": "output",
+          "allowedGpio": ["P2.02", "P2.08"]
+        },
+        {
+          "name": "SDI",
+          "direction": "input",
+          "allowedGpio": ["P2.04", "P2.09"]
+        },
+        {
+          "name": "CSN",
+          "direction": "inout",
+          "allowedGpio": ["P2.05", "P2.10"]
+        },
+        {
+          "name": "DCX",
+          "direction": "output",
+          "allowedGpio": ["P2.00", "P2.07"]
+        }
       ]
     },
     {
@@ -1189,8 +1205,16 @@
           "isMandatory": true,
           "allowedGpio": ["P2.00", "P2.07"]
         },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P2.04", "P2.09"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P2.05", "P2.10"] }
+        {
+          "name": "CTS",
+          "direction": "input",
+          "allowedGpio": ["P2.04", "P2.09"]
+        },
+        {
+          "name": "RTS",
+          "direction": "output",
+          "allowedGpio": ["P2.05", "P2.10"]
+        }
       ]
     },
     {

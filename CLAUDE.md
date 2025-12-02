@@ -11,12 +11,15 @@ Nordic Pin Planner is an **unofficial** web-based tool for visualizing and plann
 ## Development Commands
 
 ### Formatting
+
 ```bash
 npx prettier --write .
 ```
 
 ### Running the Application
+
 This is a static web application. Open `index.html` in a web browser or use a local development server:
+
 ```bash
 python -m http.server 8000
 # or
@@ -57,6 +60,7 @@ The application uses a hierarchical JSON-based system:
 ### Global State Management
 
 Key state variables in `script.js`:
+
 - `mcuManifest`: Loaded from manifest.json at startup
 - `mcuData`: Currently selected MCU package data
 - `selectedPeripherals`: Array of user-selected peripherals with pin assignments
@@ -67,29 +71,35 @@ Key state variables in `script.js`:
 ### Key Application Flows
 
 #### 1. Initialization (initializeApp)
+
 - Fetches `mcus/manifest.json`
 - Populates MCU selector dropdown
 - Triggers initial MCU/package load
 
 #### 2. MCU/Package Selection
+
 - `handleMcuChange()`: Populates package selector
 - `loadCurrentMcuData()`: Loads package JSON and devicetree templates
 - `reinitializeView()`: Rebuilds UI including peripherals list and pin diagram
 
 #### 3. Peripheral Configuration
+
 - Simple peripherals (no pins): Toggle on/off with checkboxes (`toggleSimplePeripheral`)
 - Complex peripherals: Open modal for pin selection (`openPinSelectionModal`)
 - Pin selection validates against availability and conflicts
 - Oscillators have special configuration modals for GPIO control and capacitance
 
 #### 4. Pin Diagram Rendering (`createPinLayout`)
+
 - Canvas-based rendering using package `renderConfig`
 - Supports multiple layout strategies (currently quadPerimeter for QFN packages)
 - Color-codes pins by assignment status (available, used, selected)
 - Interactive hover shows pin details
 
 #### 5. Board Definition Export (`exportBoardDefinition`)
+
 Generates a complete Zephyr board definition as a ZIP file containing:
+
 - `board.yml`: Board metadata and supported features
 - `board.cmake`: Build system integration
 - `Kconfig.board`: Kconfig configuration
@@ -103,6 +113,7 @@ Generates a complete Zephyr board definition as a ZIP file containing:
 ### Data Persistence
 
 State is saved to `localStorage` per MCU/package combination:
+
 - Key format: `pinPlannerState_<mcuId>_<packageFile>`
 - Saves: `selectedPeripherals` array with all pin assignments and configs
 - Auto-loads on MCU/package selection
@@ -111,6 +122,7 @@ State is saved to `localStorage` per MCU/package combination:
 ### Schema Validation
 
 `mcuSchema.json` defines the complete JSON schema for package definition files including:
+
 - Part information and physical dimensions
 - Render configuration for visual display
 - Pin layout strategies and defaults
@@ -120,18 +132,21 @@ State is saved to `localStorage` per MCU/package combination:
 ## Important Implementation Details
 
 ### Pin Selection Logic
+
 - Each pin can have multiple functions (GPIO, peripheral signals)
 - `availableFor` array in pin definitions lists compatible peripherals
 - Pin conflicts are checked before assignment
 - Address space conflicts checked for memory-mapped peripherals (SPI, I2C, UART, etc.)
 
 ### Oscillator Handling
+
 - HFXO (High Frequency Crystal Oscillator) marked as system requirement
 - Cannot be removed once added
 - GPIO pins can optionally be assigned for oscillator control
 - Load capacitance configurable per oscillator
 
 ### DeviceTree Generation
+
 - Uses template-based system with signal name placeholders
 - Generates multiple build targets:
   - Standard cpuapp (ARM Cortex-M33)
@@ -142,9 +157,11 @@ State is saved to `localStorage` per MCU/package combination:
 - Automatically detects and includes required features in board.yml
 
 ### FLPR (Fast Lightweight Processor) Support
+
 The nRF54L05, nRF54L10, and nRF54L15 include a RISC-V FLPR core for low-power peripheral management:
 
 **Key differences from cpuapp:**
+
 - Architecture: RISC-V instead of ARM Cortex-M33
 - Two execution modes:
   - **SRAM mode**: Code runs from SRAM (96KB SRAM, 96KB flash partition)
@@ -155,6 +172,7 @@ The nRF54L05, nRF54L10, and nRF54L15 include a RISC-V FLPR core for low-power pe
   - L05/L10: Require JLink script for generic RISC-V debugging
 
 **Implementation details:**
+
 - `getMcuSupportsFLPR()`: Checks manifest for FLPR capability
 - `generateFLPRDts()`: Generates base FLPR device tree with SRAM configuration
 - `generateFLPRXIPDts()`: Extends base FLPR with XIP memory configuration
@@ -162,6 +180,7 @@ The nRF54L05, nRF54L10, and nRF54L15 include a RISC-V FLPR core for low-power pe
 - `generateFLPRDefconfig()`: Generates Kconfig with XIP=y/n setting
 
 ### Package Rendering
+
 - Layout strategies defined in JSON (currently quadPerimeter)
 - Pin numbering configurable (corner start, direction)
 - Supports different pin shapes and orientations
