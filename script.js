@@ -55,6 +55,26 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("confirmOscillatorConfig")
     .addEventListener("click", confirmOscillatorConfig);
 
+  // Import/Export config listeners
+  document
+    .getElementById("exportConfigBtn")
+    .addEventListener("click", openExportConfigModal);
+  document
+    .getElementById("importConfigBtn")
+    .addEventListener("click", openImportConfigModal);
+  document
+    .getElementById("importConfigFile")
+    .addEventListener("change", handleImportConfigFile);
+  document
+    .getElementById("closeImportExportModal")
+    .addEventListener("click", closeImportExportModal);
+  document
+    .getElementById("cancelImportExport")
+    .addEventListener("click", closeImportExportModal);
+  document
+    .getElementById("confirmImportExport")
+    .addEventListener("click", confirmImportExport);
+
   // --- THEME SWITCHER LOGIC ---
   const themeToggle = document.getElementById("theme-toggle");
   const body = document.body;
@@ -3325,4 +3345,238 @@ function filterPeripherals() {
       item.style.display = "none"; // Hide the item if it doesn't match
     }
   });
+}
+
+// --- IMPORT/EXPORT CONFIGURATION ---
+
+let pendingImportConfig = null;
+let isExportMode = true;
+
+function openExportConfigModal() {
+  isExportMode = true;
+  const modal = document.getElementById("importExportInfoModal");
+  const title = document.getElementById("importExportModalTitle");
+  const text = document.getElementById("importExportModalText");
+  const bullet1 = document.getElementById("importExportBullet1");
+  const bullet2 = document.getElementById("importExportBullet2");
+  const bullet3 = document.getElementById("importExportBullet3");
+  const warning = document.getElementById("importExportWarning");
+  const warningText = document.getElementById("importExportWarningText");
+  const confirmBtn = document.getElementById("confirmImportExport");
+
+  title.textContent = "Export Configuration";
+  text.textContent =
+    "This will export your current pin configuration for the selected MCU/package to a JSON file. You can use this file to:";
+  bullet1.textContent = "Share configurations with team members";
+  bullet2.textContent = "Back up your pin assignments";
+  bullet3.textContent =
+    "Restore configurations on a different browser or computer";
+  warning.style.backgroundColor = "#fff3cd";
+  warning.style.color = "#856404";
+  warning.style.borderColor = "#ffeeba";
+  warningText.textContent =
+    "The exported file is specific to the currently selected MCU and package.";
+  confirmBtn.textContent = "Export";
+
+  modal.style.display = "block";
+}
+
+function openImportConfigModal() {
+  // Trigger file selection
+  document.getElementById("importConfigFile").click();
+}
+
+function handleImportConfigFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const config = JSON.parse(e.target.result);
+      validateAndShowImportModal(config);
+    } catch (error) {
+      alert("Invalid JSON file: " + error.message);
+    }
+    // Reset the file input so the same file can be selected again
+    event.target.value = "";
+  };
+  reader.readAsText(file);
+}
+
+function validateAndShowImportModal(config) {
+  // Validate required fields
+  if (!config.mcu || !config.package || !config.selectedPeripherals) {
+    alert(
+      "Invalid configuration file. Missing required fields (mcu, package, or selectedPeripherals).",
+    );
+    return;
+  }
+
+  pendingImportConfig = config;
+  isExportMode = false;
+
+  const modal = document.getElementById("importExportInfoModal");
+  const title = document.getElementById("importExportModalTitle");
+  const text = document.getElementById("importExportModalText");
+  const bullet1 = document.getElementById("importExportBullet1");
+  const bullet2 = document.getElementById("importExportBullet2");
+  const bullet3 = document.getElementById("importExportBullet3");
+  const warning = document.getElementById("importExportWarning");
+  const warningText = document.getElementById("importExportWarningText");
+  const confirmBtn = document.getElementById("confirmImportExport");
+
+  const currentMcu = document.getElementById("mcuSelector").value;
+  const currentPkg = document.getElementById("packageSelector").value;
+
+  const isDifferentPart =
+    config.mcu !== currentMcu || config.package !== currentPkg;
+
+  title.textContent = "Import Configuration";
+  text.textContent = `This will import a pin configuration from the file. The configuration is for:`;
+  bullet1.innerHTML = `<strong>MCU:</strong> ${config.mcu}`;
+  bullet2.innerHTML = `<strong>Package:</strong> ${config.package}`;
+  bullet3.innerHTML = `<strong>Peripherals:</strong> ${config.selectedPeripherals.length} configured`;
+
+  if (isDifferentPart) {
+    warning.style.backgroundColor = "#fff3cd";
+    warning.style.color = "#856404";
+    warning.style.borderColor = "#ffeeba";
+    warningText.innerHTML = `<strong>Note:</strong> This configuration is for a different MCU/package than currently selected. Importing will switch to <strong>${config.mcu}</strong> with package <strong>${config.package}</strong>.`;
+  } else {
+    warning.style.backgroundColor = "#d4edda";
+    warning.style.color = "#155724";
+    warning.style.borderColor = "#c3e6cb";
+    warningText.innerHTML = `This configuration matches your currently selected MCU and package.`;
+  }
+
+  confirmBtn.textContent = "Import";
+
+  // Add additional warning about overwriting
+  const existingWarning = document.getElementById("importOverwriteWarning");
+  if (!existingWarning) {
+    const overwriteWarning = document.createElement("div");
+    overwriteWarning.id = "importOverwriteWarning";
+    overwriteWarning.style.cssText =
+      "background-color: #f8d7da; color: #721c24; padding: 10px; border: 1px solid #f5c6cb; border-radius: 5px; margin-top: 10px;";
+    overwriteWarning.innerHTML =
+      "<strong>Warning:</strong> Importing will replace your current configuration and overwrite any saved data for this MCU/package.";
+    warning.parentNode.insertBefore(overwriteWarning, warning.nextSibling);
+  }
+
+  modal.style.display = "block";
+}
+
+function closeImportExportModal() {
+  const modal = document.getElementById("importExportInfoModal");
+  modal.style.display = "none";
+  pendingImportConfig = null;
+
+  // Remove the overwrite warning if it exists
+  const overwriteWarning = document.getElementById("importOverwriteWarning");
+  if (overwriteWarning) {
+    overwriteWarning.remove();
+  }
+}
+
+function confirmImportExport() {
+  if (isExportMode) {
+    exportConfig();
+  } else {
+    importConfig();
+  }
+  closeImportExportModal();
+}
+
+function exportConfig() {
+  const mcu = document.getElementById("mcuSelector").value;
+  const pkg = document.getElementById("packageSelector").value;
+
+  if (!mcu || !pkg) {
+    alert("Please select an MCU and package first.");
+    return;
+  }
+
+  const config = {
+    version: 1,
+    exportDate: new Date().toISOString(),
+    mcu: mcu,
+    package: pkg,
+    selectedPeripherals: selectedPeripherals.map((p) => ({
+      id: p.id,
+      pinFunctions: p.pinFunctions,
+      config: p.config,
+    })),
+  };
+
+  const json = JSON.stringify(config, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `pinplanner-${mcu}-${pkg}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function importConfig() {
+  if (!pendingImportConfig) return;
+
+  const config = pendingImportConfig;
+  const currentMcu = document.getElementById("mcuSelector").value;
+  const currentPkg = document.getElementById("packageSelector").value;
+
+  // Check if we need to switch MCU/package
+  if (config.mcu !== currentMcu || config.package !== currentPkg) {
+    // Switch to the target MCU first
+    const mcuSelector = document.getElementById("mcuSelector");
+    const mcuOption = Array.from(mcuSelector.options).find(
+      (opt) => opt.value === config.mcu,
+    );
+
+    if (!mcuOption) {
+      alert(`MCU "${config.mcu}" not found in available options.`);
+      return;
+    }
+
+    mcuSelector.value = config.mcu;
+    await handleMcuChange();
+
+    // Then switch to the target package
+    const packageSelector = document.getElementById("packageSelector");
+    const pkgOption = Array.from(packageSelector.options).find(
+      (opt) => opt.value === config.package,
+    );
+
+    if (!pkgOption) {
+      alert(`Package "${config.package}" not found for MCU "${config.mcu}".`);
+      return;
+    }
+
+    packageSelector.value = config.package;
+    await loadCurrentMcuData();
+  }
+
+  // Clear current state and apply imported config
+  clearAllPeripherals();
+
+  // Apply the imported configuration
+  applyConfig({
+    selectedPeripherals: config.selectedPeripherals,
+  });
+
+  // Save to localStorage
+  saveStateToLocalStorage();
+
+  // Update UI - need to re-render peripherals list to show selected state
+  organizePeripherals();
+  updateSelectedPeripheralsList();
+  updatePinDisplay();
+
+  console.log(
+    `Configuration imported for ${config.mcu}/${config.package} with ${config.selectedPeripherals.length} peripherals`,
+  );
 }

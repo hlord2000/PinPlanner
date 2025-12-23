@@ -170,6 +170,20 @@
                 Generate DeviceTree (BETA)
               </button>
             </div>
+            <div class="button-group-vertical" style="margin-top: 1rem">
+              <button id="exportConfigBtn" class="secondary-btn">
+                Export Config
+              </button>
+              <button id="importConfigBtn" class="secondary-btn">
+                Import Config
+              </button>
+              <input
+                type="file"
+                id="importConfigFile"
+                accept=".json"
+                style="display: none"
+              />
+            </div>
           </div>
         </aside>
       </div>
@@ -486,6 +500,52 @@
         <div class="modal-footer">
           <button id="cancelOscillatorConfig">Cancel</button>
           <button id="confirmOscillatorConfig">Confirm Configuration</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import/Export Info Modal -->
+    <div id="importExportInfoModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="importExportModalTitle">Export Configuration</h2>
+          <span class="close" id="closeImportExportModal">&times;</span>
+        </div>
+        <div id="importExportModalBody" style="padding: 15px 20px">
+          <p id="importExportModalText">
+            This will export your current pin configuration for the selected
+            MCU/package to a JSON file. You can use this file to:
+          </p>
+          <ul style="margin: 15px 0; padding-left: 20px">
+            <li id="importExportBullet1">
+              Share configurations with team members
+            </li>
+            <li id="importExportBullet2">Back up your pin assignments</li>
+            <li id="importExportBullet3">
+              Restore configurations on a different browser or computer
+            </li>
+          </ul>
+          <div
+            id="importExportWarning"
+            style="
+              background-color: #fff3cd;
+              color: #856404;
+              padding: 10px;
+              border: 1px solid #ffeeba;
+              border-radius: 5px;
+              margin-top: 15px;
+            "
+          >
+            <strong>Note:</strong>
+            <span id="importExportWarningText"
+              >The exported file is specific to the currently selected MCU and
+              package.</span
+            >
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelImportExport">Cancel</button>
+          <button id="confirmImportExport">Export</button>
         </div>
       </div>
     </div>

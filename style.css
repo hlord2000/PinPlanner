@@ -431,6 +431,15 @@ button:hover,
   background-color: var(--primary-hover);
 }
 
+button.secondary-btn {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+button.secondary-btn:hover {
+  background-color: var(--border-color);
+}
+
 /* Chip Display */
 .chip-display h2 {
   margin-bottom: 1rem;
@@ -572,7 +581,8 @@ button:hover,
 
 /* Smaller modal for simple forms */
 #oscillatorConfigModal .modal-content,
-#boardInfoModal .modal-content {
+#boardInfoModal .modal-content,
+#importExportInfoModal .modal-content {
   max-width: 600px;
 }
 .modal-header {
