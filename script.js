@@ -799,15 +799,32 @@ function getPersistenceKey() {
   return `pinPlannerConfig-${mcu}-${pkg}`;
 }
 
+// Helper function to serialize peripheral data for export/persistence
+function serializePeripheral(peripheral) {
+  if (peripheral.type === "GPIO") {
+    return {
+      id: peripheral.id,
+      type: peripheral.type,
+      label: peripheral.label,
+      pin: peripheral.pin,
+      activeState: peripheral.activeState,
+    };
+  }
+  
+  // Regular peripherals (oscillators, UART, SPI, etc.)
+  return {
+    id: peripheral.id,
+    pinFunctions: peripheral.pinFunctions,
+    config: peripheral.config,
+  };
+}
+
 function saveStateToLocalStorage() {
   const key = getPersistenceKey();
   if (!key) return;
 
   const config = {
-    selectedPeripherals: selectedPeripherals.map((p) => ({
-      id: p.id,
-      pinFunctions: p.pinFunctions,
-    })),
+    selectedPeripherals: selectedPeripherals.map(serializePeripheral),
   };
   localStorage.setItem(key, JSON.stringify(config));
   console.log(`State saved for ${key}`);
@@ -817,6 +834,24 @@ function applyConfig(config) {
   if (!config || !config.selectedPeripherals) return;
 
   for (const p_config of config.selectedPeripherals) {
+    // Handle GPIO pins first (they're not in socPeripherals)
+    if (p_config.type === "GPIO") {
+      selectedPeripherals.push({
+        id: p_config.id,
+        type: p_config.type,
+        label: p_config.label,
+        pin: p_config.pin,
+        activeState: p_config.activeState,
+      });
+      // Mark pin as used
+      usedPins[p_config.pin] = {
+        peripheral: p_config.id,
+        function: "GPIO",
+        required: true,
+      };
+      continue;
+    }
+
     const p_data = mcuData.socPeripherals.find((p) => p.id === p_config.id);
     if (p_data) {
       // Handle oscillators
@@ -2413,8 +2448,17 @@ function generateGpioNodes(gpioPins) {
   let content = "\n/ {\n";
 
   gpioPins.forEach((gpio) => {
+    console.log("Processing GPIO:", gpio); // Debug log
+    if (!gpio.pin) {
+      console.warn("GPIO missing pin property:", gpio);
+      return;
+    }
+    
     const pinInfo = parsePinName(gpio.pin);
-    if (!pinInfo) return;
+    if (!pinInfo) {
+      console.warn("Failed to parse pin name:", gpio.pin);
+      return;
+    }
 
     const activeFlag =
       gpio.activeState === "active-low"
@@ -3502,11 +3546,7 @@ function exportConfig() {
     exportDate: new Date().toISOString(),
     mcu: mcu,
     package: pkg,
-    selectedPeripherals: selectedPeripherals.map((p) => ({
-      id: p.id,
-      pinFunctions: p.pinFunctions,
-      config: p.config,
-    })),
+    selectedPeripherals: selectedPeripherals.map(serializePeripheral),
   };
 
   const json = JSON.stringify(config, null, 2);
