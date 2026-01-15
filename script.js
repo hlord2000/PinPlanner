@@ -810,7 +810,7 @@ function serializePeripheral(peripheral) {
       activeState: peripheral.activeState,
     };
   }
-  
+
   // Regular peripherals (oscillators, UART, SPI, etc.)
   return {
     id: peripheral.id,
@@ -1039,6 +1039,17 @@ function openPinSelectionModal(
     initSpiCsGpioList(existingConfig.extraCsGpios || []);
   } else {
     spiConfigSection.style.display = "none";
+  }
+
+  // Show/hide note section for SPI, I2C, and UART peripherals
+  const noteSection = document.getElementById("peripheralNoteSection");
+  const noteInput = document.getElementById("peripheralNote");
+  if (["SPI", "I2C", "UART"].includes(peripheral.type)) {
+    noteSection.style.display = "block";
+    noteInput.value = existingConfig.note || "";
+  } else {
+    noteSection.style.display = "none";
+    noteInput.value = "";
   }
 
   document.getElementById("pinSelectionModal").style.display = "block";
@@ -1528,6 +1539,15 @@ function confirmPinSelection() {
     }
   }
 
+  // Add note for SPI, I2C, and UART peripherals
+  if (["SPI", "I2C", "UART"].includes(currentPeripheral.type)) {
+    const note = document.getElementById("peripheralNote").value.trim();
+    if (note) {
+      peripheralEntry.config = peripheralEntry.config || {};
+      peripheralEntry.config.note = note;
+    }
+  }
+
   selectedPeripherals.push(peripheralEntry);
 
   for (const pinName in tempSelectedPins) {
@@ -1800,7 +1820,15 @@ function updateSelectedPeripheralsList() {
         : `<button class="remove-btn" data-id="${p.id}">Remove</button>`;
 
     // Use label for GPIO pins, id for everything else
-    const displayName = p.type === "GPIO" ? `GPIO: ${p.label}` : p.id;
+    // Include note for SPI/I2C/UART if present
+    let displayName = p.type === "GPIO" ? `GPIO: ${p.label}` : p.id;
+    if (
+      p.config &&
+      p.config.note &&
+      ["SPI", "I2C", "UART"].includes(p.peripheral?.type)
+    ) {
+      displayName += `: ${p.config.note}`;
+    }
 
     item.innerHTML = `
             <div><strong>${displayName}</strong><div>${details}</div></div>
@@ -2453,7 +2481,7 @@ function generateGpioNodes(gpioPins) {
       console.warn("GPIO missing pin property:", gpio);
       return;
     }
-    
+
     const pinInfo = parsePinName(gpio.pin);
     if (!pinInfo) {
       console.warn("Failed to parse pin name:", gpio.pin);

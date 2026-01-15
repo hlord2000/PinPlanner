@@ -343,6 +343,31 @@
             </tbody>
           </table>
 
+          <!-- Note field for SPI/I2C/UART peripherals -->
+          <div
+            id="peripheralNoteSection"
+            style="
+              display: none;
+              margin-top: 20px;
+              padding-top: 15px;
+              border-top: 1px solid var(--border-color);
+            "
+          >
+            <h4 style="margin-bottom: 10px">Note</h4>
+            <div class="form-group">
+              <input
+                type="text"
+                id="peripheralNote"
+                placeholder="e.g., Display, Sensor, Debug Console..."
+                style="width: 100%; padding: 8px; box-sizing: border-box"
+              />
+              <small
+                >Optional note to identify what this peripheral is connected
+                to</small
+              >
+            </div>
+          </div>
+
           <!-- UART-specific configuration options -->
           <div
             id="uartConfigSection"
