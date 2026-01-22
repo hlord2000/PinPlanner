@@ -426,51 +426,40 @@
 
     <!-- GPIO Pin Allocation Modal -->
     <div id="gpioModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content" style="width: 80%; max-width: 800px;">
         <div class="modal-header">
-          <h2 id="gpioModalTitle">Add GPIO Pin</h2>
+          <h2 id="gpioModalTitle">Manage GPIO Pins</h2>
           <span class="close" id="closeGpioModal">&times;</span>
         </div>
-        <div id="gpioModalBody" style="padding: 15px 20px">
-          <div class="form-group">
-            <label for="gpioLabelInput"
-              >Label<span class="required">*</span></label
-            >
-            <input
-              type="text"
-              id="gpioLabelInput"
-              placeholder="e.g., led0, button0, spi_cs_display"
-              pattern="[a-z0-9_]+"
-              required
-            />
-            <small>Lowercase letters, numbers, and underscores only</small>
-          </div>
-
-          <div class="form-group">
-            <label for="gpioPinSelect"
-              >GPIO Pin<span class="required">*</span></label
-            >
-            <select id="gpioPinSelect" required>
-              <option value="">-- Select GPIO --</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="gpioActiveStateSelect">Active State</label>
-            <select id="gpioActiveStateSelect">
-              <option value="active-high">Active High</option>
-              <option value="active-low">Active Low</option>
-            </select>
+        <div id="gpioModalBody" style="padding: 20px;">
+          <div style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">
+            <table id="gpioTable" class="pin-selection-table">
+              <thead>
+                <tr>
+                  <th>Label</th>
+                  <th>GPIO Pin</th>
+                  <th>Active State</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="gpioTableBody">
+                <!-- GPIO rows will be dynamically added here -->
+              </tbody>
+            </table>
+            
+            <div style="padding: 15px 0; text-align: center;">
+              <button id="addGpioRow" class="add-gpio-btn">+ Add GPIO Pin</button>
+            </div>
           </div>
 
           <div
             id="gpioError"
-            style="color: red; margin-top: 10px; display: none"
+            style="color: red; margin-top: 15px; display: none; font-weight: bold;"
           ></div>
         </div>
         <div class="modal-footer">
           <button id="cancelGpioModal">Cancel</button>
-          <button id="confirmGpioModal">Add GPIO</button>
+          <button id="confirmGpioModal">Save All Changes</button>
         </div>
       </div>
     </div>

@@ -773,3 +773,58 @@ option:disabled {
   color: white;
   font-weight: 600;
 }
+
+/* GPIO-specific styling */
+.pin-selection-table input[type="text"],
+.pin-selection-table select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.pin-selection-table input[type="text"]:focus,
+.pin-selection-table select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(122, 214, 230, 0.1);
+}
+
+.add-gpio-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.add-gpio-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.gpio-remove-btn {
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gpio-remove-btn:hover {
+  background-color: #c9302c;
+}
+
+.validation-error {
+  border-color: var(--error-color) !important;
+  box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.2) !important;
+}

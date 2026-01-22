@@ -1182,129 +1182,325 @@ document
 
 // --- GPIO PIN ALLOCATION ---
 
-let currentGpioEdit = null; // Track if we're editing an existing GPIO
+let gpioTableRows = []; // Track GPIO table rows
+let nextGpioRowId = 1; // Unique ID counter for GPIO rows
 
-function openGpioModal(existingGpio = null) {
-  currentGpioEdit = existingGpio;
-
-  const titleEl = document.getElementById("gpioModalTitle");
-  const labelInput = document.getElementById("gpioLabelInput");
-  const pinSelect = document.getElementById("gpioPinSelect");
-  const activeStateSelect = document.getElementById("gpioActiveStateSelect");
+function openGpioModal() {
+  // Initialize table with existing GPIO pins
+  initializeGpioTable();
+  
   const errorEl = document.getElementById("gpioError");
-
-  // Set title based on edit/add mode
-  titleEl.textContent = existingGpio ? "Edit GPIO Pin" : "Add GPIO Pin";
-
-  // Populate pin dropdown (filter used pins)
-  pinSelect.innerHTML = getGpioPinOptions(
-    existingGpio ? existingGpio.pin : "",
-    true,
-  );
-  enableScrollWheelSelectionForElement(pinSelect);
-
-  // Set values if editing
-  if (existingGpio) {
-    labelInput.value = existingGpio.label;
-    activeStateSelect.value = existingGpio.activeState || "active-high";
-  } else {
-    labelInput.value = "";
-    activeStateSelect.value = "active-high";
-  }
-
   errorEl.style.display = "none";
+  
   document.getElementById("gpioModal").style.display = "block";
+}
+
+function initializeGpioTable() {
+  gpioTableRows = [];
+  nextGpioRowId = 1;
+  
+  // Add existing GPIO pins to the table
+  selectedPeripherals.filter(p => p.type === "GPIO").forEach(gpio => {
+    addGpioTableRow(gpio.label, gpio.pin, gpio.activeState, gpio.id);
+  });
+  
+  // Add one empty row if no GPIO pins exist
+  if (gpioTableRows.length === 0) {
+    addGpioTableRow();
+  }
+  
+  renderGpioTable();
+}
+
+function addGpioTableRow(label = "", pin = "", activeState = "active-high", existingId = null) {
+  const rowId = `gpio_row_${nextGpioRowId++}`;
+  gpioTableRows.push({
+    id: rowId,
+    label: label,
+    pin: pin,
+    activeState: activeState,
+    existingId: existingId, // If editing existing GPIO
+    isValid: true
+  });
+  renderGpioTable();
+}
+
+function removeGpioTableRow(rowId) {
+  const index = gpioTableRows.findIndex(row => row.id === rowId);
+  if (index !== -1) {
+    gpioTableRows.splice(index, 1);
+    renderGpioTable();
+  }
+}
+
+function renderGpioTable() {
+  const tableBody = document.getElementById("gpioTableBody");
+  
+  if (gpioTableRows.length === 0) {
+    tableBody.innerHTML = `
+      <tr class="empty-row">
+        <td colspan="4">No GPIO pins configured. Click "Add GPIO Pin" to add one.</td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tableBody.innerHTML = "";
+  
+  gpioTableRows.forEach((row, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <input type="text" 
+               value="${row.label}" 
+               placeholder="e.g., led0, button0"
+               pattern="[a-z0-9_]+"
+               data-row-id="${row.id}"
+               data-field="label"
+               class="${!row.isValid ? 'validation-error' : ''}"
+               maxlength="20">
+      </td>
+      <td>
+        <select data-row-id="${row.id}" data-field="pin">
+          <option value="">-- Select Pin --</option>
+          ${getGpioPinOptionsForTable(row.pin, row.existingId)}
+        </select>
+      </td>
+      <td>
+        <select data-row-id="${row.id}" data-field="activeState">
+          <option value="active-high" ${row.activeState === "active-high" ? "selected" : ""}>Active High</option>
+          <option value="active-low" ${row.activeState === "active-low" ? "selected" : ""}>Active Low</option>
+        </select>
+      </td>
+      <td>
+        <button type="button" 
+                class="gpio-remove-btn" 
+                onclick="removeGpioTableRow('${row.id}')"
+                title="Remove this GPIO pin">
+          Remove
+        </button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+  
+  // Add event listeners for input changes
+  attachGpioTableEventListeners();
+}
+
+function attachGpioTableEventListeners() {
+  // Handle input changes
+  document.querySelectorAll('#gpioTable input, #gpioTable select').forEach(element => {
+    element.addEventListener('input', handleGpioTableInputChange);
+    element.addEventListener('change', handleGpioTableInputChange);
+    
+    // Add blur event for label fields to convert to lowercase when done typing
+    if (element.type === 'text' && element.getAttribute('data-field') === 'label') {
+      element.addEventListener('blur', (event) => {
+        const value = event.target.value.toLowerCase();
+        if (event.target.value !== value) {
+          event.target.value = value;
+          handleGpioTableInputChange(event);
+        }
+      });
+    }
+  });
+}
+
+function handleGpioTableInputChange(event) {
+  const rowId = event.target.getAttribute('data-row-id');
+  const field = event.target.getAttribute('data-field');
+  const value = event.target.value;
+  
+  // Update the row data
+  const row = gpioTableRows.find(r => r.id === rowId);
+  if (row) {
+    row[field] = value;
+    
+    // Validate the row
+    validateGpioRow(row);
+    
+    // Re-render if pin selection changed (to update other dropdowns)
+    if (field === 'pin') {
+      renderGpioTable();
+    } else {
+      // Just update validation styling for this input
+      updateInputValidation(event.target, row);
+    }
+  }
+}
+
+function updateInputValidation(inputElement, row) {
+  if (row.isValid) {
+    inputElement.classList.remove('validation-error');
+  } else {
+    inputElement.classList.add('validation-error');
+  }
+}
+
+function validateGpioRow(row) {
+  row.isValid = true;
+  
+  // Validate label
+  if (!row.label || !/^[a-z0-9_]+$/.test(row.label)) {
+    row.isValid = false;
+    return;
+  }
+  
+  // Check for duplicate labels
+  const duplicateLabel = gpioTableRows.find(r => 
+    r.id !== row.id && 
+    r.label === row.label && 
+    r.label !== ""
+  );
+  if (duplicateLabel) {
+    row.isValid = false;
+    return;
+  }
+  
+  // Validate pin selection
+  if (!row.pin) {
+    row.isValid = false;
+    return;
+  }
+  
+  // Check for duplicate pin usage
+  const duplicatePin = gpioTableRows.find(r => 
+    r.id !== row.id && 
+    r.pin === row.pin && 
+    r.pin !== ""
+  );
+  if (duplicatePin) {
+    row.isValid = false;
+    return;
+  }
+}
+
+function getGpioPinOptionsForTable(selectedPin, existingGpioId) {
+  let options = "";
+  
+  if (!mcuData.pins) return options;
+  
+  const gpioPins = mcuData.pins.filter(pin => 
+    pin.functions && pin.functions.includes("Digital I/O")
+  );
+  
+  // Sort pins by port and pin number (P0.00, P0.01, ..., P1.00, P1.01, ...)
+  gpioPins.sort((a, b) => {
+    const aMatch = a.name.match(/P(\d+)\.(\d+)/);
+    const bMatch = b.name.match(/P(\d+)\.(\d+)/);
+    
+    if (aMatch && bMatch) {
+      const aPort = parseInt(aMatch[1]);
+      const bPort = parseInt(bMatch[1]);
+      const aPin = parseInt(aMatch[2]);
+      const bPin = parseInt(bMatch[2]);
+      
+      // Sort by port first, then by pin number
+      if (aPort !== bPort) {
+        return aPort - bPort;
+      }
+      return aPin - bPin;
+    }
+    
+    // Fallback to string comparison
+    return a.name.localeCompare(b.name);
+  });
+  
+  gpioPins.forEach(pin => {
+    const isSelected = pin.name === selectedPin;
+    let isDisabled = false;
+    
+    // Check if pin is used by other peripherals (not GPIO)
+    if (usedPins[pin.name] && !usedPins[pin.name].peripheral.startsWith("GPIO_")) {
+      isDisabled = true;
+    }
+    
+    // Check if pin is used by other GPIO entries in selected peripherals
+    const gpioUsingPin = selectedPeripherals.find(p => 
+      p.type === "GPIO" && 
+      p.pin === pin.name && 
+      p.id !== existingGpioId
+    );
+    if (gpioUsingPin && !isSelected) {
+      isDisabled = true;
+    }
+    
+    options += `<option value="${pin.name}" ${isSelected ? "selected" : ""} ${isDisabled ? "disabled" : ""}>${pin.name}${isDisabled ? " (in use)" : ""}</option>`;
+  });
+  
+  return options;
 }
 
 function closeGpioModal() {
   document.getElementById("gpioModal").style.display = "none";
-  currentGpioEdit = null;
+  gpioTableRows = [];
 }
 
 function confirmGpioModal() {
-  const labelInput = document.getElementById("gpioLabelInput");
-  const pinSelect = document.getElementById("gpioPinSelect");
-  const activeStateSelect = document.getElementById("gpioActiveStateSelect");
   const errorEl = document.getElementById("gpioError");
-
-  const label = labelInput.value.trim().toLowerCase();
-  const pin = pinSelect.value;
-  const activeState = activeStateSelect.value;
-
-  // Validate label
-  if (!label) {
-    errorEl.textContent = "Label is required";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  if (!/^[a-z0-9_]+$/.test(label)) {
-    errorEl.textContent =
-      "Label must contain only lowercase letters, numbers, and underscores";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  // Check for duplicate label (excluding current edit)
-  const duplicateLabel = selectedPeripherals.find(
-    (p) =>
-      p.type === "GPIO" &&
-      p.label === label &&
-      (!currentGpioEdit || p.id !== currentGpioEdit.id),
-  );
-  if (duplicateLabel) {
-    errorEl.textContent = "A GPIO with this label already exists";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  // Validate pin selection
-  if (!pin) {
-    errorEl.textContent = "Please select a GPIO pin";
-    errorEl.style.display = "block";
-    return;
-  }
-
-  // Check if pin is already used (excluding current edit)
-  if (
-    usedPins[pin] &&
-    (!currentGpioEdit || usedPins[pin].peripheral !== currentGpioEdit.id)
-  ) {
-    errorEl.textContent = `Pin ${pin} is already used by ${usedPins[pin].peripheral}`;
-    errorEl.style.display = "block";
-    return;
-  }
-
-  // Remove old GPIO if editing
-  if (currentGpioEdit) {
-    const oldIndex = selectedPeripherals.findIndex(
-      (p) => p.id === currentGpioEdit.id,
-    );
-    if (oldIndex !== -1) {
-      delete usedPins[currentGpioEdit.pin];
-      selectedPeripherals.splice(oldIndex, 1);
+  
+  // Validate all rows
+  let hasErrors = false;
+  const validRows = [];
+  const errorMessages = [];
+  
+  gpioTableRows.forEach(row => {
+    validateGpioRow(row);
+    if (!row.isValid && row.label && row.pin) {
+      hasErrors = true;
+      // Identify specific error
+      if (!/^[a-z0-9_]+$/.test(row.label)) {
+        errorMessages.push(`"${row.label}": Label must be lowercase letters, numbers, and underscores only`);
+      } else if (gpioTableRows.find(r => r.id !== row.id && r.label === row.label && r.label !== "")) {
+        errorMessages.push(`"${row.label}": Duplicate label`);
+      } else if (gpioTableRows.find(r => r.id !== row.id && r.pin === row.pin && r.pin !== "")) {
+        errorMessages.push(`${row.pin}: Pin used multiple times`);
+      }
+    } else if (row.label && row.pin && row.isValid) {
+      validRows.push(row);
     }
-  }
-
-  // Generate unique ID for GPIO
-  const gpioId = `GPIO_${label.toUpperCase()}`;
-
-  // Add new GPIO to selected peripherals
-  selectedPeripherals.push({
-    id: gpioId,
-    type: "GPIO",
-    label: label,
-    pin: pin,
-    activeState: activeState,
   });
-
-  // Mark pin as used
-  usedPins[pin] = {
-    peripheral: gpioId,
-    function: "GPIO",
-    required: true,
-  };
-
+  
+  if (hasErrors) {
+    const uniqueMessages = [...new Set(errorMessages)];
+    errorEl.textContent = "Validation errors: " + uniqueMessages.join("; ");
+    errorEl.style.display = "block";
+    renderGpioTable(); // Re-render to show validation errors
+    return;
+  }
+  
+  if (validRows.length === 0) {
+    errorEl.textContent = "Please add at least one GPIO pin or cancel";
+    errorEl.style.display = "block";
+    return;
+  }
+  
+  // Remove existing GPIO pins
+  selectedPeripherals.filter(p => p.type === "GPIO").forEach(gpio => {
+    delete usedPins[gpio.pin];
+  });
+  selectedPeripherals = selectedPeripherals.filter(p => p.type !== "GPIO");
+  
+  // Add new/updated GPIO pins
+  validRows.forEach(row => {
+    const gpioId = `GPIO_${row.label.toUpperCase()}`;
+    
+    selectedPeripherals.push({
+      id: gpioId,
+      type: "GPIO",
+      label: row.label,
+      pin: row.pin,
+      activeState: row.activeState,
+    });
+    
+    usedPins[row.pin] = {
+      peripheral: gpioId,
+      function: "GPIO",
+      required: true,
+    };
+  });
+  
   updateSelectedPeripheralsList();
   updatePinDisplay();
   closeGpioModal();
@@ -1321,6 +1517,9 @@ document
 document
   .getElementById("confirmGpioModal")
   .addEventListener("click", confirmGpioModal);
+document
+  .getElementById("addGpioRow")
+  .addEventListener("click", () => addGpioTableRow());
 document.getElementById("gpioModal").addEventListener("click", (e) => {
   if (e.target === document.getElementById("gpioModal")) {
     closeGpioModal();
@@ -1931,12 +2130,12 @@ function removePeripheral(id) {
 }
 
 function editPeripheral(id) {
-  // Handle GPIO pins
+  // Handle GPIO pins - open the table modal with all GPIO pins
   const gpioPeripheral = selectedPeripherals.find(
     (p) => p.id === id && p.type === "GPIO",
   );
   if (gpioPeripheral) {
-    openGpioModal(gpioPeripheral);
+    openGpioModal(); // Open modal with all GPIO pins
     return;
   }
 
