@@ -192,16 +192,8 @@
               style="display: none"
             >
               <h3>Serial Console</h3>
-              <p class="console-description">
-                Select which UART is used for the Zephyr shell and serial
-                console. If no UART is selected, Segger RTT will be used
-                instead.
-              </p>
-              <div
-                id="consoleStatusBanner"
-                class="console-banner console-warning"
-              >
-                <strong>No UART selected.</strong> RTT will be used for logging.
+              <div id="consoleStatusBanner" class="console-banner console-info">
+                No UART selected — Segger RTT will be used.
               </div>
               <div id="consoleSelector" style="display: none">
                 <label for="consoleUartSelect">Console UART:</label>

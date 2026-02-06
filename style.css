@@ -881,13 +881,7 @@ option:disabled {
 
 .console-config-section h3 {
   font-size: 0.95rem;
-  margin-bottom: 0.25rem;
-}
-
-.console-description {
-  font-size: 0.8rem;
-  color: var(--text-secondary, #666);
-  margin: 0 0 0.5rem 0;
+  margin-bottom: 0.5rem;
 }
 
 .console-banner {

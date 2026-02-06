@@ -25,34 +25,36 @@ export function updateConsoleConfig() {
   });
 
   if (selectedUarts.length === 0) {
-    // No UARTs selected - show warning
-    banner.className = "console-banner console-warning";
-    banner.innerHTML =
-      "<strong>No UART selected.</strong> RTT will be used for logging.";
+    // No UARTs selected - show info, hide selector
+    banner.className = "console-banner console-info";
+    banner.innerHTML = "No UART selected — Segger RTT will be used.";
     banner.style.display = "";
     selectorDiv.style.display = "none";
     state.consoleUart = null;
-  } else if (selectedUarts.length === 1) {
-    // Exactly one UART - auto-select
-    const uart = selectedUarts[0];
-    const template = state.deviceTreeTemplates[uart.id];
-    state.consoleUart = uart.id;
-    banner.className = "console-banner console-info";
-    banner.innerHTML = `UART console enabled on <strong>&${template.dtNodeName}</strong>`;
-    banner.style.display = "";
-    selectorDiv.style.display = "none";
   } else {
-    // Multiple UARTs - show selector
+    // One or more UARTs - show dropdown with "None (RTT)" option
     banner.style.display = "none";
     selectorDiv.style.display = "";
 
     // Preserve current selection if still valid
-    const currentValid = selectedUarts.some((u) => u.id === state.consoleUart);
+    const currentValid =
+      state.consoleUart === null ||
+      selectedUarts.some((u) => u.id === state.consoleUart);
     if (!currentValid) {
       state.consoleUart = selectedUarts[0].id;
     }
 
     select.innerHTML = "";
+
+    // "None" option for RTT
+    const noneOption = document.createElement("option");
+    noneOption.value = "";
+    noneOption.textContent = "None (Segger RTT)";
+    if (state.consoleUart === null) {
+      noneOption.selected = true;
+    }
+    select.appendChild(noneOption);
+
     selectedUarts.forEach((uart) => {
       const template = state.deviceTreeTemplates[uart.id];
       const option = document.createElement("option");
@@ -67,6 +69,6 @@ export function updateConsoleConfig() {
 }
 
 export function handleConsoleUartChange(event) {
-  state.consoleUart = event.target.value;
+  state.consoleUart = event.target.value || null;
   saveStateToLocalStorage();
 }
