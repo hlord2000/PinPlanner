@@ -186,11 +186,15 @@ async function generateBoardFiles(mcu, pkg) {
   files[`Kconfig.${state.boardInfo.name}`] = generateKconfigBoard(
     mcu,
     supportsNS,
+    supportsFLPR,
   );
   files[`${state.boardInfo.name}_common.dtsi`] = generateCommonDtsi(mcu);
   files[`${mcu}_cpuapp_common.dtsi`] = generateCpuappCommonDtsi(mcu);
   files[`${state.boardInfo.name}_${mcu}-pinctrl.dtsi`] = generatePinctrlFile();
-  files[`${state.boardInfo.name}_${mcu}_cpuapp.dts`] = generateMainDts(mcu);
+  files[`${state.boardInfo.name}_${mcu}_cpuapp.dts`] = generateMainDts(
+    mcu,
+    supportsNS,
+  );
   files[`${state.boardInfo.name}_${mcu}_cpuapp.yaml`] =
     generateYamlCapabilities(mcu, false);
   files[`${state.boardInfo.name}_${mcu}_cpuapp_defconfig`] =

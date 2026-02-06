@@ -20,6 +20,14 @@ function getConsoleUartNodeName() {
   return template ? template.dtNodeName : null;
 }
 
+// Some MCUs have revision suffixes in their Zephyr DTSI filenames
+function getMcuDtsiBaseName(mcu) {
+  const dtsiNameMap = {
+    nrf54lm20a: "nrf54lm20a_enga",
+  };
+  return dtsiNameMap[mcu] || mcu;
+}
+
 export function generatePinctrlFile() {
   let content = `/*
  * Copyright (c) 2024 Nordic Semiconductor ASA
@@ -234,31 +242,20 @@ export function generateCpuappCommonDtsi(mcu) {
 };
 `;
 
-  // Check NFC usage
-  let nfcUsed = false;
-  state.selectedPeripherals.forEach((p) => {
-    const template = state.deviceTreeTemplates[p.id];
-    if (template && template.type === "NFCT") {
-      nfcUsed = true;
-    }
-  });
-
-  if (!nfcUsed) {
-    content += `
-&uicr {
-\tnfct-pins-as-gpios;
-};
-`;
-  }
-
   return content;
 }
 
-export function generateMainDts(mcu) {
+export function generateMainDts(mcu, supportsNS) {
   const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
+  const dtsiBase = getMcuDtsiBaseName(mcu);
+  // nrf54l05 uses a simpler partition file without _cpuapp_ prefix
+  const useSimplePartition = mcu === "nrf54l05";
+  const partitionInclude = useSimplePartition
+    ? `#include <nordic/${mcu}_partition.dtsi>`
+    : `#include <vendor/nordic/${mcu}_cpuapp_partition.dtsi>`;
   return `/dts-v1/;
 
-#include <nordic/${mcu}_cpuapp.dtsi>
+#include <nordic/${dtsiBase}_cpuapp.dtsi>
 #include "${mcu}_cpuapp_common.dtsi"
 
 / {
@@ -272,7 +269,7 @@ export function generateMainDts(mcu) {
 };
 
 /* Include default memory partition configuration file */
-#include <nordic/${mcu}_partition.dtsi>
+${partitionInclude}
 `;
 }
 
@@ -441,7 +438,7 @@ export function generateNSDts(mcu) {
 
 #define USE_NON_SECURE_ADDRESS_MAP 1
 
-#include <nordic/${mcu}_cpuapp.dtsi>
+#include <arm/nordic/${getMcuDtsiBaseName(mcu)}_cpuapp_ns.dtsi>
 #include "${mcu}_cpuapp_common.dtsi"
 
 / {
@@ -461,37 +458,8 @@ export function generateNSDts(mcu) {
 \t};
 };
 
-/ {
-\t/*
-\t * Default SRAM planning when building for ${mcuUpper} with ARM TrustZone-M support
-\t * - Lowest 80 kB SRAM allocated to Secure image (sram0_s).
-\t * - Upper 80 kB SRAM allocated to Non-Secure image (sram0_ns).
-\t *
-\t * ${mcuUpper} has 256 kB of volatile memory (SRAM) but the last 96kB are reserved for
-\t * the FLPR MCU.
-\t * This static layout needs to be the same with the upstream TF-M layout in the
-\t * header flash_layout.h of the relevant platform. Any updates in the layout
-\t * needs to happen both in the flash_layout.h and in this file at the same time.
-\t */
-\treserved-memory {
-\t\t#address-cells = <1>;
-\t\t#size-cells = <1>;
-\t\tranges;
-
-\t\tsram0_s: image_s@20000000 {
-\t\t\t/* Secure image memory */
-\t\t\treg = <0x20000000 DT_SIZE_K(80)>;
-\t\t};
-
-\t\tsram0_ns: image_ns@20014000 {
-\t\t\t/* Non-Secure image memory */
-\t\t\treg = <0x20014000 DT_SIZE_K(80)>;
-\t\t};
-\t};
-};
-
 ${uartDisableSection}/* Include default memory partition configuration file */
-#include <nordic/${mcu}_ns_partition.dtsi>
+#include <vendor/nordic/${mcu}_cpuapp_ns_partition.dtsi>
 `;
 }
 
@@ -509,8 +477,10 @@ export function generateFLPRDts(mcu) {
   }
 
   return `/dts-v1/;
-#include <nordic/${mcu}_cpuflpr.dtsi>
+#include <nordic/${getMcuDtsiBaseName(mcu)}_cpuflpr.dtsi>
 #include "${state.boardInfo.name}_common.dtsi"
+
+/delete-node/ &cpuflpr_sram;
 
 / {
 \tmodel = "${state.boardInfo.fullName} ${mcuUpper} FLPR MCU";
@@ -521,13 +491,16 @@ ${chosenUartLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
 \t\tzephyr,flash = &cpuflpr_rram;
 \t\tzephyr,sram = &cpuflpr_sram;
 \t};
-};
 
-&cpuflpr_sram {
-\tstatus = "okay";
-\t/* size must be increased due to booting from SRAM */
-\treg = <0x20028000 DT_SIZE_K(96)>;
-\tranges = <0x0 0x20028000 0x18000>;
+\tcpuflpr_sram: memory@20028000 {
+\t\tcompatible = "mmio-sram";
+\t\t/* Size must be increased due to booting from SRAM */
+\t\treg = <0x20028000 DT_SIZE_K(96)>;
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\tranges = <0x0 0x20028000 0x18000>;
+\t\tstatus = "okay";
+\t};
 };
 
 &cpuflpr_rram {
@@ -535,6 +508,7 @@ ${chosenUartLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
 \t\tcompatible = "fixed-partitions";
 \t\t#address-cells = <1>;
 \t\t#size-cells = <1>;
+\t\tranges;
 
 \t\tcpuflpr_code_partition: partition@0 {
 \t\t\tlabel = "image-0";
@@ -819,7 +793,7 @@ if BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
 config BOARD_${boardNameUpper}
 \tselect USE_DT_CODE_PARTITION if BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
 
-config BT_CTLR
+config HAS_BT_CTLR
 \tdefault BT
 
 # By default, if we build for a Non-Secure version of the board,
@@ -834,7 +808,7 @@ endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
   return content;
 }
 
-export function generateKconfigBoard(mcu, supportsNS) {
+export function generateKconfigBoard(mcu, supportsNS, supportsFLPR) {
   const boardNameUpper = state.boardInfo.name.toUpperCase();
   const mcuUpper = mcu.toUpperCase();
 
@@ -843,12 +817,20 @@ export function generateKconfigBoard(mcu, supportsNS) {
     selectCondition += ` || BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS`;
   }
 
-  return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+  let content = `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
 
 config BOARD_${boardNameUpper}
 \tselect SOC_${mcuUpper}_CPUAPP if ${selectCondition}
 `;
+
+  if (supportsFLPR) {
+    content += `\tselect SOC_${mcuUpper}_CPUFLPR if BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR || \\
+\t\t\t\t\t    BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR_XIP
+`;
+  }
+
+  return content;
 }
 
 export function generateReadme(mcu, pkg, supportsNS, supportsFLPR) {
