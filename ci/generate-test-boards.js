@@ -610,7 +610,10 @@ function generateCpuappCommonDtsi(boardName, mcu, peripherals, templates) {
 \tchosen {
 `;
 
-  // Add UART console if available
+  // Add UART console if available.
+  // Note: In the Pin Planner UI, the user can choose which UART is used
+  // for the serial console/shell, or omit it entirely to use RTT instead.
+  // For CI test boards, the first available UART is always assigned.
   let hasUart = false;
   for (const p of peripherals) {
     const template = templates[getTemplateKey(p.id)];
@@ -620,6 +623,11 @@ function generateCpuappCommonDtsi(boardName, mcu, peripherals, templates) {
       template.type === "UART" &&
       !hasUart
     ) {
+      content += `\t\t/*\n`;
+      content += `\t\t * Console UART - in Pin Planner you can select which\n`;
+      content += `\t\t * UART (if any) serves as the serial console. If no\n`;
+      content += `\t\t * UART is chosen, Segger RTT is used instead.\n`;
+      content += `\t\t */\n`;
       content += `\t\tzephyr,console = &${template.dtNodeName};\n`;
       content += `\t\tzephyr,shell-uart = &${template.dtNodeName};\n`;
       content += `\t\tzephyr,uart-mcumgr = &${template.dtNodeName};\n`;
