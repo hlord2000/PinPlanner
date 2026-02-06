@@ -10,10 +10,31 @@ Nordic Pin Planner is an **unofficial** web-based tool for visualizing and plann
 
 ## Development Commands
 
+### Install dependencies
+
+```bash
+npm install
+```
+
 ### Formatting
 
 ```bash
-npx prettier --write .
+npm run format          # Auto-fix formatting
+npm run format:check    # Check formatting (CI)
+```
+
+### Validation & Testing
+
+```bash
+npm run validate:schemas   # Validate MCU JSON against mcuSchema.json
+npm run smoke-test         # Smoke test MCU data integrity
+npm test                   # Run all checks (format + schema + smoke)
+```
+
+### Devkit Extraction (requires local Zephyr checkout)
+
+```bash
+npm run extract-devkits -- --zephyr-path=/path/to/zephyr
 ```
 
 ### Running the Application
@@ -28,19 +49,42 @@ npx http-server
 
 ## Architecture
 
-### Core Files Structure
+### Module Structure (`js/`)
 
-- **index.html**: Main application UI with modals for pin selection, oscillator config, and board info
-- **script.js** (2573 lines): All application logic including state management, UI rendering, and export
-- **style.css**: Complete styling including dark mode support
-- **mcus/**: MCU package definitions and templates
+The application uses native ES modules (`<script type="module">`). No bundler required.
+
+| Module                   | Purpose                                                       |
+| ------------------------ | ------------------------------------------------------------- |
+| `js/main.js`             | Entry point: event wiring, theme setup, initialization        |
+| `js/state.js`            | Centralized state object, persistence (save/load/reset)       |
+| `js/mcu-loader.js`       | MCU/package loading, `initializeApp`, `reinitializeView`      |
+| `js/peripherals.js`      | Peripheral organization, toggle, oscillator config, filtering |
+| `js/pin-layout.js`       | Responsive pin diagram rendering, pin display updates         |
+| `js/devicetree.js`       | All DeviceTree generation functions (30+)                     |
+| `js/export.js`           | Board info modal, ZIP assembly, overlay export                |
+| `js/console-config.js`   | Serial console UART selection and warnings                    |
+| `js/devkit-loader.js`    | Load devkit configs, overlay generation mode                  |
+| `js/utils.js`            | Shared utilities (scroll wheel, `parsePinName`)               |
+| `js/ui/modals.js`        | Pin selection modal, GPIO modal                               |
+| `js/ui/selected-list.js` | Selected peripherals list rendering                           |
+| `js/ui/import-export.js` | JSON config import/export modals                              |
+| `js/ui/notifications.js` | Toast notification system                                     |
+
+### Other Key Files
+
+- **index.html**: Main application UI with modals
+- **style.css**: Complete styling including dark mode, responsive breakpoints, toast styles
+- **mcus/**: MCU package definitions and devicetree templates
+- **devkits/**: Pre-extracted devkit pin configurations (JSON)
+- **ci/**: CI validation scripts (schema validation, smoke tests, board generation)
+- **.github/workflows/**: GitHub Actions CI/CD pipelines
 
 ### MCU Data Architecture
 
 The application uses a hierarchical JSON-based system:
 
 1. **manifest.json**: Top-level MCU catalog
-   - Lists all supported MCUs (nRF54L05, nRF54L10, nRF54L15, nRF54LM20A)
+   - Lists all supported MCUs (nRF54L05, nRF54L10, nRF54L15, nRF54LV10A, nRF54LM20A)
    - Maps MCUs to available packages
    - Defines which MCUs support non-secure builds (`supportsNonSecure`)
    - Defines which MCUs support FLPR (Fast Lightweight Processor) core (`supportsFLPR`)
@@ -57,58 +101,69 @@ The application uses a hierarchical JSON-based system:
    - Defines signal-to-pinctrl mappings
    - Provides templates for generating `.dtsi` files
 
-### Global State Management
+### State Management
 
-Key state variables in `script.js`:
+All state is centralized in `js/state.js` via a single exported `state` object:
 
-- `mcuManifest`: Loaded from manifest.json at startup
-- `mcuData`: Currently selected MCU package data
-- `selectedPeripherals`: Array of user-selected peripherals with pin assignments
-- `usedPins`: Tracks which pins are assigned to prevent conflicts
-- `usedAddresses`: Tracks address space usage for peripherals
-- `deviceTreeTemplates`: Loaded per-MCU for export generation
+- `state.mcuManifest`: Loaded from manifest.json at startup
+- `state.mcuData`: Currently selected MCU package data
+- `state.selectedPeripherals`: Array of user-selected peripherals with pin assignments
+- `state.usedPins`: Tracks which pins are assigned to prevent conflicts
+- `state.usedAddresses`: Tracks address space usage for peripherals
+- `state.deviceTreeTemplates`: Loaded per-MCU for export generation
+- `state.consoleUart`: Selected console UART peripheral ID (null = RTT mode)
+- `state.devkitConfig`: Loaded devkit configuration (null = custom board mode)
 
 ### Key Application Flows
 
-#### 1. Initialization (initializeApp)
+#### 1. Initialization (initializeApp in mcu-loader.js)
 
 - Fetches `mcus/manifest.json`
 - Populates MCU selector dropdown
 - Triggers initial MCU/package load
 
-#### 2. MCU/Package Selection
+#### 2. MCU/Package Selection (mcu-loader.js)
 
 - `handleMcuChange()`: Populates package selector
 - `loadCurrentMcuData()`: Loads package JSON and devicetree templates
 - `reinitializeView()`: Rebuilds UI including peripherals list and pin diagram
 
-#### 3. Peripheral Configuration
+#### 3. Peripheral Configuration (peripherals.js)
 
 - Simple peripherals (no pins): Toggle on/off with checkboxes (`toggleSimplePeripheral`)
 - Complex peripherals: Open modal for pin selection (`openPinSelectionModal`)
 - Pin selection validates against availability and conflicts
 - Oscillators have special configuration modals for GPIO control and capacitance
 
-#### 4. Pin Diagram Rendering (`createPinLayout`)
+#### 4. Console UART Configuration (console-config.js)
 
-- Canvas-based rendering using package `renderConfig`
+- 0 UARTs selected: Warning banner, RTT will be used
+- 1 UART selected: Auto-selected as console
+- Multiple UARTs: Dropdown to choose which is the serial console
+- `state.consoleUart` drives all DeviceTree `chosen` section generation
+
+#### 5. Devkit Loading (devkit-loader.js)
+
+- Loads pre-extracted configs from `devkits/<board>.json`
+- Applies peripheral and GPIO configs to state
+- Switches export mode from full board definition to `.overlay` file
+- Shows evaluation notice and Zephyr version info
+
+#### 6. Pin Diagram Rendering (pin-layout.js)
+
+- Responsive rendering (reads actual container width)
 - Supports multiple layout strategies (currently quadPerimeter for QFN packages)
-- Color-codes pins by assignment status (available, used, selected)
+- Color-codes pins by assignment status (available, used, selected, devkit-occupied)
 - Interactive hover shows pin details
 
-#### 5. Board Definition Export (`exportBoardDefinition`)
+#### 7. Board Definition Export (export.js + devicetree.js)
 
-Generates a complete Zephyr board definition as a ZIP file containing:
+**Custom board mode**: Generates a complete Zephyr board definition as ZIP:
 
-- `board.yml`: Board metadata and supported features
-- `board.cmake`: Build system integration
-- `Kconfig.board`: Kconfig configuration
-- `<board>_<mcu>_cpuapp.dts`: Main DeviceTree file for ARM Cortex-M33
-- `<board>_<mcu>_cpuapp_common.dtsi`: Common peripheral definitions with pinctrl
-- Optional non-secure variants for MCUs with TrustZone-M (`supportsNonSecure`)
-- Optional FLPR variants for MCUs with RISC-V FLPR core (`supportsFLPR`):
-  - `<board>_<mcu>_cpuflpr.dts`: FLPR DeviceTree (executes from SRAM)
-  - `<board>_<mcu>_cpuflpr_xip.dts`: FLPR XIP DeviceTree (executes in-place from RRAM)
+- `board.yml`, `board.cmake`, `Kconfig.*`
+- DTS/DTSI files for cpuapp, cpuapp/ns, cpuflpr, cpuflpr/xip
+
+**Devkit mode**: Generates `.overlay` and optional `-pinctrl.dtsi` files for evaluation
 
 ### Data Persistence
 
@@ -148,6 +203,7 @@ State is saved to `localStorage` per MCU/package combination:
 ### DeviceTree Generation
 
 - Uses template-based system with signal name placeholders
+- Console UART driven by `state.consoleUart` (not first-found)
 - Generates multiple build targets:
   - Standard cpuapp (ARM Cortex-M33)
   - Non-secure cpuapp/ns (TrustZone-M) for L10/L15
@@ -171,14 +227,6 @@ The nRF54L05, nRF54L10, and nRF54L15 include a RISC-V FLPR core for low-power pe
   - L15: Uses `--device=nRF54L15_RV32`
   - L05/L10: Require JLink script for generic RISC-V debugging
 
-**Implementation details:**
-
-- `getMcuSupportsFLPR()`: Checks manifest for FLPR capability
-- `generateFLPRDts()`: Generates base FLPR device tree with SRAM configuration
-- `generateFLPRXIPDts()`: Extends base FLPR with XIP memory configuration
-- `generateFLPRYaml()`: Creates board metadata for FLPR targets
-- `generateFLPRDefconfig()`: Generates Kconfig with XIP=y/n setting
-
 ### Package Rendering
 
 - Layout strategies defined in JSON (currently quadPerimeter)
@@ -186,8 +234,21 @@ The nRF54L05, nRF54L10, and nRF54L15 include a RISC-V FLPR core for low-power pe
 - Supports different pin shapes and orientations
 - Real physical dimensions used for accurate representation
 
+## CI/CD
+
+### GitHub Actions Workflows
+
+- **ci.yml**: Runs on push/PR to `main`/`dev`. Checks formatting, validates MCU schemas, runs smoke tests.
+- **zephyr-build.yml**: Triggered when devicetree or MCU data changes. Generates test board definitions and builds them against Zephyr.
+
+### CI Scripts (`ci/`)
+
+- `validate-mcu-schemas.js`: AJV-based schema validation of all package JSON files
+- `smoke-test.js`: Structural integrity checks for MCU data and templates
+- `generate-test-boards.js`: Generates test board definitions for Zephyr build verification
+- `extract-devkit-configs.js`: Extracts pin configs from Zephyr board DTS files
+
 ## Git Workflow
 
 - Main branch: `main`
-- Development branch: `dev` (current)
-- Recent work includes oscillator improvements and board definition export implementation
+- Feature branches: `feature/<name>`

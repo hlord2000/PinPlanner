@@ -446,8 +446,9 @@ button.secondary-btn:hover {
 }
 .chip-container {
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 1;
   margin: 1rem auto;
   background-color: var(--secondary-color);
   border-radius: 10px;
@@ -827,4 +828,196 @@ option:disabled {
 .validation-error {
   border-color: var(--error-color) !important;
   box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.2) !important;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+
+/* Desktop (default): 3-column grid - already defined as 380px 1fr 380px */
+
+/* Tablet (<1200px): 2-column, selected panel below */
+@media (max-width: 1199px) {
+  .content-grid {
+    grid-template-columns: 300px 1fr;
+  }
+  .selected-view {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Small tablet (<900px): single column */
+@media (max-width: 899px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile (<600px): compressed layout */
+@media (max-width: 599px) {
+  .container {
+    padding: 0.5rem;
+  }
+  .header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .footer {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .footer > p {
+    justify-self: center;
+  }
+  .footer .github-link {
+    justify-self: center;
+  }
+}
+
+/* --- CONSOLE CONFIG --- */
+.console-config-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.console-config-section h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.console-banner {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.console-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.console-info {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+body.dark-mode .console-warning {
+  background-color: rgba(255, 183, 77, 0.15);
+  color: #ffb74d;
+  border-color: rgba(255, 183, 77, 0.3);
+}
+
+body.dark-mode .console-info {
+  background-color: rgba(45, 212, 191, 0.15);
+  color: #2dd4bf;
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+/* --- TOAST NOTIFICATIONS --- */
+#toastContainer {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+  max-width: 400px;
+}
+
+.toast-enter {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast-exit {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toast-info {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.toast-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.toast-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+body.dark-mode .toast-info {
+  background-color: rgba(45, 212, 191, 0.2);
+  color: #2dd4bf;
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+body.dark-mode .toast-warning {
+  background-color: rgba(255, 183, 77, 0.2);
+  color: #ffb74d;
+  border-color: rgba(255, 183, 77, 0.3);
+}
+
+body.dark-mode .toast-error {
+  background-color: rgba(229, 115, 115, 0.2);
+  color: #e57373;
+  border-color: rgba(229, 115, 115, 0.3);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: inherit;
+  padding: 0 0.25rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.toast-close:hover {
+  opacity: 1;
+  background: transparent;
+}
+
+/* --- DEVKIT PIN STYLES --- */
+.pin.devkit-occupied {
+  background-color: var(--warning-color);
+  color: white;
+  border-color: var(--warning-color);
+}
+
+/* --- ACCESSIBILITY --- */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }

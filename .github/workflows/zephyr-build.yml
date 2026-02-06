@@ -1,0 +1,54 @@
+name: Zephyr Build Test
+on:
+  push:
+    branches: [main]
+    paths: ["js/devicetree.js", "js/export.js", "mcus/**"]
+  pull_request:
+    paths: ["js/devicetree.js", "js/export.js", "mcus/**"]
+  workflow_dispatch:
+
+jobs:
+  generate-boards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm ci
+      - name: Generate test board definitions
+        run: node ci/generate-test-boards.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: generated-boards
+          path: ci/output/boards/
+
+  build-test:
+    needs: generate-boards
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/nrfconnect/sdk-nrf:v2.9.0
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mcu: nrf54l15
+            target: cpuapp
+          - mcu: nrf54l15
+            target: cpuapp/ns
+          - mcu: nrf54l15
+            target: cpuflpr
+          - mcu: nrf54l10
+            target: cpuapp
+          - mcu: nrf54l05
+            target: cpuapp
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: generated-boards
+          path: boards/
+      - name: Install boards
+        run: cp -r boards/test_board_* $ZEPHYR_BASE/boards/custom/ || true
+      - name: Build hello_world
+        run: |
+          west build -b test_board_${{ matrix.mcu }}/${{ matrix.mcu }}/${{ matrix.target }} \
+            $ZEPHYR_BASE/samples/hello_world --pristine always
