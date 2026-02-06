@@ -145,3 +145,8 @@ vite.config.ts.timestamp-*
 
 # CI output
 ci/output/
+
+# Zephyr workspace (for local build testing)
+.west/
+zephyr/
+modules/
