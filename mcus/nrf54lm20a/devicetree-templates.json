@@ -127,10 +127,10 @@
       "pinctrlBaseName": "pwm20",
       "type": "PWM",
       "signalMappings": {
-        "OUT0": "PWM_OUT0",
-        "OUT1": "PWM_OUT1",
-        "OUT2": "PWM_OUT2",
-        "OUT3": "PWM_OUT3"
+        "CHAN[0]": "PWM_OUT0",
+        "CHAN[1]": "PWM_OUT1",
+        "CHAN[2]": "PWM_OUT2",
+        "CHAN[3]": "PWM_OUT3"
       }
     },
     "PWM21": {
@@ -138,10 +138,10 @@
       "pinctrlBaseName": "pwm21",
       "type": "PWM",
       "signalMappings": {
-        "OUT0": "PWM_OUT0",
-        "OUT1": "PWM_OUT1",
-        "OUT2": "PWM_OUT2",
-        "OUT3": "PWM_OUT3"
+        "CHAN[0]": "PWM_OUT0",
+        "CHAN[1]": "PWM_OUT1",
+        "CHAN[2]": "PWM_OUT2",
+        "CHAN[3]": "PWM_OUT3"
       }
     },
     "PWM22": {
@@ -149,10 +149,10 @@
       "pinctrlBaseName": "pwm22",
       "type": "PWM",
       "signalMappings": {
-        "OUT0": "PWM_OUT0",
-        "OUT1": "PWM_OUT1",
-        "OUT2": "PWM_OUT2",
-        "OUT3": "PWM_OUT3"
+        "CHAN[0]": "PWM_OUT0",
+        "CHAN[1]": "PWM_OUT1",
+        "CHAN[2]": "PWM_OUT2",
+        "CHAN[3]": "PWM_OUT3"
       }
     },
     "RADIO": {

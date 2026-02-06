@@ -41,20 +41,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # cpuapp targets (ARM Cortex-M33) - full build
+          # nrf54l15 - all configs for maximum coverage
           - mcu: nrf54l15
+            config: minimal
             target: cpuapp
+          - mcu: nrf54l15
+            config: spi_i2c
+            target: cpuapp
+          - mcu: nrf54l15
+            config: pwm_adc
+            target: cpuapp
+          - mcu: nrf54l15
+            config: full
+            target: cpuapp
+          # Other MCUs - full config only
           - mcu: nrf54l10
+            config: full
             target: cpuapp
           - mcu: nrf54l05
+            config: full
             target: cpuapp
           - mcu: nrf54lm20a
+            config: full
             target: cpuapp
           # FLPR targets (RISC-V) - config-only due to upstream asm_macros.inc bug
           - mcu: nrf54l15
+            config: minimal
             target: cpuflpr
             config_only: true
           - mcu: nrf54lm20a
+            config: minimal
             target: cpuflpr
             config_only: true
     steps:
@@ -88,10 +104,10 @@ jobs:
         run: |
           if [ "${{ matrix.config_only }}" = "true" ]; then
             echo "Config-only build (FLPR targets have upstream asm_macros.inc bug)"
-            west build -b test_board_${{ matrix.mcu }}/${{ matrix.mcu }}/${{ matrix.target }} \
+            west build -b test_board_${{ matrix.mcu }}_${{ matrix.config }}/${{ matrix.mcu }}/${{ matrix.target }} \
               zephyr/samples/hello_world --pristine always -- -DCONFIG_COMPILER_WARNINGS_AS_ERRORS=n 2>&1 || true
             echo "Config phase completed (compilation errors in upstream code are expected)"
           else
-            west build -b test_board_${{ matrix.mcu }}/${{ matrix.mcu }}/${{ matrix.target }} \
+            west build -b test_board_${{ matrix.mcu }}_${{ matrix.config }}/${{ matrix.mcu }}/${{ matrix.target }} \
               zephyr/samples/hello_world --pristine always
           fi

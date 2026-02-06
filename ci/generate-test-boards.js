@@ -3,14 +3,13 @@
 /**
  * CI Script: Generate Test Boards
  *
- * For each MCU in manifest.json:
- *   - Loads the first package JSON and devicetree templates
- *   - Sets up synthetic state with UARTE20 (valid pins) + HFXO
- *   - Picks valid pin assignments from the package's signals[].allowedGpio arrays
- *   - Generates all board files (simplified inline version of script.js logic)
- *   - Writes output to ci/output/boards/test_board_<mcu>/
+ * For each MCU in manifest.json, generates multiple board configurations
+ * with different peripheral combinations to test all devicetree code paths.
  *
- * Board name: test_board_<mcu>, vendor: test
+ * Configurations: minimal (UART), spi_i2c, pwm_adc, full (all peripherals)
+ * For FLPR-supporting MCUs, UARTE30 is automatically added.
+ *
+ * Board name: test_board_<mcu>_<config>, vendor: test
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
@@ -24,6 +23,30 @@ const MCUS_DIR = resolve(ROOT, "mcus");
 const OUTPUT_DIR = resolve(__dirname, "output", "boards");
 
 let exitCode = 0;
+
+// -----------------------------------------------------------------------
+// Test Configuration Matrix
+// -----------------------------------------------------------------------
+
+/**
+ * Each config specifies which peripherals to enable.
+ * For FLPR-supporting MCUs, UARTE30 is automatically added.
+ */
+const TEST_CONFIGS = {
+  minimal: ["HFXO", "UARTE20"],
+  spi_i2c: ["HFXO", "UARTE20", "SPIM/SPIS21", "TWIM/TWIS22"],
+  pwm_adc: ["HFXO", "UARTE20", "PWM20", "PWM21", "SAADC", "NFCT"],
+  full: [
+    "HFXO",
+    "LFXO",
+    "UARTE20",
+    "SPIM/SPIS21",
+    "TWIM/TWIS22",
+    "PWM20",
+    "SAADC",
+    "NFCT",
+  ],
+};
 
 // -----------------------------------------------------------------------
 // Helpers
@@ -49,6 +72,15 @@ function getMcuSocName(mcu) {
     nrf54lm20a: "NRF54LM20A_ENGA",
   };
   return socNameMap[mcu] || mcu.toUpperCase();
+}
+
+/**
+ * Some peripheral IDs don't match template keys (e.g. SAADC -> ADC).
+ */
+const TEMPLATE_KEY_MAP = { SAADC: "ADC" };
+
+function getTemplateKey(peripheralId) {
+  return TEMPLATE_KEY_MAP[peripheralId] || peripheralId;
 }
 
 function parsePinName(pinName) {
@@ -94,93 +126,93 @@ function resolveGpioToPin(allowedGpio, packagePins, usedPins) {
 }
 
 /**
- * Build synthetic peripheral state for UARTE20.
- * Returns { id, type, peripheral, pinFunctions, config } or null if unavailable.
+ * Generic peripheral state builder.
+ * Finds the peripheral in packageData.socPeripherals by ID, looks up its template,
+ * iterates signals and resolves GPIO pins. For SPI peripherals, also assigns the
+ * CS out-of-band signal for cs-gpios generation.
+ * Returns { id, type, peripheral, pinFunctions, config, _usedPins } or null.
  */
-function buildUartState(packageData, templates) {
-  // Find UARTE20 in socPeripherals
-  const uart = packageData.socPeripherals.find((p) => p.id === "UARTE20");
-  if (!uart) return null;
+function buildPeripheralState(peripheralId, packageData, templates, usedPins) {
+  const peripheral = packageData.socPeripherals.find(
+    (p) => p.id === peripheralId,
+  );
+  if (!peripheral) return null;
 
-  const template = templates["UARTE20"];
+  const template = templates[getTemplateKey(peripheralId)];
   if (!template) return null;
 
-  const usedPins = new Set();
+  // For noPinctrl peripherals (ADC, NFCT), just enable them
+  if (template.noPinctrl) {
+    return {
+      id: peripheralId,
+      type: peripheral.type,
+      peripheral,
+      pinFunctions: {},
+      config: {},
+      _usedPins: new Set(usedPins),
+    };
+  }
+
+  const localUsedPins = new Set(usedPins);
   const pinFunctions = {};
 
-  // Assign mandatory signals first (TXD, RXD), then optional (CTS, RTS)
-  for (const signal of uart.signals) {
+  for (const signal of peripheral.signals) {
     if (!signal.allowedGpio || signal.allowedGpio.length === 0) continue;
+
+    // Skip out-of-band signals (handled separately below)
+    if (
+      template.outOfBandSignals &&
+      template.outOfBandSignals.includes(signal.name)
+    ) {
+      continue;
+    }
+
+    // For SPI, always treat CS as out-of-band (cs-gpios, not pinctrl)
+    if (template.type === "SPI" && signal.name === "CS") continue;
+
+    // Only assign pins for signals in signalMappings
+    if (!template.signalMappings[signal.name]) continue;
 
     const pin = resolveGpioToPin(
       signal.allowedGpio,
       packageData.pins,
-      usedPins,
+      localUsedPins,
     );
     if (pin) {
       pinFunctions[pin] = signal.name;
-      usedPins.add(pin);
+      localUsedPins.add(pin);
     } else if (signal.isMandatory) {
       console.warn(
-        `  WARNING: Could not find available pin for mandatory signal ${signal.name} on UARTE20`,
+        `  WARNING: Could not find available pin for mandatory signal ${signal.name} on ${peripheralId}`,
       );
+    }
+  }
+
+  // For SPI, assign the CS signal for cs-gpios (always out-of-band)
+  if (template.type === "SPI") {
+    const csSignal = peripheral.signals.find((s) => s.name === "CS");
+    if (csSignal && csSignal.allowedGpio) {
+      const csPin = resolveGpioToPin(
+        csSignal.allowedGpio,
+        packageData.pins,
+        localUsedPins,
+      );
+      if (csPin) {
+        pinFunctions[csPin] = "CS";
+        localUsedPins.add(csPin);
+      }
     }
   }
 
   if (Object.keys(pinFunctions).length === 0) return null;
 
   return {
-    id: "UARTE20",
-    type: "UART",
-    peripheral: uart,
+    id: peripheralId,
+    type: peripheral.type,
+    peripheral,
     pinFunctions,
     config: {},
-    _usedPins: usedPins,
-  };
-}
-
-/**
- * Build synthetic peripheral state for UARTE30 (FLPR console).
- * Takes a set of already-used pins to avoid conflicts.
- * Returns { id, type, peripheral, pinFunctions, config } or null if unavailable.
- */
-function buildUart30State(packageData, templates, existingUsedPins) {
-  const uart = packageData.socPeripherals.find((p) => p.id === "UARTE30");
-  if (!uart) return null;
-
-  const template = templates["UARTE30"];
-  if (!template) return null;
-
-  const usedPins = new Set(existingUsedPins);
-  const pinFunctions = {};
-
-  for (const signal of uart.signals) {
-    if (!signal.allowedGpio || signal.allowedGpio.length === 0) continue;
-
-    const pin = resolveGpioToPin(
-      signal.allowedGpio,
-      packageData.pins,
-      usedPins,
-    );
-    if (pin) {
-      pinFunctions[pin] = signal.name;
-      usedPins.add(pin);
-    } else if (signal.isMandatory) {
-      console.warn(
-        `  WARNING: Could not find available pin for mandatory signal ${signal.name} on UARTE30`,
-      );
-    }
-  }
-
-  if (Object.keys(pinFunctions).length === 0) return null;
-
-  return {
-    id: "UARTE30",
-    type: "UART",
-    peripheral: uart,
-    pinFunctions,
-    config: {},
-    _usedPins: usedPins,
+    _usedPins: localUsedPins,
   };
 }
 
@@ -194,6 +226,21 @@ function buildHfxoState() {
     config: {
       loadCapacitors: "internal",
       loadCapacitanceFemtofarad: 15000,
+    },
+    pinFunctions: {},
+  };
+}
+
+/**
+ * Build synthetic LFXO state.
+ */
+function buildLfxoState() {
+  return {
+    id: "LFXO",
+    type: "OSCILLATOR",
+    config: {
+      loadCapacitors: "internal",
+      loadCapacitanceFemtofarad: 17000,
     },
     pinFunctions: {},
   };
@@ -421,7 +468,7 @@ function generatePinctrlFile(boardName, mcu, peripherals, templates) {
 `;
 
   for (const p of peripherals) {
-    const template = templates[p.id];
+    const template = templates[getTemplateKey(p.id)];
     if (!template || template.noPinctrl) continue;
 
     const pinctrlName = template.pinctrlBaseName;
@@ -503,7 +550,7 @@ function generateCommonDtsi(boardName, mcu, peripherals, templates) {
     if (p.config && p.config.loadCapacitors) continue;
     if (p.type === "GPIO") continue;
 
-    const template = templates[p.id];
+    const template = templates[getTemplateKey(p.id)];
     if (!template) continue;
 
     const nodeName = template.dtNodeName;
@@ -524,6 +571,22 @@ function generateCommonDtsi(boardName, mcu, peripherals, templates) {
 
     if (template.type === "UART") {
       content += `\tcurrent-speed = <115200>;\n`;
+    }
+
+    if (template.type === "SPI") {
+      const csEntry = Object.entries(p.pinFunctions).find(
+        ([, sig]) => sig === "CS",
+      );
+      if (csEntry) {
+        const csPinInfo = parsePinName(csEntry[0]);
+        if (csPinInfo) {
+          content += `\tcs-gpios = <&gpio${csPinInfo.port} ${csPinInfo.pin} GPIO_ACTIVE_LOW>;\n`;
+        }
+      }
+    }
+
+    if (template.type === "I2C") {
+      content += `\tclock-frequency = <I2C_BITRATE_STANDARD>;\n`;
     }
 
     content += `};\n`;
@@ -550,7 +613,7 @@ function generateCpuappCommonDtsi(boardName, mcu, peripherals, templates) {
   // Add UART console if available
   let hasUart = false;
   for (const p of peripherals) {
-    const template = templates[p.id];
+    const template = templates[getTemplateKey(p.id)];
     if (
       template &&
       template.dtNodeName &&
@@ -581,7 +644,22 @@ function generateCpuappCommonDtsi(boardName, mcu, peripherals, templates) {
 \tload-capacitors = "internal";
 \tload-capacitance-femtofarad = <15000>;
 };
+`;
 
+  // Add LFXO node if present in peripherals
+  const lfxo = peripherals.find((p) => p.id === "LFXO");
+  if (lfxo) {
+    const lfxoCap = lfxo.config.loadCapacitanceFemtofarad || 17000;
+    const lfxoCapType = lfxo.config.loadCapacitors || "internal";
+    content += `
+&lfxo {
+\tload-capacitors = "${lfxoCapType}";
+\tload-capacitance-femtofarad = <${lfxoCap}>;
+};
+`;
+  }
+
+  content += `
 &regulators {
 \tstatus = "okay";
 };
@@ -676,7 +754,7 @@ ${partitionInclude}
 `;
 }
 
-function generateYaml(boardName, mcu, isNonSecure) {
+function generateYaml(boardName, mcu, isNonSecure, peripherals) {
   const identifier = isNonSecure
     ? `${boardName}/${mcu}/cpuapp/ns`
     : `${boardName}/${mcu}/cpuapp`;
@@ -685,6 +763,31 @@ function generateYaml(boardName, mcu, isNonSecure) {
     : `Test Board ${mcu.toUpperCase()}`;
   const ram = isNonSecure ? 256 : 188;
   const flash = isNonSecure ? 1524 : 1428;
+
+  // Dynamically build supported list from peripherals
+  const supported = new Set(["gpio", "watchdog"]);
+  if (peripherals) {
+    for (const p of peripherals) {
+      if (p.type === "UART" || (p.id && p.id.startsWith("UARTE")))
+        supported.add("uart");
+      if (p.type === "SPI" || (p.id && p.id.startsWith("SPIM")))
+        supported.add("spi");
+      if (
+        p.type === "TWI" ||
+        p.type === "I2C" ||
+        (p.id && p.id.startsWith("TWIM"))
+      )
+        supported.add("i2c");
+      if (p.type === "PWM" || (p.id && p.id.startsWith("PWM")))
+        supported.add("pwm");
+      if (p.type === "SAADC" || p.type === "ADC") supported.add("adc");
+      if (p.type === "NFCT") supported.add("nfct");
+    }
+  }
+  const supportedList = [...supported]
+    .sort()
+    .map((s) => `  - ${s}`)
+    .join("\n");
 
   return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
@@ -700,14 +803,12 @@ sysbuild: true
 ram: ${ram}
 flash: ${flash}
 supported:
-  - gpio
-  - uart
-  - watchdog
+${supportedList}
 vendor: test
 `;
 }
 
-function generateDefconfig(isNonSecure, mcu) {
+function generateDefconfig(isNonSecure, mcu, hasLfxo) {
   if (isNonSecure) {
     return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
@@ -788,7 +889,7 @@ CONFIG_EXTERNAL_CACHE=y
 # Start SYSCOUNTER on driver init
 CONFIG_NRF_GRTC_START_SYSCOUNTER=y
 `;
-  } else {
+  } else if (!hasLfxo) {
     // nrf54l05/10/15 use RC oscillator for low-frequency clock when no LFXO
     config += `
 # Use RC oscillator for low-frequency clock
@@ -1031,10 +1132,10 @@ const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
 mkdirSync(OUTPUT_DIR, { recursive: true });
 
 const SKIP_MCUS = ["nrf54lv10a"]; // No DTSI files in current Zephyr tree
+let totalBoards = 0;
 
 for (const mcu of manifest.mcus) {
   const mcuId = mcu.id;
-  const boardName = `test_board_${mcuId}`;
   const supportsNS = mcu.supportsNonSecure === true;
   const supportsFLPR = mcu.supportsFLPR === true;
 
@@ -1044,7 +1145,6 @@ for (const mcu of manifest.mcus) {
   }
 
   console.log(`\n--- MCU: ${mcuId} ---`);
-  console.log(`  Board name: ${boardName}`);
   console.log(`  Supports NS: ${supportsNS}, FLPR: ${supportsFLPR}`);
 
   // Use first package for this MCU
@@ -1073,153 +1173,196 @@ for (const mcu of manifest.mcus) {
   const dtData = JSON.parse(readFileSync(dtPath, "utf-8"));
   const templates = dtData.templates;
 
-  // Build synthetic state: UARTE20 + HFXO
-  const peripherals = [];
-  const hfxo = buildHfxoState();
-  peripherals.push(hfxo);
+  // Generate boards for each test configuration
+  for (const [configName, peripheralIds] of Object.entries(TEST_CONFIGS)) {
+    const boardName = `test_board_${mcuId}_${configName}`;
+    const usedPins = new Set();
+    const peripherals = [];
+    let skipConfig = false;
+    const hasLfxo = peripheralIds.includes("LFXO");
 
-  const uart = buildUartState(packageData, templates);
-  if (uart) {
-    peripherals.push(uart);
-    console.log(`  UARTE20 pins: ${JSON.stringify(uart.pinFunctions)}`);
-  } else {
-    console.warn(`  WARNING: Could not configure UARTE20 for ${mcuId}`);
-  }
+    console.log(`\n  Config: ${configName} -> ${boardName}`);
 
-  // Add UARTE30 for FLPR console if MCU supports FLPR
-  if (supportsFLPR) {
-    const existingUsedPins = uart ? uart._usedPins : new Set();
-    const uart30 = buildUart30State(packageData, templates, existingUsedPins);
-    if (uart30) {
-      peripherals.push(uart30);
-      console.log(`  UARTE30 pins: ${JSON.stringify(uart30.pinFunctions)}`);
-    } else {
-      console.warn(`  WARNING: Could not configure UARTE30 for ${mcuId}`);
+    for (const pId of peripheralIds) {
+      if (pId === "HFXO") {
+        peripherals.push(buildHfxoState());
+        continue;
+      }
+      if (pId === "LFXO") {
+        peripherals.push(buildLfxoState());
+        continue;
+      }
+
+      const state = buildPeripheralState(pId, packageData, templates, usedPins);
+      if (!state) {
+        console.log(
+          `    Skipping config ${configName}: ${pId} unavailable for ${mcuId}`,
+        );
+        skipConfig = true;
+        break;
+      }
+      peripherals.push(state);
+      // Accumulate used pins
+      for (const pin of state._usedPins) usedPins.add(pin);
+
+      const pinCount = Object.keys(state.pinFunctions).length;
+      if (pinCount > 0) {
+        console.log(`    ${pId} pins: ${JSON.stringify(state.pinFunctions)}`);
+      } else {
+        console.log(`    ${pId}: enabled (no pinctrl)`);
+      }
     }
-  }
 
-  // Generate all board files
-  const files = {};
+    if (skipConfig) continue;
 
-  files["board.yml"] = generateBoardYml(
-    boardName,
-    mcuId,
-    supportsNS,
-    supportsFLPR,
-  );
-  files["board.cmake"] = generateBoardCmake(
-    boardName,
-    mcuId,
-    supportsNS,
-    supportsFLPR,
-  );
-  files["Kconfig.defconfig"] = generateKconfigDefconfig(
-    boardName,
-    mcuId,
-    supportsNS,
-  );
-  files[`Kconfig.${boardName}`] = generateKconfigBoard(
-    boardName,
-    mcuId,
-    supportsNS,
-    supportsFLPR,
-  );
-  files[`${boardName}_common.dtsi`] = generateCommonDtsi(
-    boardName,
-    mcuId,
-    peripherals,
-    templates,
-  );
-  files[`${mcuId}_cpuapp_common.dtsi`] = generateCpuappCommonDtsi(
-    boardName,
-    mcuId,
-    peripherals,
-    templates,
-  );
-  files[`${boardName}_${mcuId}-pinctrl.dtsi`] = generatePinctrlFile(
-    boardName,
-    mcuId,
-    peripherals,
-    templates,
-  );
-  files[`${boardName}_${mcuId}_cpuapp.dts`] = generateMainDts(
-    boardName,
-    mcuId,
-    supportsNS,
-  );
-  files[`${boardName}_${mcuId}_cpuapp.yaml`] = generateYaml(
-    boardName,
-    mcuId,
-    false,
-  );
-  files[`${boardName}_${mcuId}_cpuapp_defconfig`] = generateDefconfig(
-    false,
-    mcuId,
-  );
+    // Add UARTE30 for FLPR console if MCU supports FLPR
+    if (supportsFLPR) {
+      const uart30 = buildPeripheralState(
+        "UARTE30",
+        packageData,
+        templates,
+        usedPins,
+      );
+      if (uart30) {
+        peripherals.push(uart30);
+        for (const pin of uart30._usedPins) usedPins.add(pin);
+        console.log(
+          `    UARTE30 (FLPR) pins: ${JSON.stringify(uart30.pinFunctions)}`,
+        );
+      } else {
+        console.warn(`    WARNING: Could not configure UARTE30 for ${mcuId}`);
+      }
+    }
 
-  // NS-specific files
-  if (supportsNS) {
-    files["Kconfig"] = generateKconfigTrustZone(boardName, mcuId);
-    files[`${boardName}_${mcuId}_cpuapp_ns.dts`] = generateNSDts(
+    // Generate all board files
+    const files = {};
+
+    files["board.yml"] = generateBoardYml(
       boardName,
       mcuId,
+      supportsNS,
+      supportsFLPR,
     );
-    files[`${boardName}_${mcuId}_cpuapp_ns.yaml`] = generateYaml(
+    files["board.cmake"] = generateBoardCmake(
       boardName,
       mcuId,
-      true,
+      supportsNS,
+      supportsFLPR,
     );
-    files[`${boardName}_${mcuId}_cpuapp_ns_defconfig`] = generateDefconfig(
-      true,
-      mcuId,
-    );
-  }
-
-  // FLPR-specific files
-  if (supportsFLPR) {
-    files[`${boardName}_${mcuId}_cpuflpr.dts`] = generateFLPRDts(
+    files["Kconfig.defconfig"] = generateKconfigDefconfig(
       boardName,
       mcuId,
+      supportsNS,
     );
-    files[`${boardName}_${mcuId}_cpuflpr.yaml`] = generateFLPRYaml(
+    files[`Kconfig.${boardName}`] = generateKconfigBoard(
+      boardName,
+      mcuId,
+      supportsNS,
+      supportsFLPR,
+    );
+    files[`${boardName}_common.dtsi`] = generateCommonDtsi(
+      boardName,
+      mcuId,
+      peripherals,
+      templates,
+    );
+    files[`${mcuId}_cpuapp_common.dtsi`] = generateCpuappCommonDtsi(
+      boardName,
+      mcuId,
+      peripherals,
+      templates,
+    );
+    files[`${boardName}_${mcuId}-pinctrl.dtsi`] = generatePinctrlFile(
+      boardName,
+      mcuId,
+      peripherals,
+      templates,
+    );
+    files[`${boardName}_${mcuId}_cpuapp.dts`] = generateMainDts(
+      boardName,
+      mcuId,
+      supportsNS,
+    );
+    files[`${boardName}_${mcuId}_cpuapp.yaml`] = generateYaml(
       boardName,
       mcuId,
       false,
+      peripherals,
     );
-    files[`${boardName}_${mcuId}_cpuflpr_defconfig`] = generateFLPRDefconfig(
+    files[`${boardName}_${mcuId}_cpuapp_defconfig`] = generateDefconfig(
       false,
       mcuId,
+      hasLfxo,
     );
-    files[`${boardName}_${mcuId}_cpuflpr_xip.dts`] = generateFLPRXIPDts(
-      boardName,
-      mcuId,
-    );
-    files[`${boardName}_${mcuId}_cpuflpr_xip.yaml`] = generateFLPRYaml(
-      boardName,
-      mcuId,
-      true,
-    );
-    files[`${boardName}_${mcuId}_cpuflpr_xip_defconfig`] =
-      generateFLPRDefconfig(true, mcuId);
+
+    // NS-specific files
+    if (supportsNS) {
+      files["Kconfig"] = generateKconfigTrustZone(boardName, mcuId);
+      files[`${boardName}_${mcuId}_cpuapp_ns.dts`] = generateNSDts(
+        boardName,
+        mcuId,
+      );
+      files[`${boardName}_${mcuId}_cpuapp_ns.yaml`] = generateYaml(
+        boardName,
+        mcuId,
+        true,
+        peripherals,
+      );
+      files[`${boardName}_${mcuId}_cpuapp_ns_defconfig`] = generateDefconfig(
+        true,
+        mcuId,
+        hasLfxo,
+      );
+    }
+
+    // FLPR-specific files
+    if (supportsFLPR) {
+      files[`${boardName}_${mcuId}_cpuflpr.dts`] = generateFLPRDts(
+        boardName,
+        mcuId,
+      );
+      files[`${boardName}_${mcuId}_cpuflpr.yaml`] = generateFLPRYaml(
+        boardName,
+        mcuId,
+        false,
+      );
+      files[`${boardName}_${mcuId}_cpuflpr_defconfig`] = generateFLPRDefconfig(
+        false,
+        mcuId,
+      );
+      files[`${boardName}_${mcuId}_cpuflpr_xip.dts`] = generateFLPRXIPDts(
+        boardName,
+        mcuId,
+      );
+      files[`${boardName}_${mcuId}_cpuflpr_xip.yaml`] = generateFLPRYaml(
+        boardName,
+        mcuId,
+        true,
+      );
+      files[`${boardName}_${mcuId}_cpuflpr_xip_defconfig`] =
+        generateFLPRDefconfig(true, mcuId);
+    }
+
+    // Write all files to output directory
+    const boardDir = resolve(OUTPUT_DIR, boardName);
+    mkdirSync(boardDir, { recursive: true });
+
+    let fileCount = 0;
+    for (const [filename, content] of Object.entries(files)) {
+      const filePath = resolve(boardDir, filename);
+      writeFileSync(filePath, content, "utf-8");
+      fileCount++;
+    }
+
+    console.log(`    Generated ${fileCount} files in ${boardDir}`);
+    totalBoards++;
   }
-
-  // Write all files to output directory
-  const boardDir = resolve(OUTPUT_DIR, boardName);
-  mkdirSync(boardDir, { recursive: true });
-
-  let fileCount = 0;
-  for (const [filename, content] of Object.entries(files)) {
-    const filePath = resolve(boardDir, filename);
-    writeFileSync(filePath, content, "utf-8");
-    fileCount++;
-  }
-
-  console.log(`  Generated ${fileCount} files in ${boardDir}`);
 }
 
 // Summary
 console.log("\n=== Summary ===");
 console.log(`MCUs processed: ${manifest.mcus.length}`);
+console.log(`Board configs generated: ${totalBoards}`);
 
 if (exitCode !== 0) {
   console.log("\nGeneration completed with ERRORS.");
