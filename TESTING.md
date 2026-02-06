@@ -5,6 +5,7 @@ This document provides a testing prompt for iterative testing of the nRF54L Pin 
 ## Prerequisites
 
 1. Start a local development server:
+
    ```bash
    python -m http.server 8000
    # or
@@ -108,6 +109,7 @@ Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on th
 ## Manual Testing Checklist
 
 ### Core Functionality
+
 - [ ] Page loads without console errors
 - [ ] MCU dropdown populated with all supported MCUs
 - [ ] Package dropdown updates based on MCU selection
@@ -115,6 +117,7 @@ Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on th
 - [ ] Pin click shows details panel
 
 ### Peripheral Selection
+
 - [ ] Simple peripherals toggle on/off with checkbox
 - [ ] Complex peripherals open pin selection modal
 - [ ] Required signals marked as "Yes" in modal
@@ -124,12 +127,14 @@ Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on th
 - [ ] Used pins disabled with "(in use)" suffix
 
 ### Conflict Detection
+
 - [ ] Pins selected in modal disabled in other dropdowns
 - [ ] Pins used by other peripherals disabled globally
 - [ ] Address space conflicts disable conflicting peripherals
 - [ ] Alert shown when attempting to select conflicting peripheral
 
 ### Special Peripherals
+
 - [ ] HFXO cannot be removed (system requirement)
 - [ ] LFXO can be added/removed
 - [ ] Oscillator config modal shows capacitor options
@@ -138,17 +143,20 @@ Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on th
 - [ ] SPI allows adding extra CS GPIOs
 
 ### State Persistence
+
 - [ ] Configuration saved to localStorage on changes
 - [ ] Configuration restored when returning to MCU/package
 - [ ] Different MCU/package combinations have independent state
 
 ### Export Functions
+
 - [ ] DeviceTree export generates valid Zephyr board definition
 - [ ] Generated pinctrl.dtsi has correct NRF_PSEL macros
 - [ ] JSON export captures all peripheral configurations
 - [ ] JSON import restores configuration correctly
 
 ### UI/UX
+
 - [ ] Dark mode toggle works
 - [ ] Peripheral search filters list correctly
 - [ ] Accordion groups expand/collapse
@@ -172,6 +180,7 @@ Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on th
 ## Expected Console Logs
 
 Normal operation should show:
+
 ```
 Initializing nRF54L Pin Planner...
 Loaded data for [MCU]-[Package]
@@ -181,6 +190,7 @@ State saved for pinPlannerConfig-[mcu]-[package]  (on each change)
 ```
 
 Warnings to note (not errors):
+
 ```
 No template found for GPIO_[label]  (GPIO pins don't have DeviceTree templates)
 ```
@@ -190,9 +200,9 @@ No template found for GPIO_[label]  (GPIO pins don't have DeviceTree templates)
 ## Reporting Issues
 
 When reporting bugs, include:
+
 1. MCU and Package selected
 2. Steps to reproduce
 3. Expected vs actual behavior
 4. Console errors (if any)
 5. Browser and version
-

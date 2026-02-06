@@ -93,6 +93,28 @@
               <label for="packageSelector">Package</label>
               <select id="packageSelector"></select>
             </div>
+            <div class="selector-group">
+              <label for="devkitSelector">Load Devkit (Optional)</label>
+              <select id="devkitSelector">
+                <option value="">-- Custom Board --</option>
+                <option value="nrf54l15dk">nRF54L15-DK</option>
+                <option value="nrf54lm20dk">nRF54LM20-DK</option>
+              </select>
+              <small
+                class="devkit-eval-notice"
+                style="display: none; color: var(--warning-color)"
+              >
+                Devkit config loaded for evaluation only. Not recommended for
+                production use.
+              </small>
+              <small
+                id="devkitZephyrVersion"
+                class="devkit-version"
+                style="display: none; color: var(--light-text)"
+              >
+                Based on Zephyr v4.1.0
+              </small>
+            </div>
           </div>
 
           <div class="sidebar-content card">
@@ -164,6 +186,20 @@
             <ul class="selected-list" id="selectedList">
               <li class="empty-message">No peripherals selected yet.</li>
             </ul>
+            <div
+              id="consoleConfigSection"
+              class="console-config-section"
+              style="display: none"
+            >
+              <h3>Serial Console</h3>
+              <div id="consoleStatusBanner" class="console-banner console-info">
+                No UART selected — Segger RTT will be used.
+              </div>
+              <div id="consoleSelector" style="display: none">
+                <label for="consoleUartSelect">Console UART:</label>
+                <select id="consoleUartSelect"></select>
+              </div>
+            </div>
             <div class="button-group-vertical">
               <button id="clearAllBtn">Clear All</button>
               <button id="exportDeviceTreeBtn">
@@ -426,13 +462,13 @@
 
     <!-- GPIO Pin Allocation Modal -->
     <div id="gpioModal" class="modal">
-      <div class="modal-content" style="width: 80%; max-width: 800px;">
+      <div class="modal-content" style="width: 80%; max-width: 800px">
         <div class="modal-header">
           <h2 id="gpioModalTitle">Manage GPIO Pins</h2>
           <span class="close" id="closeGpioModal">&times;</span>
         </div>
-        <div id="gpioModalBody" style="padding: 20px;">
-          <div style="max-height: 400px; overflow-y: auto; margin-bottom: 15px;">
+        <div id="gpioModalBody" style="padding: 20px">
+          <div style="max-height: 400px; overflow-y: auto; margin-bottom: 15px">
             <table id="gpioTable" class="pin-selection-table">
               <thead>
                 <tr>
@@ -446,15 +482,22 @@
                 <!-- GPIO rows will be dynamically added here -->
               </tbody>
             </table>
-            
-            <div style="padding: 15px 0; text-align: center;">
-              <button id="addGpioRow" class="add-gpio-btn">+ Add GPIO Pin</button>
+
+            <div style="padding: 15px 0; text-align: center">
+              <button id="addGpioRow" class="add-gpio-btn">
+                + Add GPIO Pin
+              </button>
             </div>
           </div>
 
           <div
             id="gpioError"
-            style="color: red; margin-top: 15px; display: none; font-weight: bold;"
+            style="
+              color: red;
+              margin-top: 15px;
+              display: none;
+              font-weight: bold;
+            "
           ></div>
         </div>
         <div class="modal-footer">
@@ -563,6 +606,7 @@
         </div>
       </div>
     </div>
-    <script src="script.js"></script>
+    <div id="toastContainer"></div>
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>

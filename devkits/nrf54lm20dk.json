@@ -1,0 +1,30 @@
+{
+  "board": "nrf54lm20dk",
+  "description": "nRF54LM20 Development Kit",
+  "zephyrVersion": "4.1.0",
+  "extractedDate": "2026-02-06",
+  "supportedMcus": ["nrf54lm20a"],
+  "package": "qfn52-6x6-qgaa",
+  "peripherals": [
+    {
+      "id": "UARTE00",
+      "signals": {
+        "TXD": "P0.18",
+        "RXD": "P0.17"
+      },
+      "isConsole": true
+    }
+  ],
+  "gpios": [
+    { "label": "led0", "pin": "P0.29", "activeState": "active-high" },
+    { "label": "led1", "pin": "P0.30", "activeState": "active-high" },
+    { "label": "button0", "pin": "P0.27", "activeState": "active-low" },
+    { "label": "button1", "pin": "P0.25", "activeState": "active-low" }
+  ],
+  "oscillators": {
+    "hfxo": {
+      "loadCapacitors": "internal",
+      "loadCapacitanceFemtofarad": 15000
+    }
+  }
+}

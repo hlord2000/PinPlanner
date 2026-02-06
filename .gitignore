@@ -140,7 +140,13 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-/package-lock.json
-/package.json
 
 /bun.lock
+
+# CI output
+ci/output/
+
+# Zephyr workspace (for local build testing)
+.west/
+zephyr/
+modules/

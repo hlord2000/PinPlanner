@@ -1,0 +1,19 @@
+{
+  "name": "nrf54l-pin-planner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate:schemas": "node ci/validate-mcu-schemas.js",
+    "smoke-test": "node ci/smoke-test.js",
+    "generate-test-boards": "node ci/generate-test-boards.js",
+    "extract-devkits": "node ci/extract-devkit-configs.js",
+    "test": "npm run format:check && npm run validate:schemas && npm run smoke-test"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.0",
+    "ajv": "^8.12.0"
+  }
+}

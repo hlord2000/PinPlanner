@@ -19,7 +19,8 @@
     {
       "id": "nrf54lm20a",
       "name": "nRF54LM20A",
-      "supportsNonSecure": false,
+      "supportsNonSecure": true,
+      "supportsFLPR": true,
       "packages": [
         {
           "file": "fccsp98-3.67x3.85-paaa",

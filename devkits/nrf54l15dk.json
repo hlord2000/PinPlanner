@@ -1,0 +1,49 @@
+{
+  "board": "nrf54l15dk",
+  "description": "nRF54L15 Development Kit",
+  "zephyrVersion": "4.1.0",
+  "extractedDate": "2026-02-06",
+  "supportedMcus": ["nrf54l05", "nrf54l10", "nrf54l15"],
+  "package": "qfn48-6x6-qfaa",
+  "peripherals": [
+    {
+      "id": "UARTE20",
+      "signals": {
+        "TXD": "P1.04",
+        "RXD": "P1.05",
+        "RTS": "P1.06",
+        "CTS": "P1.07"
+      },
+      "isConsole": true
+    },
+    {
+      "id": "UARTE30",
+      "signals": {
+        "TXD": "P0.00",
+        "RXD": "P0.01",
+        "RTS": "P0.02",
+        "CTS": "P0.03"
+      }
+    }
+  ],
+  "gpios": [
+    { "label": "led0", "pin": "P2.09", "activeState": "active-high" },
+    { "label": "led1", "pin": "P1.10", "activeState": "active-high" },
+    { "label": "led2", "pin": "P2.07", "activeState": "active-high" },
+    { "label": "led3", "pin": "P1.14", "activeState": "active-high" },
+    { "label": "button0", "pin": "P1.13", "activeState": "active-low" },
+    { "label": "button1", "pin": "P1.09", "activeState": "active-low" },
+    { "label": "button2", "pin": "P1.08", "activeState": "active-low" },
+    { "label": "button3", "pin": "P0.04", "activeState": "active-low" }
+  ],
+  "oscillators": {
+    "hfxo": {
+      "loadCapacitors": "internal",
+      "loadCapacitanceFemtofarad": 15000
+    },
+    "lfxo": {
+      "loadCapacitors": "internal",
+      "loadCapacitanceFemtofarad": 17000
+    }
+  }
+}
