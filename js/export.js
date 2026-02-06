@@ -197,8 +197,10 @@ async function generateBoardFiles(mcu, pkg) {
   );
   files[`${state.boardInfo.name}_${mcu}_cpuapp.yaml`] =
     generateYamlCapabilities(mcu, false);
-  files[`${state.boardInfo.name}_${mcu}_cpuapp_defconfig`] =
-    generateDefconfig(false);
+  files[`${state.boardInfo.name}_${mcu}_cpuapp_defconfig`] = generateDefconfig(
+    false,
+    mcu,
+  );
   files["README.md"] = generateReadme(mcu, pkg, supportsNS, supportsFLPR);
 
   if (supportsNS) {
@@ -207,7 +209,7 @@ async function generateBoardFiles(mcu, pkg) {
     files[`${state.boardInfo.name}_${mcu}_cpuapp_ns.yaml`] =
       generateYamlCapabilities(mcu, true);
     files[`${state.boardInfo.name}_${mcu}_cpuapp_ns_defconfig`] =
-      generateDefconfig(true);
+      generateDefconfig(true, mcu);
   }
 
   if (supportsFLPR) {
@@ -217,7 +219,7 @@ async function generateBoardFiles(mcu, pkg) {
       false,
     );
     files[`${state.boardInfo.name}_${mcu}_cpuflpr_defconfig`] =
-      generateFLPRDefconfig(false);
+      generateFLPRDefconfig(false, mcu);
     files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip.dts`] =
       generateFLPRXIPDts(mcu);
     files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip.yaml`] = generateFLPRYaml(
@@ -225,7 +227,7 @@ async function generateBoardFiles(mcu, pkg) {
       true,
     );
     files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip_defconfig`] =
-      generateFLPRDefconfig(true);
+      generateFLPRDefconfig(true, mcu);
   }
 
   return files;
