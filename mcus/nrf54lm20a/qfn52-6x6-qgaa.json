@@ -800,22 +800,22 @@
         {
           "name": "CHAN[0]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         }
       ]
     },
@@ -828,22 +828,22 @@
         {
           "name": "CHAN[0]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         }
       ]
     },
@@ -856,22 +856,22 @@
         {
           "name": "CHAN[0]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[1]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[2]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         },
         {
           "name": "CHAN[3]",
           "direction": "output",
-          "allowedGpio": ["P1*"]
+          "allowedGpio": ["P1*", "P3*"]
         }
       ]
     },
