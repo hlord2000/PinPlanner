@@ -1,16 +1,18 @@
 // --- DEVICETREE GENERATION ---
 
 import state from "./state.js";
+import {
+  getMcuSupportsFLPR as getMcuSupportsFLPRFromManifest,
+  getMcuSupportsNonSecure as getMcuSupportsNonSecureFromManifest,
+} from "./mcu-manifest.js";
 import { parsePinName } from "./utils.js";
 
 export function getMcuSupportsNonSecure(mcuId) {
-  const mcuInfo = state.mcuManifest.mcus.find((m) => m.id === mcuId);
-  return mcuInfo ? mcuInfo.supportsNonSecure === true : false;
+  return getMcuSupportsNonSecureFromManifest(state.mcuManifest, mcuId);
 }
 
 export function getMcuSupportsFLPR(mcuId) {
-  const mcuInfo = state.mcuManifest.mcus.find((m) => m.id === mcuId);
-  return mcuInfo ? mcuInfo.supportsFLPR === true : false;
+  return getMcuSupportsFLPRFromManifest(state.mcuManifest, mcuId);
 }
 
 // Helper: get the DT node name for the selected console UART

@@ -95,6 +95,28 @@
           "name": "QFN-40 (5x5)"
         }
       ]
+    },
+    {
+      "id": "nrf54ls05a",
+      "name": "nRF54LS05A",
+      "devicetreeExportUnsupportedReason": "DeviceTree export not supported for nRF54LS05A.",
+      "packages": [
+        {
+          "file": "qfn48-6x6-qfaa",
+          "name": "QFN-48 (6x6)"
+        }
+      ]
+    },
+    {
+      "id": "nrf54ls05b",
+      "name": "nRF54LS05B",
+      "devicetreeExportUnsupportedReason": "DeviceTree export not supported for nRF54LS05B.",
+      "packages": [
+        {
+          "file": "qfn48-6x6-qfaa",
+          "name": "QFN-48 (6x6)"
+        }
+      ]
     }
   ]
 }

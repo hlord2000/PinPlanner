@@ -25,10 +25,37 @@ import {
   generatePinctrlForPeripheral,
   generatePeripheralNode,
 } from "./devicetree.js";
+import { getDevicetreeExportUnsupportedReason } from "./mcu-manifest.js";
 import { parsePinName } from "./utils.js";
 import { showToast } from "./ui/notifications.js";
 
+export function updateExportButtonState() {
+  const exportButton = document.getElementById("exportDeviceTreeBtn");
+  const mcuSelector = document.getElementById("mcuSelector");
+  const packageSelector = document.getElementById("packageSelector");
+
+  if (!exportButton || !mcuSelector || !packageSelector) {
+    return;
+  }
+
+  const mcu = mcuSelector.value;
+  const pkg = packageSelector.value;
+  const unsupportedMessage =
+    mcu && pkg ? getDevicetreeExportUnsupportedMessage(mcu, pkg) : null;
+
+  exportButton.disabled = Boolean(unsupportedMessage);
+  exportButton.title = unsupportedMessage || "";
+}
+
 export function openBoardInfoModal() {
+  const mcu = document.getElementById("mcuSelector").value;
+  const pkg = document.getElementById("packageSelector").value;
+  const unsupportedMessage = getDevicetreeExportUnsupportedMessage(mcu, pkg);
+  if (unsupportedMessage) {
+    alert(unsupportedMessage);
+    return;
+  }
+
   if (state.selectedPeripherals.length === 0) {
     alert("No peripherals selected. Please select peripherals first.");
     return;
@@ -43,6 +70,23 @@ export function openBoardInfoModal() {
   setupBoardNameValidation();
   document.getElementById("boardInfoModal").style.display = "block";
   document.getElementById("boardInfoError").style.display = "none";
+}
+
+function getDevicetreeExportUnsupportedMessage(mcu, pkg) {
+  const reason = getDevicetreeExportUnsupportedReason(
+    state.mcuManifest,
+    mcu,
+    pkg,
+  );
+  if (!reason) {
+    return null;
+  }
+
+  if (/^devicetree export not supported/i.test(reason)) {
+    return reason;
+  }
+
+  return `DeviceTree export not supported for ${mcu}/${pkg}.\n${reason}`;
 }
 
 function setupBoardNameValidation() {
@@ -155,10 +199,16 @@ export async function confirmBoardInfoAndGenerate() {
 async function exportBoardDefinition() {
   const mcu = document.getElementById("mcuSelector").value;
   const pkg = document.getElementById("packageSelector").value;
+  const unsupportedMessage = getDevicetreeExportUnsupportedMessage(mcu, pkg);
+
+  if (unsupportedMessage) {
+    alert(unsupportedMessage);
+    return;
+  }
 
   if (!state.deviceTreeTemplates) {
     const { loadDeviceTreeTemplates } = await import("./mcu-loader.js");
-    state.deviceTreeTemplates = await loadDeviceTreeTemplates(mcu);
+    state.deviceTreeTemplates = await loadDeviceTreeTemplates(mcu, pkg);
     if (!state.deviceTreeTemplates) {
       alert("DeviceTree templates not available for this MCU yet.");
       return;

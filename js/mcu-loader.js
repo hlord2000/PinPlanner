@@ -11,9 +11,11 @@ import {
   addOscillatorsToPeripherals,
   autoSelectHFXO,
 } from "./peripherals.js";
+import { getDevicetreeExportUnsupportedReason } from "./mcu-manifest.js";
 import { createPinLayout, updatePinDisplay } from "./pin-layout.js";
 import { updateSelectedPeripheralsList } from "./ui/selected-list.js";
 import { updateConsoleConfig } from "./console-config.js";
+import { updateExportButtonState } from "./export.js";
 
 export async function initializeApp() {
   try {
@@ -59,13 +61,16 @@ export async function handleMcuChange() {
       option.textContent = pkg.name;
       packageSelector.appendChild(option);
     });
+    updateExportButtonState();
     await loadCurrentMcuData();
   } else {
+    updateExportButtonState();
     reinitializeView(true);
   }
 }
 
 export async function handlePackageChange() {
+  updateExportButtonState();
   await loadCurrentMcuData();
 }
 
@@ -86,7 +91,7 @@ export async function loadMCUData(mcu, pkg) {
     }
     state.mcuData = await response.json();
 
-    state.deviceTreeTemplates = await loadDeviceTreeTemplates(mcu);
+    state.deviceTreeTemplates = await loadDeviceTreeTemplates(mcu, pkg);
 
     reinitializeView();
   } catch (error) {
@@ -96,11 +101,18 @@ export async function loadMCUData(mcu, pkg) {
   }
 }
 
-export async function loadDeviceTreeTemplates(mcuId) {
+export async function loadDeviceTreeTemplates(mcuId, pkgId = null) {
   try {
     const response = await fetch(`mcus/${mcuId}/devicetree-templates.json`);
     if (!response.ok) {
-      console.warn(`No DeviceTree templates found for ${mcuId}`);
+      const unsupportedReason = getDevicetreeExportUnsupportedReason(
+        state.mcuManifest,
+        mcuId,
+        pkgId,
+      );
+      if (!unsupportedReason) {
+        console.warn(`No DeviceTree templates found for ${mcuId}`);
+      }
       return null;
     }
     const data = await response.json();

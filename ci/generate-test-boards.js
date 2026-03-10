@@ -15,6 +15,10 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import {
+  getDevicetreeExportUnsupportedReason,
+  mcuHasSupportedDevicetreeExport,
+} from "../js/mcu-manifest.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1152,17 +1156,35 @@ for (const mcu of manifest.mcus) {
     continue;
   }
 
+  if (!mcuHasSupportedDevicetreeExport(manifest, mcuId)) {
+    const unsupportedReason =
+      typeof mcu.devicetreeExportUnsupportedReason === "string"
+        ? mcu.devicetreeExportUnsupportedReason
+        : "DeviceTree export not supported for any package";
+    console.log(`\nSkipping ${mcuId}: ${unsupportedReason}`);
+    continue;
+  }
+
   console.log(`\n--- MCU: ${mcuId} ---`);
   console.log(`  Supports NS: ${supportsNS}, FLPR: ${supportsFLPR}`);
 
-  // Use first package for this MCU
+  // Use the first package that supports DeviceTree export for this MCU
   if (!mcu.packages || mcu.packages.length === 0) {
     console.error(`  ERROR: No packages for ${mcuId}`);
     exitCode = 1;
     continue;
   }
 
-  const pkg = mcu.packages[0];
+  const pkg = mcu.packages.find(
+    (packageEntry) =>
+      getDevicetreeExportUnsupportedReason(manifest, mcuId, packageEntry.file) ===
+      null,
+  );
+  if (!pkg) {
+    console.log(`  Skipping ${mcuId}: no package supports DeviceTree export`);
+    continue;
+  }
+
   const pkgPath = resolve(MCUS_DIR, mcuId, `${pkg.file}.json`);
   const dtPath = resolve(MCUS_DIR, mcuId, "devicetree-templates.json");
 

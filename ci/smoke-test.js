@@ -11,6 +11,10 @@
 import { readFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import {
+  getDevicetreeExportUnsupportedReason,
+  mcuHasSupportedDevicetreeExport,
+} from "../js/mcu-manifest.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -57,12 +61,42 @@ check(
   manifest.mcus && manifest.mcus.length > 0,
 );
 
+for (const mcu of manifest.mcus || []) {
+  check(`${mcu.id}: manifest entry has id`, typeof mcu.id === "string");
+  check(`${mcu.id}: manifest entry has name`, typeof mcu.name === "string");
+
+  if ("devicetreeExportUnsupportedReason" in mcu) {
+    check(
+      `${mcu.id}: MCU devicetreeExportUnsupportedReason is a string`,
+      typeof mcu.devicetreeExportUnsupportedReason === "string",
+      `Found ${typeof mcu.devicetreeExportUnsupportedReason}`,
+    );
+  }
+
+  for (const pkg of mcu.packages || []) {
+    if ("devicetreeExportUnsupportedReason" in pkg) {
+      check(
+        `${mcu.id}/${pkg.file}: package devicetreeExportUnsupportedReason is a string`,
+        typeof pkg.devicetreeExportUnsupportedReason === "string",
+        `Found ${typeof pkg.devicetreeExportUnsupportedReason}`,
+      );
+    }
+  }
+}
+
 // -----------------------------------------------------------------------
 // 2. For each MCU, verify devicetree-templates.json exists and parses
 // -----------------------------------------------------------------------
 console.log("\n--- Checking devicetree templates ---\n");
 
 for (const mcu of manifest.mcus) {
+  if (!mcuHasSupportedDevicetreeExport(manifest, mcu.id)) {
+    console.log(
+      `  INFO: ${mcu.id}: skipping devicetree template check because export is unsupported for all packages`,
+    );
+    continue;
+  }
+
   const dtPath = resolve(MCUS_DIR, mcu.id, "devicetree-templates.json");
 
   check(
@@ -269,6 +303,10 @@ for (const mcu of manifest.mcus) {
 console.log("\n--- Cross-checking peripherals vs devicetree templates ---\n");
 
 for (const mcu of manifest.mcus) {
+  if (!mcuHasSupportedDevicetreeExport(manifest, mcu.id)) {
+    continue;
+  }
+
   const dtPath = resolve(MCUS_DIR, mcu.id, "devicetree-templates.json");
   if (!existsSync(dtPath)) continue;
 
@@ -282,7 +320,10 @@ for (const mcu of manifest.mcus) {
   if (!dtData.templates) continue;
 
   // Check the first package for this MCU as a representative
-  const firstPkg = mcu.packages[0];
+  const firstPkg = (mcu.packages || []).find(
+    (pkg) =>
+      getDevicetreeExportUnsupportedReason(manifest, mcu.id, pkg.file) === null,
+  );
   if (!firstPkg) continue;
 
   const pkgPath = resolve(MCUS_DIR, mcu.id, `${firstPkg.file}.json`);
