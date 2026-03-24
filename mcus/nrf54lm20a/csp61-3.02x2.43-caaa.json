@@ -256,7 +256,7 @@
       "defaultType": "rf_antenna",
       "functions": ["Single ended radio antenna connection"],
       "x": -1.3,
-      "y": -0.585
+      "y": -0.4
     },
     {
       "packagePinId": "D3",
@@ -266,7 +266,7 @@
       "isClockCapable": false,
       "defaultType": "power_ground",
       "functions": ["Ground"],
-      "x": -0.72,
+      "x": -0.905,
       "y": -0.325
     },
     {
