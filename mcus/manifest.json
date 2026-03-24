@@ -18,13 +18,17 @@
     },
     {
       "id": "nrf54lm20a",
-      "name": "nRF54LM20A",
+      "name": "nRF54LM20A/B",
       "supportsNonSecure": true,
       "supportsFLPR": true,
       "packages": [
         {
           "file": "fccsp98-3.67x3.85-paaa",
           "name": "FCCSP-98 (3.7x3.9)"
+        },
+        {
+          "file": "csp61-3.02x2.43-caaa",
+          "name": "CSP-61 (3.0x2.4)"
         },
         {
           "file": "qfn52-6x6-qgaa",

@@ -15,6 +15,7 @@ import {
   getDevicetreeExportUnsupportedReason,
   mcuHasSupportedDevicetreeExport,
 } from "../js/mcu-manifest.js";
+import { loadResolvedPackageData } from "./package-data.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -171,7 +172,7 @@ for (const mcu of manifest.mcus) {
 
     let data;
     try {
-      data = JSON.parse(readFileSync(pkgPath, "utf-8"));
+      data = loadResolvedPackageData(pkgPath);
       check(`${label}: valid JSON`, true);
     } catch (e) {
       check(`${label}: valid JSON`, false, e.message);
@@ -331,7 +332,7 @@ for (const mcu of manifest.mcus) {
 
   let pkgData;
   try {
-    pkgData = JSON.parse(readFileSync(pkgPath, "utf-8"));
+    pkgData = loadResolvedPackageData(pkgPath);
   } catch {
     continue;
   }

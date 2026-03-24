@@ -17,6 +17,106 @@ import { updateSelectedPeripheralsList } from "./ui/selected-list.js";
 import { updateConsoleConfig } from "./console-config.js";
 import { updateExportButtonState } from "./export.js";
 
+function mergePackageData(baseData, overrideData) {
+  const merged = {
+    ...baseData,
+    ...overrideData,
+  };
+
+  if (baseData.partInfo || overrideData.partInfo) {
+    merged.partInfo = {
+      ...(baseData.partInfo || {}),
+      ...(overrideData.partInfo || {}),
+    };
+  }
+
+  if (baseData.renderConfig || overrideData.renderConfig) {
+    const baseRenderConfig = baseData.renderConfig || {};
+    const overrideRenderConfig = overrideData.renderConfig || {};
+
+    merged.renderConfig = {
+      ...baseRenderConfig,
+      ...overrideRenderConfig,
+      canvasDefaults: {
+        ...(baseRenderConfig.canvasDefaults || {}),
+        ...(overrideRenderConfig.canvasDefaults || {}),
+      },
+      chipBody: {
+        ...(baseRenderConfig.chipBody || {}),
+        ...(overrideRenderConfig.chipBody || {}),
+      },
+      pinDefaults: {
+        ...(baseRenderConfig.pinDefaults || {}),
+        ...(overrideRenderConfig.pinDefaults || {}),
+      },
+      layoutStrategy: {
+        ...(baseRenderConfig.layoutStrategy || {}),
+        ...(overrideRenderConfig.layoutStrategy || {}),
+      },
+    };
+  }
+
+  delete merged.extends;
+  return merged;
+}
+
+function normalizePackageData(packageData) {
+  if (
+    !Array.isArray(packageData.pins) ||
+    !Array.isArray(packageData.socPeripherals)
+  ) {
+    return packageData;
+  }
+
+  const availablePins = new Set(packageData.pins.map((pin) => pin.name));
+
+  return {
+    ...packageData,
+    socPeripherals: packageData.socPeripherals.map((peripheral) => ({
+      ...peripheral,
+      signals: Array.isArray(peripheral.signals)
+        ? peripheral.signals.map((signal) => ({
+            ...signal,
+            allowedGpio: Array.isArray(signal.allowedGpio)
+              ? signal.allowedGpio.filter(
+                  (gpio) => gpio.endsWith("*") || availablePins.has(gpio),
+                )
+              : signal.allowedGpio,
+          }))
+        : peripheral.signals,
+    })),
+  };
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`File not found or invalid: ${new URL(url).pathname}`);
+  }
+
+  return response.json();
+}
+
+async function loadResolvedPackageData(url, seen = new Set()) {
+  const absoluteUrl = new URL(url, window.location.href).href;
+  if (seen.has(absoluteUrl)) {
+    throw new Error(
+      `Circular package extends chain detected at ${absoluteUrl}`,
+    );
+  }
+
+  seen.add(absoluteUrl);
+
+  const data = await fetchJson(absoluteUrl);
+  if (!data.extends) {
+    return normalizePackageData(data);
+  }
+
+  const parentUrl = new URL(data.extends, absoluteUrl).href;
+  const parentData = await loadResolvedPackageData(parentUrl, seen);
+  return normalizePackageData(mergePackageData(parentData, data));
+}
+
 export async function initializeApp() {
   try {
     const response = await fetch("mcus/manifest.json");
@@ -85,11 +185,7 @@ export async function loadCurrentMcuData() {
 export async function loadMCUData(mcu, pkg) {
   const path = `mcus/${mcu}/${pkg}.json`;
   try {
-    const response = await fetch(path);
-    if (!response.ok) {
-      throw new Error(`File not found or invalid: ${path}`);
-    }
-    state.mcuData = await response.json();
+    state.mcuData = await loadResolvedPackageData(path);
 
     state.deviceTreeTemplates = await loadDeviceTreeTemplates(mcu, pkg);
 

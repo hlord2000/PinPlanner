@@ -137,6 +137,44 @@ export function createPinLayout() {
         }
       }
     }
+  } else if (strategy.layoutType === "customCoordinates") {
+    const chipWidth = state.mcuData.renderConfig.chipBody?.width || 1;
+    const chipHeight = state.mcuData.renderConfig.chipBody?.height || 1;
+    const activeArea = containerSize - 2 * padding;
+
+    let bodyWidth = activeArea;
+    let bodyHeight =
+      chipWidth > 0 ? (chipHeight / chipWidth) * bodyWidth : activeArea;
+
+    if (bodyHeight > activeArea) {
+      bodyHeight = activeArea;
+      bodyWidth =
+        chipHeight > 0 ? (chipWidth / chipHeight) * bodyHeight : activeArea;
+    }
+
+    const bodyLeft = (containerSize - bodyWidth) / 2;
+    const bodyTop = (containerSize - bodyHeight) / 2;
+    const scale = Math.min(bodyWidth / chipWidth, bodyHeight / chipHeight);
+
+    chipBody.style.left = `${bodyLeft}px`;
+    chipBody.style.top = `${bodyTop}px`;
+    chipBody.style.width = `${bodyWidth}px`;
+    chipBody.style.height = `${bodyHeight}px`;
+    chipBody.style.right = "auto";
+    chipBody.style.bottom = "auto";
+
+    state.mcuData.pins.forEach((pinInfo) => {
+      if (typeof pinInfo.x !== "number" || typeof pinInfo.y !== "number") {
+        return;
+      }
+
+      const pinElement = createPinElement(pinInfo);
+      pinElement.style.position = "absolute";
+      pinElement.style.left = `${bodyLeft + bodyWidth / 2 + pinInfo.x * scale}px`;
+      pinElement.style.top = `${bodyTop + bodyHeight / 2 + pinInfo.y * scale}px`;
+      pinElement.style.transform = "translate(-50%, -50%)";
+      chipContainer.appendChild(pinElement);
+    });
   }
 }
 

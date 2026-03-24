@@ -12,6 +12,7 @@ import { readFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import Ajv from "ajv";
+import { loadResolvedPackageData } from "./package-data.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -93,7 +94,7 @@ for (const mcu of manifest.mcus) {
 
     let data;
     try {
-      data = JSON.parse(readFileSync(packageFilePath, "utf-8"));
+      data = loadResolvedPackageData(packageFilePath);
     } catch (e) {
       error(`${label}: Failed to parse JSON - ${e.message}`);
       continue;
@@ -158,8 +159,8 @@ for (const mcu of manifest.mcus) {
         for (const signal of periph.signals) {
           if (!signal.allowedGpio) continue;
           for (const gpio of signal.allowedGpio) {
-            // Must match P<port>.<pin> or P<port>*
-            if (!/^P\d+(\.\d{1,2}|\*)$/.test(gpio)) {
+            // Must match P<port>.<pin>, P<port>*, or dedicated fixed pins like D+/D-
+            if (!/^(?:P\d+(?:\.\d{1,2}|\*)|D\+|D-)$/.test(gpio)) {
               error(
                 `${label}: ${periph.id}.${signal.name} has invalid allowedGpio pattern "${gpio}"`,
               );

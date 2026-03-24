@@ -19,6 +19,7 @@ import {
   getDevicetreeExportUnsupportedReason,
   mcuHasSupportedDevicetreeExport,
 } from "../js/mcu-manifest.js";
+import { loadResolvedPackageData } from "./package-data.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1177,8 +1178,11 @@ for (const mcu of manifest.mcus) {
 
   const pkg = mcu.packages.find(
     (packageEntry) =>
-      getDevicetreeExportUnsupportedReason(manifest, mcuId, packageEntry.file) ===
-      null,
+      getDevicetreeExportUnsupportedReason(
+        manifest,
+        mcuId,
+        packageEntry.file,
+      ) === null,
   );
   if (!pkg) {
     console.log(`  Skipping ${mcuId}: no package supports DeviceTree export`);
@@ -1199,7 +1203,7 @@ for (const mcu of manifest.mcus) {
     continue;
   }
 
-  const packageData = JSON.parse(readFileSync(pkgPath, "utf-8"));
+  const packageData = loadResolvedPackageData(pkgPath);
   const dtData = JSON.parse(readFileSync(dtPath, "utf-8"));
   const templates = dtData.templates;
 

@@ -230,8 +230,8 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "pattern": "^P[0-9]+(?:\\.[0-9]{1,2}|\\*)$",
-                    "description": "An SoC-level GPIO specifier. Use format 'P<port>*' (e.g., 'P0*') for all pins in a port, or 'P<port>.<pin>' (e.g., 'P0.01', 'P1.10') for a specific pin. Pin numbers are typically 1 or 2 digits."
+                    "pattern": "^(?:P[0-9]+(?:\\.[0-9]{1,2}|\\*)|D\\+|D-)$",
+                    "description": "An SoC-level GPIO specifier. Use format 'P<port>*' (e.g., 'P0*') for all pins in a port, or 'P<port>.<pin>' (e.g., 'P0.01', 'P1.10') for a specific pin. Dedicated non-GPIO package pins such as 'D+' and 'D-' are also allowed for fixed-function interfaces."
                   },
                   "description": "A list of SoC-level GPIO specifiers indicating which GPIOs or GPIO ports a signal can be routed through. This refined list is considered before package-specific pin mappings. For example, ['P0*', 'P1.00', 'P1.01']."
                 },
@@ -297,7 +297,7 @@
             "description": "Primary classification."
           },
           "isClockCapable": { "type": "boolean", "default": false },
-          "powerDomain": { "type": "string" },
+          "powerDomain": { "type": ["string", "null"] },
           "renderOrder": {
             "type": "integer",
             "description": "For perimeter layouts, the sequential drawing order if 'packagePinId' is not numeric/sequential."
