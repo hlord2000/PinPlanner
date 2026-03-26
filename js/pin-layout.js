@@ -215,6 +215,7 @@ export function showPinDetails(pinInfo) {
       const applicableSignals = (peripheral.signals || []).filter(
         (signal) =>
           signal.allowedGpio &&
+          (!signal.requiresClockCapablePin || pinInfo.isClockCapable) &&
           pinMatchesAllowedGpio(pinInfo.name, signal.allowedGpio),
       );
       if (applicableSignals.length > 0) {
