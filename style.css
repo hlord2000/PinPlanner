@@ -559,6 +559,11 @@ button.secondary-btn:hover {
   text-align: center;
   color: var(--light-text);
 }
+.pin-details:has(h3) {
+  align-items: flex-start;
+  justify-content: flex-start;
+  text-align: left;
+}
 .pin-details h3 {
   margin-bottom: 0.5rem;
 }
@@ -700,6 +705,46 @@ option:disabled {
   width: 90px;
   font-weight: 600;
   color: var(--light-text);
+}
+
+/* Peripheral Compatibility Section (pin details) */
+.peripheral-compat {
+  width: 100%;
+  margin-top: 1rem;
+  text-align: left;
+}
+.peripheral-compat h4 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--light-text);
+  margin: 0 0 0.4rem 0;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.compat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.compat-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.2rem 0;
+}
+.compat-id {
+  font-weight: 600;
+  color: var(--text-color);
+  min-width: 130px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.compat-signals {
+  color: var(--primary-color);
+  font-size: 0.8rem;
 }
 
 /* --- FORM STYLING --- */
