@@ -178,6 +178,13 @@ export function createPinLayout() {
   }
 }
 
+function pinMatchesAllowedGpio(pinName, allowedGpio) {
+  return allowedGpio.some((g) => {
+    if (g.endsWith("*")) return pinName.startsWith(g.slice(0, -1));
+    return g === pinName;
+  });
+}
+
 export function showPinDetails(pinInfo) {
   const detailsElement = document.getElementById("pinDetails");
 
@@ -201,6 +208,38 @@ export function showPinDetails(pinInfo) {
            </tr>`
       : "";
 
+  let peripheralCompatHtml = "";
+  if (state.mcuData && state.mcuData.socPeripherals && pinInfo.name) {
+    const compatItems = [];
+    for (const peripheral of state.mcuData.socPeripherals) {
+      const applicableSignals = (peripheral.signals || []).filter(
+        (signal) =>
+          signal.allowedGpio &&
+          pinMatchesAllowedGpio(pinInfo.name, signal.allowedGpio),
+      );
+      if (applicableSignals.length > 0) {
+        compatItems.push({ id: peripheral.id, signals: applicableSignals });
+      }
+    }
+    if (compatItems.length > 0) {
+      const itemsHtml = compatItems
+        .map(
+          (item) => `
+        <div class="compat-item">
+          <span class="compat-id">${item.id}</span>
+          <span class="compat-signals">${item.signals.map((s) => s.name).join(", ")}</span>
+        </div>`,
+        )
+        .join("");
+      peripheralCompatHtml = `
+        <div class="peripheral-compat">
+          <h4>Peripheral options</h4>
+          <div class="compat-list">${itemsHtml}
+          </div>
+        </div>`;
+    }
+  }
+
   detailsElement.innerHTML = `
         <h3>${pinInfo.name} (Pin ${pinInfo.packagePinId})</h3>
         <table class="pin-details-table">
@@ -214,6 +253,7 @@ export function showPinDetails(pinInfo) {
                 ${functionsHtml}
             </tbody>
         </table>
+        ${peripheralCompatHtml}
     `;
 }
 
