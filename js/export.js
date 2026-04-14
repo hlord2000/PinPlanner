@@ -5,6 +5,7 @@ import { isDevkitMode, getDevkitConfig } from "./devkit-loader.js";
 import {
   getMcuSupportsNonSecure,
   getMcuSupportsFLPR,
+  getMcuSupportsFLPRXIP,
   generateBoardYml,
   generateBoardCmake,
   generateKconfigDefconfig,
@@ -196,7 +197,7 @@ export async function confirmBoardInfoAndGenerate() {
   await exportBoardDefinition();
 }
 
-async function exportBoardDefinition() {
+export async function exportBoardDefinition() {
   const mcu = document.getElementById("mcuSelector").value;
   const pkg = document.getElementById("packageSelector").value;
   const unsupportedMessage = getDevicetreeExportUnsupportedMessage(mcu, pkg);
@@ -225,9 +226,10 @@ async function exportBoardDefinition() {
   }
 }
 
-async function generateBoardFiles(mcu, pkg) {
+export async function generateBoardFiles(mcu, pkg) {
   const supportsNS = getMcuSupportsNonSecure(mcu);
   const supportsFLPR = getMcuSupportsFLPR(mcu);
+  const supportsFLPRXIP = getMcuSupportsFLPRXIP(mcu);
   const files = {};
 
   files["board.yml"] = generateBoardYml(mcu, supportsNS, supportsFLPR);
@@ -270,20 +272,20 @@ async function generateBoardFiles(mcu, pkg) {
     );
     files[`${state.boardInfo.name}_${mcu}_cpuflpr_defconfig`] =
       generateFLPRDefconfig(false, mcu);
-    files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip.dts`] =
-      generateFLPRXIPDts(mcu);
-    files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip.yaml`] = generateFLPRYaml(
-      mcu,
-      true,
-    );
-    files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip_defconfig`] =
-      generateFLPRDefconfig(true, mcu);
+    if (supportsFLPRXIP) {
+      files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip.dts`] =
+        generateFLPRXIPDts(mcu);
+      files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip.yaml`] =
+        generateFLPRYaml(mcu, true);
+      files[`${state.boardInfo.name}_${mcu}_cpuflpr_xip_defconfig`] =
+        generateFLPRDefconfig(true, mcu);
+    }
   }
 
   return files;
 }
 
-async function downloadBoardAsZip(files, boardName) {
+async function ensureJsZipLoaded() {
   if (typeof JSZip === "undefined") {
     const script = document.createElement("script");
     script.src =
@@ -293,6 +295,10 @@ async function downloadBoardAsZip(files, boardName) {
       document.head.appendChild(script);
     });
   }
+}
+
+export async function createBoardZipBlob(files, boardName) {
+  await ensureJsZipLoaded();
 
   const zip = new JSZip();
   const boardFolder = zip.folder(boardName);
@@ -308,6 +314,12 @@ async function downloadBoardAsZip(files, boardName) {
     compression: "DEFLATE",
     compressionOptions: { level: 9 },
   });
+
+  return blob;
+}
+
+export async function downloadBoardAsZip(files, boardName) {
+  const blob = await createBoardZipBlob(files, boardName);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

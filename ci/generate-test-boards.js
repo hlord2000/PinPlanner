@@ -17,6 +17,7 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import {
   getDevicetreeExportUnsupportedReason,
+  getMcuSupportsFLPRXIP,
   mcuHasSupportedDevicetreeExport,
 } from "../js/mcu-manifest.js";
 import { loadResolvedPackageData } from "./package-data.js";
@@ -255,14 +256,20 @@ function buildLfxoState() {
 // Board file generation functions (simplified from script.js)
 // -----------------------------------------------------------------------
 
-function generateBoardYml(boardName, mcu, supportsNS, supportsFLPR) {
+function generateBoardYml(
+  boardName,
+  mcu,
+  supportsNS,
+  supportsFLPR,
+  supportsFLPRXIP,
+) {
   let socSection = `  socs:
     - name: ${mcu}`;
 
-  if (supportsNS || supportsFLPR) {
+  if (supportsNS || supportsFLPRXIP) {
     socSection += `
       variants:`;
-    if (supportsFLPR) {
+    if (supportsFLPRXIP) {
       socSection += `
         - name: xip
           cpucluster: cpuflpr`;
@@ -281,7 +288,10 @@ function generateBoardYml(boardName, mcu, supportsNS, supportsFLPR) {
   }
   if (supportsFLPR) {
     boardsList += `
-              - ${boardName}/${mcu}/cpuflpr
+              - ${boardName}/${mcu}/cpuflpr`;
+  }
+  if (supportsFLPRXIP) {
+    boardsList += `
               - ${boardName}/${mcu}/cpuflpr/xip`;
   }
 
@@ -371,6 +381,7 @@ include(\${ZEPHYR_BASE}/boards/common/jlink.board.cmake)
 function generateKconfigDefconfig(boardName, mcu, supportsNS) {
   const boardNameUpper = boardName.toUpperCase();
   const mcuUpper = mcu.toUpperCase();
+  const flprPmSramConfig = getFlprPartitionManagerSramConfig(mcu);
 
   let content = `# Copyright (c) 2024 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
@@ -386,6 +397,20 @@ config ROM_START_OFFSET
 
 endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP
 `;
+
+  if (flprPmSramConfig) {
+    content += `
+if BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR
+
+config PM_SRAM_BASE
+\tdefault ${flprPmSramConfig.base}
+
+config PM_SRAM_SIZE
+\tdefault ${flprPmSramConfig.size}
+
+endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR
+`;
+  }
 
   if (supportsNS) {
     content += `
@@ -409,7 +434,13 @@ endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
   return content;
 }
 
-function generateKconfigBoard(boardName, mcu, supportsNS, supportsFLPR) {
+function generateKconfigBoard(
+  boardName,
+  mcu,
+  supportsNS,
+  supportsFLPR,
+  supportsFLPRXIP,
+) {
   const boardNameUpper = boardName.toUpperCase();
   const mcuUpper = mcu.toUpperCase();
   const socBase = getMcuSocName(mcu);
@@ -427,8 +458,11 @@ config BOARD_${boardNameUpper}
 `;
 
   if (supportsFLPR) {
-    content += `\tselect SOC_${socBase}_CPUFLPR if BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR || \\
-\t\t\t\t\t    BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR_XIP
+    const flprSelectors = supportsFLPRXIP
+      ? `BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR || \\
+\t\t\t\t\t    BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR_XIP`
+      : `BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR`;
+    content += `\tselect SOC_${socBase}_CPUFLPR if ${flprSelectors}
 `;
   }
 
@@ -978,9 +1012,145 @@ ${peripheralDisableSection}
 `;
 }
 
+function getFlprBuildLayout(mcu) {
+  if (mcu === "nrf54l05") {
+    return {
+      mode: "native",
+      flashKb: 30,
+      ramKb: 24,
+    };
+  }
+
+  if (mcu === "nrf54l10") {
+    return {
+      mode: "native",
+      flashKb: 62,
+      ramKb: 48,
+    };
+  }
+
+  if (mcu === "nrf54lv10a") {
+    return {
+      mode: "native",
+      flashKb: 64,
+      ramKb: 64,
+      xipFlashKb: 64,
+      xipRamKb: 64,
+      xipSramBase: "0x2001fc00",
+    };
+  }
+
+  return {
+    mode: "override",
+    flashKb: 96,
+    ramKb: 96,
+    sramBase: "0x20028000",
+    xipFlashKb: 96,
+    xipRamKb: 68,
+    xipSramBase: "0x2002f000",
+  };
+}
+
+function getFlprPartitionManagerSramConfig(mcu) {
+  if (mcu === "nrf54l05") {
+    return {
+      base: "0x20012000",
+      size: "0x6000",
+    };
+  }
+
+  if (mcu === "nrf54l10") {
+    return {
+      base: "0x20024000",
+      size: "0xc000",
+    };
+  }
+
+  return null;
+}
+
+function omitsFlprConsoleForRamHeadroom(mcu) {
+  return mcu === "nrf54l05";
+}
+
 function generateFLPRDts(boardName, mcu) {
   const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
   const dtsiBase = getMcuDtsiBaseName(mcu);
+  const flprLayout = getFlprBuildLayout(mcu);
+  const includeConsole = !omitsFlprConsoleForRamHeadroom(mcu);
+  const chosenConsoleLines = includeConsole
+    ? "\t\tzephyr,console = &uart30;\n\t\tzephyr,shell-uart = &uart30;\n"
+    : "";
+  const uartStatusSection = includeConsole
+    ? `
+&uart30 {
+\tstatus = "okay";
+};
+`
+    : "";
+
+  if (flprLayout.mode === "native") {
+    return `/dts-v1/;
+#include <nordic/${dtsiBase}_cpuflpr.dtsi>
+#include "${boardName}_common.dtsi"
+
+/ {
+\tmodel = "Test Board ${mcuUpper} FLPR MCU";
+\tcompatible = "test,${boardName}-${mcu}-cpuflpr";
+
+\tchosen {
+\t${chosenConsoleLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
+\t\tzephyr,flash = &cpuflpr_rram;
+\t\tzephyr,sram = &cpuflpr_sram;
+\t};
+};
+
+&cpuflpr_sram {
+\tstatus = "okay";
+};
+
+&cpuflpr_rram {
+\tpartitions {
+\t\tcompatible = "fixed-partitions";
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\tranges;
+
+\t\tcpuflpr_code_partition: partition@0 {
+\t\t\tlabel = "image-0";
+\t\t\treg = <0x0 DT_SIZE_K(${flprLayout.flashKb})>;
+\t\t};
+\t};
+};
+
+&grtc {
+\towned-channels = <3 4>;
+\tstatus = "okay";
+};
+${uartStatusSection}
+
+&gpio0 {
+\tstatus = "okay";
+};
+
+&gpio1 {
+\tstatus = "okay";
+};
+
+&gpio2 {
+\tstatus = "okay";
+};
+
+&gpiote20 {
+\tstatus = "okay";
+};
+
+&gpiote30 {
+\tstatus = "okay";
+};
+`;
+  }
+
   return `/dts-v1/;
 #include <nordic/${dtsiBase}_cpuflpr.dtsi>
 #include "${boardName}_common.dtsi"
@@ -992,20 +1162,18 @@ function generateFLPRDts(boardName, mcu) {
 \tcompatible = "test,${boardName}-${mcu}-cpuflpr";
 
 \tchosen {
-\t\tzephyr,console = &uart30;
-\t\tzephyr,shell-uart = &uart30;
-\t\tzephyr,code-partition = &cpuflpr_code_partition;
+\t${chosenConsoleLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
 \t\tzephyr,flash = &cpuflpr_rram;
 \t\tzephyr,sram = &cpuflpr_sram;
 \t};
 
-\tcpuflpr_sram: memory@20028000 {
+\tcpuflpr_sram: memory@${flprLayout.sramBase.slice(2)} {
 \t\tcompatible = "mmio-sram";
 \t\t/* Size must be increased due to booting from SRAM */
-\t\treg = <0x20028000 DT_SIZE_K(96)>;
+\t\treg = <${flprLayout.sramBase} DT_SIZE_K(${flprLayout.ramKb})>;
 \t\t#address-cells = <1>;
 \t\t#size-cells = <1>;
-\t\tranges = <0x0 0x20028000 0x18000>;
+\t\tranges = <0x0 ${flprLayout.sramBase} ${flprLayout.ramKb * 1024}>;
 \t\tstatus = "okay";
 \t};
 };
@@ -1019,7 +1187,7 @@ function generateFLPRDts(boardName, mcu) {
 
 \t\tcpuflpr_code_partition: partition@0 {
 \t\t\tlabel = "image-0";
-\t\t\treg = <0x0 DT_SIZE_K(96)>;
+\t\t\treg = <0x0 DT_SIZE_K(${flprLayout.flashKb})>;
 \t\t};
 \t};
 };
@@ -1028,10 +1196,7 @@ function generateFLPRDts(boardName, mcu) {
 \towned-channels = <3 4>;
 \tstatus = "okay";
 };
-
-&uart30 {
-\tstatus = "okay";
-};
+${uartStatusSection}
 
 &gpio0 {
 \tstatus = "okay";
@@ -1056,6 +1221,8 @@ function generateFLPRDts(boardName, mcu) {
 }
 
 function generateFLPRXIPDts(boardName, mcu) {
+  const flprLayout = getFlprBuildLayout(mcu);
+
   return `/*
  * Copyright (c) 2025 Generated by nRF54L Pin Planner
  * SPDX-License-Identifier: Apache-2.0
@@ -1064,20 +1231,22 @@ function generateFLPRXIPDts(boardName, mcu) {
 #include "${boardName}_${mcu}_cpuflpr.dts"
 
 &cpuflpr_sram {
-\treg = <0x2002f000 DT_SIZE_K(68)>;
-\tranges = <0x0 0x2002f000 0x11000>;
+\treg = <${flprLayout.xipSramBase} DT_SIZE_K(${flprLayout.xipRamKb})>;
+\tranges = <0x0 ${flprLayout.xipSramBase} ${flprLayout.xipRamKb * 1024}>;
 };
 `;
 }
 
 function generateFLPRYaml(boardName, mcu, isXIP) {
+  const flprLayout = getFlprBuildLayout(mcu);
   const identifier = isXIP
     ? `${boardName}/${mcu}/cpuflpr/xip`
     : `${boardName}/${mcu}/cpuflpr`;
   const name = isXIP
     ? `Test Board ${mcu.toUpperCase()}-Fast-Lightweight-Peripheral-Processor (RRAM XIP)`
     : `Test Board ${mcu.toUpperCase()}-Fast-Lightweight-Peripheral-Processor`;
-  const ram = isXIP ? 68 : 96;
+  const ram = isXIP ? flprLayout.xipRamKb : flprLayout.ramKb;
+  const flash = isXIP ? flprLayout.xipFlashKb : flprLayout.flashKb;
 
   return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
@@ -1090,7 +1259,7 @@ toolchain:
   - zephyr
 sysbuild: true
 ram: ${ram}
-flash: 96
+flash: ${flash}
 supported:
   - counter
   - gpio
@@ -1101,7 +1270,18 @@ supported:
 }
 
 function generateFLPRDefconfig(isXIP, mcu) {
+  const includeConsole = !omitsFlprConsoleForRamHeadroom(mcu);
   let config = `# Copyright (c) 2025 Generated by nRF54L Pin Planner
+# SPDX-License-Identifier: Apache-2.0
+
+# Enable GPIO
+CONFIG_GPIO=y
+
+${isXIP ? "# Execute from RRAM\nCONFIG_XIP=y" : "CONFIG_USE_DT_CODE_PARTITION=y\n\n# Execute from SRAM\nCONFIG_XIP=n"}
+`;
+
+  if (includeConsole) {
+    config = `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
 
 # Enable UART driver
@@ -1116,6 +1296,7 @@ CONFIG_GPIO=y
 
 ${isXIP ? "# Execute from RRAM\nCONFIG_XIP=y" : "CONFIG_USE_DT_CODE_PARTITION=y\n\n# Execute from SRAM\nCONFIG_XIP=n"}
 `;
+  }
 
   // nrf54lm20a requires explicit ecall switching for RISC-V FLPR
   if (mcu === "nrf54lm20a") {
@@ -1151,6 +1332,7 @@ for (const mcu of manifest.mcus) {
   const mcuId = mcu.id;
   const supportsNS = mcu.supportsNonSecure === true;
   const supportsFLPR = mcu.supportsFLPR === true;
+  const supportsFLPRXIP = getMcuSupportsFLPRXIP(manifest, mcuId);
 
   if (SKIP_MCUS.includes(mcuId)) {
     console.log(`\nSkipping ${mcuId}: no Zephyr DTSI support`);
@@ -1276,6 +1458,7 @@ for (const mcu of manifest.mcus) {
       mcuId,
       supportsNS,
       supportsFLPR,
+      supportsFLPRXIP,
     );
     files["board.cmake"] = generateBoardCmake(
       boardName,
@@ -1293,6 +1476,7 @@ for (const mcu of manifest.mcus) {
       mcuId,
       supportsNS,
       supportsFLPR,
+      supportsFLPRXIP,
     );
     files[`${boardName}_common.dtsi`] = generateCommonDtsi(
       boardName,
@@ -1364,17 +1548,19 @@ for (const mcu of manifest.mcus) {
         false,
         mcuId,
       );
-      files[`${boardName}_${mcuId}_cpuflpr_xip.dts`] = generateFLPRXIPDts(
-        boardName,
-        mcuId,
-      );
-      files[`${boardName}_${mcuId}_cpuflpr_xip.yaml`] = generateFLPRYaml(
-        boardName,
-        mcuId,
-        true,
-      );
-      files[`${boardName}_${mcuId}_cpuflpr_xip_defconfig`] =
-        generateFLPRDefconfig(true, mcuId);
+      if (supportsFLPRXIP) {
+        files[`${boardName}_${mcuId}_cpuflpr_xip.dts`] = generateFLPRXIPDts(
+          boardName,
+          mcuId,
+        );
+        files[`${boardName}_${mcuId}_cpuflpr_xip.yaml`] = generateFLPRYaml(
+          boardName,
+          mcuId,
+          true,
+        );
+        files[`${boardName}_${mcuId}_cpuflpr_xip_defconfig`] =
+          generateFLPRDefconfig(true, mcuId);
+      }
     }
 
     // Write all files to output directory

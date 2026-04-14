@@ -3,6 +3,7 @@
 import state from "./state.js";
 import {
   getMcuSupportsFLPR as getMcuSupportsFLPRFromManifest,
+  getMcuSupportsFLPRXIP as getMcuSupportsFLPRXIPFromManifest,
   getMcuSupportsNonSecure as getMcuSupportsNonSecureFromManifest,
 } from "./mcu-manifest.js";
 import { parsePinName } from "./utils.js";
@@ -15,28 +16,344 @@ export function getMcuSupportsFLPR(mcuId) {
   return getMcuSupportsFLPRFromManifest(state.mcuManifest, mcuId);
 }
 
-// Helper: get the DT node name for the selected console UART
-function getConsoleUartNodeName() {
-  if (!state.consoleUart || !state.deviceTreeTemplates) return null;
-  const template = state.deviceTreeTemplates[state.consoleUart];
+export function getMcuSupportsFLPRXIP(mcuId) {
+  return getMcuSupportsFLPRXIPFromManifest(state.mcuManifest, mcuId);
+}
+
+function usesReservedFlprCpuappUart30(mcu) {
+  return mcu === "nrf54l15" || mcu === "nrf54lm20a";
+}
+
+function getFixedNsTfmSecureUartId(mcu) {
+  if (mcu === "nrf54lv10a") {
+    return "UARTE20";
+  }
+
+  if (mcu === "nrf54l10" || mcu === "nrf54l15" || mcu === "nrf54lm20a") {
+    return "UARTE30";
+  }
+
+  return null;
+}
+
+function getFallbackConsoleUartId(reservedUartIds = []) {
+  if (!state.deviceTreeTemplates) {
+    return null;
+  }
+
+  const reservedSet = new Set(reservedUartIds.filter(Boolean));
+  const selectedUartIds = new Set(
+    state.selectedPeripherals
+      .filter((peripheral) => peripheral.type === "UART")
+      .map((peripheral) => peripheral.id),
+  );
+  const preferredFallbackIds = ["UARTE21", "UARTE20", "UARTE00"];
+
+  for (const uartId of preferredFallbackIds) {
+    if (
+      selectedUartIds.has(uartId) &&
+      !reservedSet.has(uartId) &&
+      state.deviceTreeTemplates[uartId]?.dtNodeName
+    ) {
+      return uartId;
+    }
+  }
+
+  const fallbackPeripheral = state.selectedPeripherals.find(
+    (peripheral) =>
+      peripheral.type === "UART" &&
+      !reservedSet.has(peripheral.id) &&
+      state.deviceTreeTemplates[peripheral.id]?.dtNodeName,
+  );
+  return fallbackPeripheral ? fallbackPeripheral.id : null;
+}
+
+function getReservedBoardConsoleUartId(mcu) {
+  if (!state.consoleUart) {
+    return null;
+  }
+
+  const fixedNsTfmSecureUartId = getFixedNsTfmSecureUartId(mcu);
+  if (
+    getMcuSupportsNonSecure(mcu) &&
+    fixedNsTfmSecureUartId &&
+    state.consoleUart === fixedNsTfmSecureUartId
+  ) {
+    return state.consoleUart;
+  }
+
+  if (
+    getMcuSupportsFLPR(mcu) &&
+    usesReservedFlprCpuappUart30(mcu) &&
+    state.consoleUart === "UARTE30"
+  ) {
+    return state.consoleUart;
+  }
+
+  return null;
+}
+
+function getEffectiveConsoleUartId(mcu) {
+  if (!state.consoleUart) {
+    return null;
+  }
+
+  const reservedConsoleUartId = getReservedBoardConsoleUartId(mcu);
+  if (!reservedConsoleUartId) {
+    return state.consoleUart;
+  }
+
+  return getFallbackConsoleUartId([reservedConsoleUartId]);
+}
+
+function getConsoleRoutingNote(mcu) {
+  const reservedConsoleUartId = getReservedBoardConsoleUartId(mcu);
+  if (!reservedConsoleUartId) {
+    return null;
+  }
+
+  const reasons = [];
+  const fixedNsTfmSecureUartId = getFixedNsTfmSecureUartId(mcu);
+
+  if (
+    getMcuSupportsNonSecure(mcu) &&
+    reservedConsoleUartId === fixedNsTfmSecureUartId
+  ) {
+    reasons.push(
+      `cpuapp/ns builds reserve ${reservedConsoleUartId} for TF-M secure UART wiring from nRF Connect SDK main`,
+    );
+  }
+
+  if (
+    getMcuSupportsFLPR(mcu) &&
+    usesReservedFlprCpuappUart30(mcu) &&
+    reservedConsoleUartId === "UARTE30"
+  ) {
+    reasons.push(
+      `${reservedConsoleUartId} is also reserved in the CPUAPP launcher image for FLPR builds`,
+    );
+  }
+
+  const effectiveConsoleUartId = getEffectiveConsoleUartId(mcu);
+  const mcuLabel = mcu.toUpperCase().replace("NRF", "nRF");
+  const reasonText =
+    reasons.length > 0
+      ? reasons.join("; ")
+      : `${reservedConsoleUartId} cannot serve every exported target`;
+
+  if (effectiveConsoleUartId) {
+    return `${mcuLabel} ${reasonText}. Exported board files use ${effectiveConsoleUartId} as the board-wide UART console so all exported targets stay buildable.`;
+  }
+
+  return `${mcuLabel} ${reasonText}. Exported board files leave UART console disabled because no other enabled UART can serve every exported target.`;
+}
+
+function formatCommentBlock(note) {
+  return `${note}`
+    .split(" ")
+    .reduce(
+      (lines, word) => {
+        const currentLine = lines[lines.length - 1];
+        if (`${currentLine} ${word}`.trim().length > 72) {
+          lines.push(`# ${word}`);
+        } else {
+          lines[lines.length - 1] = `${currentLine} ${word}`.trimEnd();
+        }
+        return lines;
+      },
+      ["#"],
+    )
+    .join("\n");
+}
+
+function getConsoleRoutingComment(mcu) {
+  const note = getConsoleRoutingNote(mcu);
+  if (!note) {
+    return "";
+  }
+
+  return formatCommentBlock(note);
+}
+
+// Helper: get the DT node name for the exported board console UART
+function getConsoleUartNodeName(mcu) {
+  const consoleUartId = getEffectiveConsoleUartId(mcu);
+  if (!consoleUartId || !state.deviceTreeTemplates) return null;
+  const template = state.deviceTreeTemplates[consoleUartId];
   return template ? template.dtNodeName : null;
+}
+
+function omitsFlprConsoleForRamHeadroom(mcu) {
+  return mcu === "nrf54l05";
+}
+
+function getFlprConsoleUartNodeName(mcu) {
+  if (omitsFlprConsoleForRamHeadroom(mcu)) {
+    return null;
+  }
+
+  return getConsoleUartNodeName(mcu);
+}
+
+function getFlprConsoleHeadroomNote(mcu) {
+  if (!state.consoleUart || !omitsFlprConsoleForRamHeadroom(mcu)) {
+    return null;
+  }
+
+  return "nRF54L05 FLPR builds drop the board-wide UART console in generated cpuflpr targets to stay within the 24 KB FLPR RAM budget on nRF Connect SDK main. CPUAPP targets keep the selected UART console.";
+}
+
+function getFlprConsoleHeadroomComment(mcu) {
+  const note = getFlprConsoleHeadroomNote(mcu);
+  return note ? formatCommentBlock(note) : "";
+}
+
+function getNsTfmSecureUartNodeName(mcu) {
+  if (getFixedNsTfmSecureUartId(mcu)) {
+    return null;
+  }
+
+  return getConsoleUartNodeName(mcu);
+}
+
+function usesFixedNsTfmSecureUartRouting(mcu) {
+  return getFixedNsTfmSecureUartId(mcu) !== null;
+}
+
+function getConsoleTfmSecureUartChoice(mcu) {
+  const consoleNodeName = getNsTfmSecureUartNodeName(mcu);
+  if (!consoleNodeName) {
+    return null;
+  }
+
+  const match = consoleNodeName.match(/^uart(\d+)$/);
+  return match ? `TFM_SECURE_UART${match[1]}` : null;
 }
 
 // Some MCUs have revision suffixes in their Zephyr DTSI filenames
 function getMcuDtsiBaseName(mcu) {
-  const dtsiNameMap = {
-    nrf54lm20a: "nrf54lm20a_enga",
-  };
-  return dtsiNameMap[mcu] || mcu;
+  return mcu;
 }
 
 // Some MCUs have revision suffixes in their Zephyr SOC Kconfig symbols
 // e.g. nrf54lm20a uses SOC_NRF54LM20A_ENGA_CPUAPP instead of SOC_NRF54LM20A_CPUAPP
 function getMcuSocName(mcu) {
-  const socNameMap = {
-    nrf54lm20a: "NRF54LM20A_ENGA",
+  return mcu.toUpperCase();
+}
+
+function currentPackageHasPort2Pins() {
+  return Array.isArray(state.mcuData?.pins)
+    ? state.mcuData.pins.some((pin) => /^P2\./.test(pin.name))
+    : true;
+}
+
+function getFlprBuildLayout(mcu) {
+  if (mcu === "nrf54l05") {
+    return {
+      mode: "native",
+      flashKb: 30,
+      ramKb: 24,
+    };
+  }
+
+  if (mcu === "nrf54l10") {
+    return {
+      mode: "native",
+      flashKb: 62,
+      ramKb: 48,
+    };
+  }
+
+  if (mcu === "nrf54lv10a") {
+    return {
+      mode: "native",
+      flashKb: 64,
+      ramKb: 64,
+      xipFlashKb: 64,
+      xipRamKb: 64,
+      xipSramBase: "0x2001fc00",
+    };
+  }
+
+  return {
+    mode: "override",
+    flashKb: 96,
+    ramKb: 96,
+    sramBase: "0x20028000",
+    xipFlashKb: 96,
+    xipRamKb: 68,
+    xipSramBase: "0x2002f000",
   };
-  return socNameMap[mcu] || mcu.toUpperCase();
+}
+
+function getFlprPartitionManagerSramConfig(mcu) {
+  if (mcu === "nrf54l05") {
+    return {
+      base: "0x20012000",
+      size: "0x6000",
+    };
+  }
+
+  if (mcu === "nrf54l10") {
+    return {
+      base: "0x20024000",
+      size: "0xc000",
+    };
+  }
+
+  return null;
+}
+
+function requiresDisabledVprLauncher(mcu) {
+  return mcu === "nrf54l05" || mcu === "nrf54l10";
+}
+
+function generateCpuappPartitionSection(mcu) {
+  if (mcu === "nrf54l05") {
+    return `#include <nordic/${mcu}_partition.dtsi>`;
+  }
+
+  if (mcu === "nrf54lv10a") {
+    return `&cpuapp_rram {
+\tpartitions {
+\t\tcompatible = "fixed-partitions";
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\tranges;
+
+\t\tboot_partition: partition@0 {
+\t\t\tlabel = "mcuboot";
+\t\t\t/* FPROTECT allows maximum size of 62k */
+\t\t\treg = <0x0 DT_SIZE_K(62)>;
+\t\t};
+
+\t\tslot0_partition: partition@10000 {
+\t\t\tlabel = "image-0";
+\t\t\treg = <0x10000 DT_SIZE_K(212)>;
+\t\t};
+
+\t\tslot1_partition: partition@7a000 {
+\t\t\tlabel = "image-1";
+\t\t\treg = <0x7a000 DT_SIZE_K(212)>;
+\t\t};
+
+\t\tstorage_partition: partition@e4000 {
+\t\t\tlabel = "storage";
+\t\t\treg = <0xe4000 DT_SIZE_K(36)>;
+\t\t};
+\t};
+};`;
+  }
+
+  return `#include <vendor/nordic/${mcu}_cpuapp_partition.dtsi>`;
+}
+
+function getNsPartitionInclude(mcu) {
+  if (mcu === "nrf54lv10a") {
+    return `#include <nordic/${mcu}_cpuapp_ns_partition.dtsi>`;
+  }
+
+  return `#include <vendor/nordic/${mcu}_cpuapp_ns_partition.dtsi>`;
 }
 
 export function generatePinctrlFile() {
@@ -69,6 +386,25 @@ export function generateCommonDtsi(mcu) {
 #include "${state.boardInfo.name}_${mcu}-pinctrl.dtsi"
 
 `;
+
+  if (mcu === "nrf54lv10a") {
+    content += `/ {
+\taliases {
+\t\twatchdog0 = &wdt31;
+\t};
+
+\tnrf_mpc: memory@50041000 {
+\t\tcompatible = "nordic,nrf-mpc";
+\t\treg = <0x50041000 0x1000>;
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\toverride-num = <5>;
+\t\toverride-granularity = <4096>;
+\t};
+};
+
+`;
+  }
 
   state.selectedPeripherals.forEach((p) => {
     if (p.config && p.config.loadCapacitors) return;
@@ -115,6 +451,9 @@ function generateGpioNodes(gpioPins) {
 }
 
 export function generateCpuappCommonDtsi(mcu) {
+  const baseInclude =
+    mcu === "nrf54lv10a" ? `#include <nordic/${mcu}_cpuapp.dtsi>\n` : "";
+
   let content = `/*
  * Copyright (c) 2024 Nordic Semiconductor ASA
  *
@@ -123,14 +462,14 @@ export function generateCpuappCommonDtsi(mcu) {
 
 /* This file is common to the secure and non-secure domain */
 
-#include "${state.boardInfo.name}_common.dtsi"
+${baseInclude}#include "${state.boardInfo.name}_common.dtsi"
 
 / {
 \tchosen {
 `;
 
-  // Use state.consoleUart instead of first-found UART
-  const consoleNodeName = getConsoleUartNodeName();
+  // Use the exported board console UART instead of first-found UART
+  const consoleNodeName = getConsoleUartNodeName(mcu);
   if (consoleNodeName) {
     content += `\t\tzephyr,console = &${consoleNodeName};\n`;
     content += `\t\tzephyr,shell-uart = &${consoleNodeName};\n`;
@@ -214,9 +553,17 @@ export function generateCpuappCommonDtsi(mcu) {
 \tstatus = "okay";
 };
 
+`;
+
+  if (currentPackageHasPort2Pins()) {
+    content += `
 &gpio2 {
 \tstatus = "okay";
 };
+`;
+  }
+
+  content += `
 
 &gpiote20 {
 \tstatus = "okay";
@@ -259,15 +606,12 @@ export function generateCpuappCommonDtsi(mcu) {
 export function generateMainDts(mcu, supportsNS) {
   const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
   const dtsiBase = getMcuDtsiBaseName(mcu);
-  // nrf54l05 uses a simpler partition file without _cpuapp_ prefix
-  const useSimplePartition = mcu === "nrf54l05";
-  const partitionInclude = useSimplePartition
-    ? `#include <nordic/${mcu}_partition.dtsi>`
-    : `#include <vendor/nordic/${mcu}_cpuapp_partition.dtsi>`;
+  const partitionSection = generateCpuappPartitionSection(mcu);
+  const baseInclude =
+    mcu === "nrf54lv10a" ? "" : `#include <nordic/${dtsiBase}_cpuapp.dtsi>\n`;
   return `/dts-v1/;
 
-#include <nordic/${dtsiBase}_cpuapp.dtsi>
-#include "${mcu}_cpuapp_common.dtsi"
+${baseInclude}#include "${mcu}_cpuapp_common.dtsi"
 
 / {
 \tcompatible = "${state.boardInfo.vendor},${state.boardInfo.name}-${mcu}-cpuapp";
@@ -280,7 +624,7 @@ export function generateMainDts(mcu, supportsNS) {
 };
 
 /* Include default memory partition configuration file */
-${partitionInclude}
+${partitionSection}
 `;
 }
 
@@ -347,12 +691,17 @@ vendor: ${state.boardInfo.vendor}
 }
 
 export function generateDefconfig(isNonSecure, mcu) {
+  const hasConsoleUart = getEffectiveConsoleUartId(mcu) !== null;
+  const consoleRoutingComment = getConsoleRoutingComment(mcu);
+
   let config = `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
 
 `;
 
   if (isNonSecure) {
+    const tfmSecureUartChoice = getConsoleTfmSecureUartChoice(mcu);
+
     config += `# Enable MPU
 CONFIG_ARM_MPU=y
 CONFIG_NULL_POINTER_EXCEPTION_DETECTION_NONE=y
@@ -365,14 +714,26 @@ CONFIG_TRUSTED_EXECUTION_NONSECURE=y
 
 # Use devicetree code partition for TF-M
 CONFIG_USE_DT_CODE_PARTITION=y
+`;
 
+    if (consoleRoutingComment) {
+      config += `
+${consoleRoutingComment}
+`;
+    }
+
+    if (hasConsoleUart) {
+      config += `
 # Enable UART driver
 CONFIG_SERIAL=y
 
 # Enable console
 CONFIG_CONSOLE=y
 CONFIG_UART_CONSOLE=y
+`;
+    }
 
+    config += `
 # Enable GPIO
 CONFIG_GPIO=y
 
@@ -386,10 +747,43 @@ CONFIG_NRF_GRTC_START_SYSCOUNTER=y
 
 # Disable TFM BL2 since it is not supported
 CONFIG_TFM_BL2=n
+`;
 
-# Support for silence logging is not supported at the moment
+    if (hasConsoleUart && tfmSecureUartChoice) {
+      config += `
+# Use the selected UART instance for TF-M secure logging
 CONFIG_TFM_LOG_LEVEL_SILENCE=n
+CONFIG_TFM_SECURE_UART=y
+CONFIG_${tfmSecureUartChoice}=y
+`;
+    } else if (hasConsoleUart && usesFixedNsTfmSecureUartRouting(mcu)) {
+      const mcuLabel =
+        mcu === "nrf54l10"
+          ? "nRF54L10"
+          : mcu === "nrf54lv10a"
+            ? "nRF54LV10A"
+            : mcu === "nrf54lm20a"
+              ? "nRF54LM20A"
+              : mcu === "nrf54l15"
+                ? "nRF54L15"
+                : mcu;
+      config += `
+# ${mcuLabel} TF-M secure UART selection is fixed inside the
+# nRF Connect SDK TF-M CMake configuration.
+# Pin Planner cannot override that from generated board files,
+# so leave TF-M UART logging disabled in the export.
+CONFIG_TFM_LOG_LEVEL_SILENCE=y
+CONFIG_TFM_SECURE_UART=n
+`;
+    } else {
+      config += `
+# RTT-only boards do not expose a secure UART for TF-M logging
+CONFIG_TFM_LOG_LEVEL_SILENCE=y
+CONFIG_TFM_SECURE_UART=n
+`;
+    }
 
+    config += `
 # The oscillators are configured as secure and cannot be configured
 # from the non secure application directly. This needs to be set
 # otherwise nrfx will try to configure them, resulting in a bus
@@ -397,8 +791,9 @@ CONFIG_TFM_LOG_LEVEL_SILENCE=n
 CONFIG_NRF_SKIP_CLOCK_CONFIG=y
 `;
   } else {
-    // Use state.consoleUart to check if UART console is enabled
-    const hasConsoleUart = state.consoleUart !== null;
+    if (consoleRoutingComment) {
+      config += `${consoleRoutingComment}\n\n`;
+    }
 
     if (hasConsoleUart) {
       config += `# Enable UART driver
@@ -452,6 +847,7 @@ CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y
 export function generateNSDts(mcu) {
   const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
   const dtsiBase = getMcuDtsiBaseName(mcu);
+  const tfmSecureUartNodeName = getNsTfmSecureUartNodeName(mcu);
 
   // MCUs that have a dedicated _cpuapp_ns.dtsi file in Zephyr
   const hasNsDtsi = mcu === "nrf54l15" || mcu === "nrf54l10";
@@ -462,17 +858,23 @@ export function generateNSDts(mcu) {
   if (hasNsDtsi) {
     nsIncludes = `#include <arm/nordic/${dtsiBase}_cpuapp_ns.dtsi>
 #include "${mcu}_cpuapp_common.dtsi"`;
+  } else if (mcu === "nrf54lm20a") {
+    nsIncludes = `#include <nordic/${dtsiBase}_cpuapp.dtsi>
+#include "${mcu}_cpuapp_common.dtsi"`;
   } else {
     nsIncludes = `#include "${mcu}_cpuapp_common.dtsi"`;
   }
 
-  // TF-M always uses uart30 - disable it in NS builds
-  let peripheralDisableSection = `
-&uart30 {
+  let peripheralDisableSection = "";
+
+  if (tfmSecureUartNodeName) {
+    peripheralDisableSection += `
+&${tfmSecureUartNodeName} {
 \t/* Disable so that TF-M can use this UART */
 \tstatus = "disabled";
 };
 `;
+  }
 
   // nrf54lm20a also needs BT controller disabled in NS
   if (mcu === "nrf54lm20a") {
@@ -480,12 +882,7 @@ export function generateNSDts(mcu) {
 &bt_hci_controller {
 \tstatus = "disabled";
 };
-
-&uart30 {
-\t/* Disable so that TF-M can use this UART */
-\tstatus = "disabled";
-};
-`;
+${peripheralDisableSection}`;
   }
 
   return `/dts-v1/;
@@ -512,21 +909,140 @@ ${nsIncludes}
 };
 ${peripheralDisableSection}
 /* Include default memory partition configuration file */
-#include <vendor/nordic/${mcu}_cpuapp_ns_partition.dtsi>
+${getNsPartitionInclude(mcu)}
 `;
 }
 
 export function generateFLPRDts(mcu) {
   const mcuUpper = mcu.toUpperCase().replace("NRF", "nRF");
+  const flprLayout = getFlprBuildLayout(mcu);
 
-  // Use selected console UART instead of hardcoded uart30
-  const consoleNodeName = getConsoleUartNodeName();
+  // Use the exported board console UART instead of hardcoded uart30
+  const consoleNodeName = getFlprConsoleUartNodeName(mcu);
   let chosenUartLines = "";
   let uartStatusSection = "";
 
   if (consoleNodeName) {
     chosenUartLines = `\t\tzephyr,console = &${consoleNodeName};\n\t\tzephyr,shell-uart = &${consoleNodeName};\n`;
     uartStatusSection = `\n&${consoleNodeName} {\n\tstatus = "okay";\n};\n`;
+  }
+
+  if (mcu === "nrf54lv10a") {
+    let content = `/dts-v1/;
+#include <nordic/${getMcuDtsiBaseName(mcu)}_cpuflpr.dtsi>
+#include "${state.boardInfo.name}_common.dtsi"
+
+/ {
+\tmodel = "${state.boardInfo.fullName} ${mcuUpper} FLPR MCU";
+\tcompatible = "${state.boardInfo.vendor},${state.boardInfo.name}-${mcu}-cpuflpr";
+
+\tchosen {
+${chosenUartLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
+\t\tzephyr,flash = &cpuflpr_rram;
+\t\tzephyr,sram = &cpuflpr_sram;
+\t};
+};
+
+&cpuflpr_sram {
+\tstatus = "okay";
+};
+
+&cpuflpr_rram {
+\tpartitions {
+\t\tcompatible = "fixed-partitions";
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\tranges;
+
+\t\tcpuflpr_code_partition: partition@0 {
+\t\t\tlabel = "image-0";
+\t\t\treg = <0x0 DT_SIZE_K(64)>;
+\t\t};
+\t};
+};
+
+&grtc {
+\towned-channels = <3 4>;
+\tstatus = "okay";
+};
+${uartStatusSection}
+&gpio0 {
+\tstatus = "okay";
+};
+
+&gpio1 {
+\tstatus = "okay";
+};
+
+&gpiote20 {
+\tstatus = "okay";
+};
+
+&gpiote30 {
+\tstatus = "okay";
+};
+`;
+
+    return content;
+  }
+
+  if (flprLayout.mode === "native") {
+    return `/dts-v1/;
+#include <nordic/${getMcuDtsiBaseName(mcu)}_cpuflpr.dtsi>
+#include "${state.boardInfo.name}_common.dtsi"
+
+/ {
+\tmodel = "${state.boardInfo.fullName} ${mcuUpper} FLPR MCU";
+\tcompatible = "${state.boardInfo.vendor},${state.boardInfo.name}-${mcu}-cpuflpr";
+
+\tchosen {
+${chosenUartLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
+\t\tzephyr,flash = &cpuflpr_rram;
+\t\tzephyr,sram = &cpuflpr_sram;
+\t};
+};
+
+&cpuflpr_sram {
+\tstatus = "okay";
+};
+
+&cpuflpr_rram {
+\tpartitions {
+\t\tcompatible = "fixed-partitions";
+\t\t#address-cells = <1>;
+\t\t#size-cells = <1>;
+\t\tranges;
+
+\t\tcpuflpr_code_partition: partition@0 {
+\t\t\tlabel = "image-0";
+\t\t\treg = <0x0 DT_SIZE_K(${flprLayout.flashKb})>;
+\t\t};
+\t};
+};
+
+&grtc {
+\towned-channels = <3 4>;
+\tstatus = "okay";
+};
+${uartStatusSection}
+&gpio0 {
+\tstatus = "okay";
+};
+
+&gpio1 {
+\tstatus = "okay";
+};
+
+${currentPackageHasPort2Pins() ? `\n&gpio2 {\n\tstatus = "okay";\n};\n` : ""}
+
+&gpiote20 {
+\tstatus = "okay";
+};
+
+&gpiote30 {
+\tstatus = "okay";
+};
+`;
   }
 
   return `/dts-v1/;
@@ -545,13 +1061,13 @@ ${chosenUartLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
 \t\tzephyr,sram = &cpuflpr_sram;
 \t};
 
-\tcpuflpr_sram: memory@20028000 {
+\tcpuflpr_sram: memory@${flprLayout.sramBase.slice(2)} {
 \t\tcompatible = "mmio-sram";
 \t\t/* Size must be increased due to booting from SRAM */
-\t\treg = <0x20028000 DT_SIZE_K(96)>;
+\t\treg = <${flprLayout.sramBase} DT_SIZE_K(${flprLayout.ramKb})>;
 \t\t#address-cells = <1>;
 \t\t#size-cells = <1>;
-\t\tranges = <0x0 0x20028000 0x18000>;
+\t\tranges = <0x0 ${flprLayout.sramBase} ${flprLayout.ramKb * 1024}>;
 \t\tstatus = "okay";
 \t};
 };
@@ -565,7 +1081,7 @@ ${chosenUartLines}\t\tzephyr,code-partition = &cpuflpr_code_partition;
 
 \t\tcpuflpr_code_partition: partition@0 {
 \t\t\tlabel = "image-0";
-\t\t\treg = <0x0 DT_SIZE_K(96)>;
+\t\t\treg = <0x0 DT_SIZE_K(${flprLayout.flashKb})>;
 \t\t};
 \t};
 };
@@ -583,9 +1099,7 @@ ${uartStatusSection}
 \tstatus = "okay";
 };
 
-&gpio2 {
-\tstatus = "okay";
-};
+${currentPackageHasPort2Pins() ? `\n&gpio2 {\n\tstatus = "okay";\n};\n` : ""}
 
 &gpiote20 {
 \tstatus = "okay";
@@ -598,6 +1112,8 @@ ${uartStatusSection}
 }
 
 export function generateFLPRXIPDts(mcu) {
+  const flprLayout = getFlprBuildLayout(mcu);
+
   return `/*
  * Copyright (c) 2025 Generated by nRF54L Pin Planner
  * SPDX-License-Identifier: Apache-2.0
@@ -606,20 +1122,22 @@ export function generateFLPRXIPDts(mcu) {
 #include "${state.boardInfo.name}_${mcu}_cpuflpr.dts"
 
 &cpuflpr_sram {
-\treg = <0x2002f000 DT_SIZE_K(68)>;
-\tranges = <0x0 0x2002f000 0x11000>;
+\treg = <${flprLayout.xipSramBase} DT_SIZE_K(${flprLayout.xipRamKb})>;
+\tranges = <0x0 ${flprLayout.xipSramBase} ${flprLayout.xipRamKb * 1024}>;
 };
 `;
 }
 
 export function generateFLPRYaml(mcu, isXIP) {
+  const flprLayout = getFlprBuildLayout(mcu);
   const identifier = isXIP
     ? `${state.boardInfo.name}/${mcu}/cpuflpr/xip`
     : `${state.boardInfo.name}/${mcu}/cpuflpr`;
   const name = isXIP
     ? `${state.boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor (RRAM XIP)`
     : `${state.boardInfo.fullName}-Fast-Lightweight-Peripheral-Processor`;
-  const ram = isXIP ? 68 : 96;
+  const ram = isXIP ? flprLayout.xipRamKb : flprLayout.ramKb;
+  const flash = isXIP ? flprLayout.xipFlashKb : flprLayout.flashKb;
 
   return `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
@@ -632,7 +1150,7 @@ toolchain:
   - zephyr
 sysbuild: true
 ram: ${ram}
-flash: 96
+flash: ${flash}
 supported:
   - counter
   - gpio
@@ -643,13 +1161,23 @@ supported:
 }
 
 export function generateFLPRDefconfig(isXIP, mcu) {
-  // Only enable UART configs if a console UART is selected
-  const hasConsoleUart = state.consoleUart !== null;
+  // Only enable UART configs if the exported board resolves a console UART
+  const hasConsoleUart = getFlprConsoleUartNodeName(mcu) !== null;
+  const consoleRoutingComment = getConsoleRoutingComment(mcu);
+  const flprConsoleHeadroomComment = getFlprConsoleHeadroomComment(mcu);
 
   let config = `# Copyright (c) 2025 Generated by nRF54L Pin Planner
 # SPDX-License-Identifier: Apache-2.0
 
 `;
+
+  if (consoleRoutingComment) {
+    config += `${consoleRoutingComment}\n\n`;
+  }
+
+  if (flprConsoleHeadroomComment) {
+    config += `${flprConsoleHeadroomComment}\n\n`;
+  }
 
   if (hasConsoleUart) {
     config += `# Enable UART driver
@@ -679,13 +1207,14 @@ CONFIG_RISCV_ALWAYS_SWITCH_THROUGH_ECALL=y
 }
 
 export function generateBoardYml(mcu, supportsNS, supportsFLPR) {
+  const supportsFLPRXIP = supportsFLPR && getMcuSupportsFLPRXIP(mcu);
   let socSection = `  socs:
     - name: ${mcu}`;
 
-  if (supportsNS || supportsFLPR) {
+  if (supportsNS || supportsFLPRXIP) {
     socSection += `
       variants:`;
-    if (supportsFLPR) {
+    if (supportsFLPRXIP) {
       socSection += `
         - name: xip
           cpucluster: cpuflpr`;
@@ -704,7 +1233,10 @@ export function generateBoardYml(mcu, supportsNS, supportsFLPR) {
   }
   if (supportsFLPR) {
     boardsList += `
-              - ${state.boardInfo.name}/${mcu}/cpuflpr
+              - ${state.boardInfo.name}/${mcu}/cpuflpr`;
+  }
+  if (supportsFLPRXIP) {
+    boardsList += `
               - ${state.boardInfo.name}/${mcu}/cpuflpr/xip`;
   }
 
@@ -830,9 +1362,23 @@ endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP_NS
 export function generateKconfigDefconfig(mcu, supportsNS) {
   const boardNameUpper = state.boardInfo.name.toUpperCase();
   const mcuUpper = mcu.toUpperCase();
+  const flprPmSramConfig = getFlprPartitionManagerSramConfig(mcu);
 
   let content = `# Copyright (c) 2024 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
+`;
+
+  if (mcu === "nrf54lv10a") {
+    content += `
+config SOC_NRF54LX_SKIP_GLITCHDETECTOR_DISABLE
+\tdefault y
+
+config NRF_RRAM_WRITE_BUFFER_SIZE
+\tdefault 16
+`;
+  }
+
+  content += `
 
 config HW_STACK_PROTECTION
 \tdefault ARCH_HAS_STACK_PROTECTION
@@ -845,6 +1391,21 @@ config ROM_START_OFFSET
 
 endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUAPP
 `;
+
+  if (flprPmSramConfig) {
+    content += `
+
+if BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR
+
+config PM_SRAM_BASE
+\tdefault ${flprPmSramConfig.base}
+
+config PM_SRAM_SIZE
+\tdefault ${flprPmSramConfig.size}
+
+endif # BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR
+`;
+  }
 
   if (supportsNS) {
     content += `
@@ -886,8 +1447,11 @@ config BOARD_${boardNameUpper}
 `;
 
   if (supportsFLPR) {
-    content += `\tselect SOC_${socBase}_CPUFLPR if BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR || \\
-\t\t\t\t\t    BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR_XIP
+    const flprSelectors = getMcuSupportsFLPRXIP(mcu)
+      ? `BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR || \\
+\t\t\t\t\t    BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR_XIP`
+      : `BOARD_${boardNameUpper}_${mcuUpper}_CPUFLPR`;
+    content += `\tselect SOC_${socBase}_CPUFLPR if ${flprSelectors}
 `;
   }
 
@@ -895,6 +1459,30 @@ config BOARD_${boardNameUpper}
 }
 
 export function generateReadme(mcu, pkg, supportsNS, supportsFLPR) {
+  const hasSpiDcxSelection = state.selectedPeripherals.some((p) =>
+    Object.values(p.pinFunctions || {}).includes("DCX"),
+  );
+  const consoleRoutingNote = getConsoleRoutingNote(mcu);
+  const flprConsoleHeadroomNote = getFlprConsoleHeadroomNote(mcu);
+  const tfmCmakeNote =
+    supportsNS &&
+    usesFixedNsTfmSecureUartRouting(mcu) &&
+    state.consoleUart !== null
+      ? `For \`cpuapp/ns\` builds on ${
+          mcu === "nrf54l10"
+            ? "nRF54L10"
+            : mcu === "nrf54lv10a"
+              ? "nRF54LV10A"
+              : mcu === "nrf54lm20a"
+                ? "nRF54LM20A"
+                : "nRF54L15"
+        }, TF-M secure UART routing is chosen by nRF Connect SDK TF-M CMake. Pin Planner cannot override that from the generator, so TF-M UART logging stays disabled in the exported board files.`
+      : "Review any TF-M, partition-manager, or board-runner settings required by your NCS version.";
+  const supportsFLPRXIP = supportsFLPR && getMcuSupportsFLPRXIP(mcu);
+  const flprBuildArgs = requiresDisabledVprLauncher(mcu)
+    ? " -- -DSB_CONFIG_VPR_LAUNCHER=n"
+    : "";
+
   let readme = `# ${state.boardInfo.fullName}
 
 **Generated by:** nRF54L Pin Planner
@@ -928,14 +1516,18 @@ ${state.boardInfo.revision ? `**Revision:** ${state.boardInfo.revision}\n` : ""}
     readme += `
    Or build for FLPR (Fast Lightweight Processor):
    \`\`\`bash
-   west build -b ${state.boardInfo.name}/${mcu}/cpuflpr samples/hello_world
+   west build -b ${state.boardInfo.name}/${mcu}/cpuflpr samples/hello_world${flprBuildArgs}
    \`\`\`
+`;
+    if (supportsFLPRXIP) {
+      readme += `
 
    Or build for FLPR with XIP (Execute In Place from RRAM):
    \`\`\`bash
    west build -b ${state.boardInfo.name}/${mcu}/cpuflpr/xip samples/hello_world
    \`\`\`
 `;
+    }
   }
 
   readme += `
@@ -988,6 +1580,21 @@ See \`${state.boardInfo.name}_${mcu}-pinctrl.dtsi\` for complete pin mapping.
 
 - This is a generated board definition. Verify pin assignments match your hardware.
 - Modify \`${state.boardInfo.name}_common.dtsi\` to add additional peripherals or features.
+- ${
+    consoleRoutingNote ||
+    "When you select a UART console, the exported board files keep one board-wide console choice that works across every generated target."
+  }
+- ${flprConsoleHeadroomNote || tfmCmakeNote}
+- ${
+    hasSpiDcxSelection
+      ? "Selected SPI `DCX` pins are not described by Zephyr's generic board-level SPIM bindings. The generated board files keep the SPI controller buildable and leave `DCX` for an application or shield overlay."
+      : "Add any application-specific SPI chip-select or display-control overlays required by your design."
+  }
+- ${
+    requiresDisabledVprLauncher(mcu)
+      ? "For nRF54L05 and nRF54L10 FLPR builds against nRF Connect SDK main, build custom FLPR board targets with `-DSB_CONFIG_VPR_LAUNCHER=n`. NCS main does not ship a matching VPR launcher snippet for these generated custom boards, and Pin Planner cannot supply that sysbuild CMake wiring from board files alone."
+      : "Use the default VPR launcher flow for FLPR targets unless your application provides its own multi-image sysbuild setup."
+  }
 - Consult the [nRF Connect SDK documentation](https://docs.nordicsemi.com/) for more information.
 `;
 
@@ -995,7 +1602,7 @@ See \`${state.boardInfo.name}_${mcu}-pinctrl.dtsi\` for complete pin mapping.
 }
 
 export function generatePinctrlForPeripheral(peripheral, template) {
-  if (template.noPinctrl) {
+  if (template.noPinctrl || template.type === "RADIO") {
     return "";
   }
 
@@ -1006,6 +1613,13 @@ export function generatePinctrlForPeripheral(peripheral, template) {
   const inputSignals = [];
 
   for (const [pinName, signalName] of Object.entries(peripheral.pinFunctions)) {
+    if (
+      template.type === "SPI" &&
+      !["SCK", "SDO", "SDI"].includes(signalName)
+    ) {
+      continue;
+    }
+
     const pinInfo = parsePinName(pinName);
     if (!pinInfo) continue;
 
@@ -1076,7 +1690,7 @@ export function generatePeripheralNode(peripheral, template) {
   let content = `\n&${nodeName} {\n`;
   content += `\tstatus = "okay";\n`;
 
-  if (!template.noPinctrl && pinctrlName) {
+  if (!template.noPinctrl && template.type !== "RADIO" && pinctrlName) {
     content += `\tpinctrl-0 = <&${pinctrlName}_default>;\n`;
     content += `\tpinctrl-1 = <&${pinctrlName}_sleep>;\n`;
     content += `\tpinctrl-names = "default", "sleep";\n`;
@@ -1090,6 +1704,16 @@ export function generatePeripheralNode(peripheral, template) {
       }
       break;
     case "SPI":
+      const dcxPin = Object.keys(peripheral.pinFunctions).find(
+        (pin) => peripheral.pinFunctions[pin] === "DCX",
+      );
+      if (dcxPin) {
+        const dcxPinInfo = parsePinName(dcxPin);
+        if (dcxPinInfo) {
+          content += `\t/* DCX pin: P${dcxPinInfo.port}.${dcxPinInfo.pin} (application or shield overlay required) */\n`;
+        }
+      }
+
       if (template.outOfBandSignals) {
         template.outOfBandSignals.forEach((signal) => {
           const pin = Object.keys(peripheral.pinFunctions).find(
@@ -1136,6 +1760,17 @@ export function generatePeripheralNode(peripheral, template) {
           content += `\tcs-gpios = ${csGpioEntries.join(",\n\t\t   ")};\n`;
         }
       }
+      break;
+    case "RADIO":
+      Object.entries(peripheral.pinFunctions).forEach(([pin, signal]) => {
+        const match = signal.match(/^RADIO\[(\d+)\]$/);
+        const pinInfo = parsePinName(pin);
+        if (!match || !pinInfo) {
+          return;
+        }
+
+        content += `\tdfegpio${match[1]}-gpios = <&gpio${pinInfo.port} ${pinInfo.pin} 0>;\n`;
+      });
       break;
     case "I2C":
       content += `\tclock-frequency = <I2C_BITRATE_STANDARD>;\n`;
