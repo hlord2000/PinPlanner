@@ -9,11 +9,15 @@
     "validate:schemas": "node ci/validate-mcu-schemas.js",
     "smoke-test": "node ci/smoke-test.js",
     "generate-test-boards": "node ci/generate-test-boards.js",
+    "generate:closed-loop-matrix": "node ci/closed-loop-matrix.js",
+    "export:site-zips": "node ci/export-site-zips.js",
+    "build:exported-boards": "node ci/build-exported-boards.js",
     "extract-devkits": "node ci/extract-devkit-configs.js",
     "test": "npm run format:check && npm run validate:schemas && npm run smoke-test"
   },
   "devDependencies": {
-    "prettier": "^3.2.0",
-    "ajv": "^8.12.0"
+    "@playwright/test": "^1.55.0",
+    "ajv": "^8.12.0",
+    "prettier": "^3.2.0"
   }
 }

@@ -904,6 +904,11 @@ option:disabled {
   margin-bottom: 0.5rem;
 }
 
+#consoleLimitationNote {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
 .console-warning {
   background-color: #fff3cd;
   color: #856404;
