@@ -1131,230 +1131,230 @@
       "id": "SPIM/SPIS20",
       "type": "SPI",
       "baseAddress": "0x400C6000",
-      "description": "SPIM/SPIS for GPIO port 1",
+      "description": "SPIM/SPIS for GPIO port 1 or 3",
       "signals": [
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "TWIM/TWIS20",
       "type": "TWI",
       "baseAddress": "0x400C6000",
-      "description": "TWIM/TWIS for GPIO port 1",
+      "description": "TWIM/TWIS for GPIO port 1 or 3",
       "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*"] }
+        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "UARTE20",
       "type": "UART",
       "baseAddress": "0x400C6000",
-      "description": "UARTE for GPIO port 1",
+      "description": "UARTE for GPIO port 1 or 3",
       "signals": [
-        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "SPIM/SPIS21",
       "type": "SPI",
       "baseAddress": "0x400C7000",
-      "description": "SPIM/SPIS for GPIO port 1",
+      "description": "SPIM/SPIS for GPIO port 1 or 3",
       "signals": [
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "TWIM/TWIS21",
       "type": "TWI",
       "baseAddress": "0x400C7000",
-      "description": "TWIM/TWIS for GPIO port 1",
+      "description": "TWIM/TWIS for GPIO port 1 or 3",
       "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*"] }
+        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "UARTE21",
       "type": "UART",
       "baseAddress": "0x400C7000",
-      "description": "UARTE for GPIO port 1",
+      "description": "UARTE for GPIO port 1 or 3",
       "signals": [
-        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "SPIM/SPIS22",
       "type": "SPI",
       "baseAddress": "0x400C8000",
-      "description": "SPIM/SPIS for GPIO port 1",
+      "description": "SPIM/SPIS for GPIO port 1 or 3",
       "signals": [
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "TWIM/TWIS22",
       "type": "TWI",
       "baseAddress": "0x400C8000",
-      "description": "TWIM/TWIS for GPIO port 1",
+      "description": "TWIM/TWIS for GPIO port 1 or 3",
       "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*"] }
+        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "UARTE22",
       "type": "UART",
       "baseAddress": "0x400C8000",
-      "description": "UARTE for GPIO port 1",
+      "description": "UARTE for GPIO port 1 or 3",
       "signals": [
-        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "SPIM/SPIS23",
       "type": "SPI",
       "baseAddress": "0x400ED000",
-      "description": "SPIM/SPIS for GPIO port 1",
+      "description": "SPIM/SPIS for GPIO port 1 or 3",
       "signals": [
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "TWIM/TWIS23",
       "type": "TWI",
       "baseAddress": "0x400ED000",
-      "description": "TWIM/TWIS for GPIO port 1",
+      "description": "TWIM/TWIS for GPIO port 1 or 3",
       "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*"] }
+        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "UARTE23",
       "type": "UART",
       "baseAddress": "0x400ED000",
-      "description": "UARTE for GPIO port 1",
+      "description": "UARTE for GPIO port 1 or 3",
       "signals": [
-        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "SPIM/SPIS24",
       "type": "SPI",
       "baseAddress": "0x400EE000",
-      "description": "SPIM/SPIS for GPIO port 1",
+      "description": "SPIM/SPIS for GPIO port 1 or 3",
       "signals": [
         {
           "name": "SCK",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*"] },
-        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "SDO", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "SDI", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CSN", "direction": "inout", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "DCX", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "TWIM/TWIS24",
       "type": "TWI",
       "baseAddress": "0x400EE000",
-      "description": "TWIM/TWIS for GPIO port 1",
+      "description": "TWIM/TWIS for GPIO port 1 or 3",
       "tags": ["I2C"],
       "signals": [
         {
           "name": "SCL",
           "direction": "inout",
-          "allowedGpio": ["P1*"],
+          "allowedGpio": ["P1*", "P3*"],
           "requiresClockCapablePin": true
         },
-        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*"] }
+        { "name": "SDA", "direction": "inout", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
       "id": "UARTE24",
       "type": "UART",
       "baseAddress": "0x400EE000",
-      "description": "UARTE for GPIO port 1",
+      "description": "UARTE for GPIO port 1 or 3",
       "signals": [
-        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*"] },
-        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*"] },
-        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*"] }
+        { "name": "TXD", "direction": "output", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RXD", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "CTS", "direction": "input", "allowedGpio": ["P1*", "P3*"] },
+        { "name": "RTS", "direction": "output", "allowedGpio": ["P1*", "P3*"] }
       ]
     },
     {
