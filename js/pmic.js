@@ -33,8 +33,17 @@ function getI2cPeripherals() {
 
   return state.mcuData.socPeripherals
     .filter((peripheral) => {
-      const template = state.deviceTreeTemplates?.[peripheral.id];
-      return template?.type === "I2C";
+      const hasI2cSignals =
+        Array.isArray(peripheral.signals) &&
+        peripheral.signals.some((signal) => signal.name === "SCL") &&
+        peripheral.signals.some((signal) => signal.name === "SDA");
+
+      return (
+        hasI2cSignals &&
+        (peripheral.type === "TWI" ||
+          peripheral.tags?.includes("I2C") ||
+          state.deviceTreeTemplates?.[peripheral.id]?.type === "I2C")
+      );
     })
     .sort((a, b) => a.id.localeCompare(b.id));
 }
@@ -231,6 +240,12 @@ function sortGpioPins(pins) {
   });
 }
 
+function pinMatchesAllowedGpio(pin, allowedGpio) {
+  return allowedGpio.endsWith("*")
+    ? pin.port === allowedGpio.slice(0, -1)
+    : pin.name === allowedGpio;
+}
+
 function getPinsForI2cSignal(peripheral, signalName) {
   const signal = peripheral?.signals?.find((s) => s.name === signalName);
   if (!signal || !Array.isArray(state.mcuData?.pins)) {
@@ -242,9 +257,7 @@ function getPinsForI2cSignal(peripheral, signalName) {
     if (signal.requiresClockCapablePin && !pin.isClockCapable) return false;
 
     return signal.allowedGpio.some((allowed) =>
-      allowed.endsWith("*")
-        ? pin.port === allowed.slice(0, -1)
-        : pin.name === allowed,
+      pinMatchesAllowedGpio(pin, allowed),
     );
   });
 
@@ -258,6 +271,32 @@ function getDigitalIoPins() {
 
   return sortGpioPins(
     state.mcuData.pins.filter((pin) => pin.functions?.includes("Digital I/O")),
+  );
+}
+
+function getGpiotePins() {
+  if (
+    !Array.isArray(state.mcuData?.pins) ||
+    !Array.isArray(state.mcuData?.socPeripherals)
+  ) {
+    return [];
+  }
+
+  const allowedGpio = state.mcuData.socPeripherals
+    .filter((peripheral) => peripheral.type === "GPIOTE")
+    .flatMap((peripheral) => peripheral.signals || [])
+    .flatMap((signal) => signal.allowedGpio || []);
+
+  if (allowedGpio.length === 0) {
+    return [];
+  }
+
+  return sortGpioPins(
+    state.mcuData.pins.filter(
+      (pin) =>
+        pin.functions?.includes("Digital I/O") &&
+        allowedGpio.some((allowed) => pinMatchesAllowedGpio(pin, allowed)),
+    ),
   );
 }
 
@@ -426,14 +465,6 @@ export function renderPmicPanel() {
   }
 
   panel.innerHTML = `
-    <div class="pmic-hero">
-      <div>
-        <div class="pmic-eyebrow">Board power</div>
-        <h3>Add a PMIC!</h3>
-        <p>Drop in a Nordic power companion with I2C pins, regulators, LEDs, GPIO, and fuel-gauge settings.</p>
-      </div>
-      <span class="pmic-chip">NEW</span>
-    </div>
     <div class="pmic-card-grid">
       ${Object.values(PMIC_DEFINITIONS).map(renderPmicCard).join("")}
     </div>
@@ -574,7 +605,7 @@ function renderI2cSection() {
 
 function renderHostInterruptSection(definition) {
   const host = tempPmicConfig.hostInterrupt || {};
-  const hostPins = getDigitalIoPins();
+  const hostPins = getGpiotePins();
   const sclPin = getSignalPin(tempPmicConfig, "SCL");
   const sdaPin = getSignalPin(tempPmicConfig, "SDA");
   const pmicPins = Array.from(
@@ -1202,6 +1233,11 @@ function validatePmicConfig(config) {
   if (config.hostInterrupt.enabled) {
     if (!config.hostInterrupt.hostPin) {
       return "Select a host GPIO for the PMIC interrupt.";
+    }
+    if (
+      !getGpiotePins().some((pin) => pin.name === config.hostInterrupt.hostPin)
+    ) {
+      return "The PMIC interrupt host pin must support GPIOTE.";
     }
     if ([sclPin, sdaPin].includes(config.hostInterrupt.hostPin)) {
       return "The PMIC interrupt cannot share the I2C pins.";

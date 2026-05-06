@@ -1,6 +1,6 @@
-# Nordic Pin Planner
+# Nordic Semiconductor Pin Planner
 
-Nordic Pin Planner is an unofficial web-based tool designed to help developers visualize and plan pin assignments for Nordic Semiconductor's nRF54L series microcontrollers.
+Nordic Semiconductor Pin Planner is an unofficial web-based tool designed to help developers visualize and plan pin assignments for Nordic Semiconductor's nRF54L series microcontrollers.
 
 Find the live site here: https://pinplanner.app
 

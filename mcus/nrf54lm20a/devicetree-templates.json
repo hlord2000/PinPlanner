@@ -122,6 +122,33 @@
         "SDA": "TWIM_SDA"
       }
     },
+    "TWIM/TWIS23": {
+      "dtNodeName": "i2c23",
+      "pinctrlBaseName": "i2c23",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "TWIM/TWIS24": {
+      "dtNodeName": "i2c24",
+      "pinctrlBaseName": "i2c24",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
+    "TWIM/TWIS30": {
+      "dtNodeName": "i2c30",
+      "pinctrlBaseName": "i2c30",
+      "type": "I2C",
+      "signalMappings": {
+        "SCL": "TWIM_SCL",
+        "SDA": "TWIM_SDA"
+      }
+    },
     "PWM20": {
       "dtNodeName": "pwm20",
       "pinctrlBaseName": "pwm20",

@@ -19,13 +19,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" type="image/png" href="favicon.png" />
-    <title>nRF54L Pin Planner | by Helmut Lord</title>
+    <title>Nordic Semiconductor Pin Planner | by Helmut Lord</title>
   </head>
   <body>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem("theme");
+          const prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+          if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+            document.body.classList.add("dark-mode");
+          }
+        } catch {
+          // Keep the default light theme when storage or media queries are unavailable.
+        }
+      })();
+    </script>
     <div class="container">
       <header class="header">
         <div class="header-title">
-          <h1>nRF54L Pin Planner</h1>
+          <h1>Nordic Semiconductor Pin Planner</h1>
           <p class="subtitle">
             Created by
             <a href="https://www.linkedin.com/in/helmutlord/" target="_blank"

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Nordic Pin Planner is an **unofficial** web-based tool for visualizing and planning pin assignments for Nordic Semiconductor's nRF54L series microcontrollers. It generates Zephyr RTOS board definition files based on user configurations.
+Nordic Semiconductor Pin Planner is an **unofficial** web-based tool for visualizing and planning pin assignments for Nordic Semiconductor's nRF54L series microcontrollers. It generates Zephyr RTOS board definition files based on user configurations.
 
 **Important**: This is NOT an official Nordic Semiconductor application. All configurations must be verified against official documentation.
 

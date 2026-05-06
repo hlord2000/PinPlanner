@@ -37,6 +37,22 @@ function check(label, condition, detail) {
   }
 }
 
+function isI2cPeripheral(peripheral) {
+  const signalNames = new Set(
+    Array.isArray(peripheral.signals)
+      ? peripheral.signals.map((signal) => signal.name)
+      : [],
+  );
+
+  return (
+    signalNames.has("SCL") &&
+    signalNames.has("SDA") &&
+    (peripheral.type === "TWI" ||
+      peripheral.tags?.includes("I2C") ||
+      peripheral.id.startsWith("TWIM/"))
+  );
+}
+
 // -----------------------------------------------------------------------
 // 1. Load and validate manifest.json
 // -----------------------------------------------------------------------
@@ -348,6 +364,34 @@ for (const mcu of manifest.mcus) {
     if (!templateIds.has(pId)) {
       console.log(
         `  INFO: ${mcu.id}: peripheral "${pId}" has no devicetree template (may be intentional)`,
+      );
+    }
+  }
+
+  for (const pkg of mcu.packages || []) {
+    if (getDevicetreeExportUnsupportedReason(manifest, mcu.id, pkg.file)) {
+      continue;
+    }
+
+    const candidatePkgPath = resolve(MCUS_DIR, mcu.id, `${pkg.file}.json`);
+    if (!existsSync(candidatePkgPath)) continue;
+
+    let candidatePkgData;
+    try {
+      candidatePkgData = loadResolvedPackageData(candidatePkgPath);
+    } catch {
+      continue;
+    }
+
+    if (!Array.isArray(candidatePkgData.socPeripherals)) continue;
+
+    for (const peripheral of candidatePkgData.socPeripherals.filter(
+      isI2cPeripheral,
+    )) {
+      check(
+        `${mcu.id}/${pkg.file}: I2C peripheral "${peripheral.id}" has an I2C devicetree template`,
+        dtData.templates[peripheral.id]?.type === "I2C",
+        `Missing or non-I2C template for ${peripheral.id}`,
       );
     }
   }

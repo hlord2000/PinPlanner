@@ -1,6 +1,6 @@
-# Pin Planner Testing Guide
+# Nordic Semiconductor Pin Planner Testing Guide
 
-This document provides a testing prompt for iterative testing of the nRF54L Pin Planner application using Playwright or manual browser testing.
+This document provides a testing prompt for iterative testing of the Nordic Semiconductor Pin Planner application using Playwright or manual browser testing.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ This document provides a testing prompt for iterative testing of the nRF54L Pin 
 ## Automated Testing Prompt (for Claude Code with Playwright)
 
 ```
-Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on the Pin Planner application:
+Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on the Nordic Semiconductor Pin Planner application:
 
 ### 1. Initial Load Verification
 - Verify the page loads with default MCU (nRF54LV10A) and package (QFN-48)
@@ -182,7 +182,7 @@ Using Playwright, navigate to 0.0.0.0:8000 and perform the following tests on th
 Normal operation should show:
 
 ```
-Initializing nRF54L Pin Planner...
+Initializing Nordic Semiconductor Pin Planner...
 Loaded data for [MCU]-[Package]
 State loaded for pinPlannerConfig-[mcu]-[package]  (or "No saved state found")
 Initialization complete. Peripherals loaded: [count]

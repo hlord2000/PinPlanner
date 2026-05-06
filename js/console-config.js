@@ -94,7 +94,7 @@ export function updateConsoleConfig() {
                 ? "nrf54l15"
                 : mcu;
       limitationNote.textContent = showNsNote
-        ? `For ${mcuLabel} cpuapp/ns builds, TF-M secure UART selection comes from nRF Connect SDK TF-M CMake. Pin Planner cannot override it from generated board files, so TF-M UART logging stays disabled in the export.`
+        ? `For ${mcuLabel} cpuapp/ns builds, TF-M secure UART selection comes from nRF Connect SDK TF-M CMake. Nordic Semiconductor Pin Planner cannot override it from generated board files, so TF-M UART logging stays disabled in the export.`
         : "";
       limitationNote.style.display = showNsNote ? "" : "none";
     }
