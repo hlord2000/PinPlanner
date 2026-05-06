@@ -17,6 +17,7 @@ import { createPinLayout, updatePinDisplay } from "./pin-layout.js";
 import { updateSelectedPeripheralsList } from "./ui/selected-list.js";
 import { updateConsoleConfig } from "./console-config.js";
 import { updateExportButtonState } from "./export.js";
+import { renderPmicPanel } from "./pmic.js";
 
 function mergePackageData(baseData, overrideData) {
   const merged = {
@@ -251,6 +252,7 @@ export function reinitializeView(clearOnly = false) {
   if (clearOnly || !state.mcuData.partInfo) {
     document.getElementById("chipTitleDisplay").textContent = "No MCU Loaded";
     organizePeripherals();
+    renderPmicPanel();
     createPinLayout();
     updateSelectedPeripheralsList();
     updatePinDisplay();
@@ -292,6 +294,7 @@ export function reinitializeView(clearOnly = false) {
   }
 
   organizePeripherals();
+  renderPmicPanel();
   updateSelectedPeripheralsList();
   updatePinDisplay();
   updateConsoleConfig();

@@ -334,6 +334,11 @@ export function removePeripheral(id) {
   if (index === -1) return;
 
   const peripheral = state.selectedPeripherals[index];
+  if (peripheral.config?.pmicOwned) {
+    import("./pmic.js").then((module) => module.removePmicConfig());
+    return;
+  }
+
   const peripheralData = state.mcuData.socPeripherals.find((p) => p.id === id);
 
   const checkbox = document.getElementById(`${id.toLowerCase()}-checkbox`);
@@ -378,6 +383,12 @@ export function removePeripheral(id) {
 }
 
 export function editPeripheral(id) {
+  const selected = state.selectedPeripherals.find((p) => p.id === id);
+  if (selected?.config?.pmicOwned) {
+    import("./pmic.js").then((module) => module.openPmicModal());
+    return;
+  }
+
   const gpioPeripheral = state.selectedPeripherals.find(
     (p) => p.id === id && p.type === "GPIO",
   );
@@ -398,7 +409,6 @@ export function editPeripheral(id) {
     return;
   }
 
-  const selected = state.selectedPeripherals.find((p) => p.id === id);
   if (!selected) return;
   openPinSelectionModal(
     selected.peripheral,

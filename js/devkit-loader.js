@@ -8,6 +8,7 @@ import { updatePinDisplay } from "./pin-layout.js";
 import { updateSelectedPeripheralsList } from "./ui/selected-list.js";
 import { updateConsoleConfig } from "./console-config.js";
 import { showToast } from "./ui/notifications.js";
+import { renderPmicPanel } from "./pmic.js";
 
 export async function loadDevkitConfig(boardName) {
   if (!boardName) {
@@ -133,6 +134,7 @@ function applyDevkitConfig(devkitData) {
   }
 
   organizePeripherals();
+  renderPmicPanel();
   updateSelectedPeripheralsList();
   updatePinDisplay();
   updateConsoleConfig();

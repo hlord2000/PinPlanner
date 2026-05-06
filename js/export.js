@@ -25,6 +25,8 @@ import {
   generateFLPRXIPDts,
   generatePinctrlForPeripheral,
   generatePeripheralNode,
+  generatePmicIncludes,
+  generatePmicNode,
 } from "./devicetree.js";
 import { getDevicetreeExportUnsupportedReason } from "./mcu-manifest.js";
 import { parsePinName } from "./utils.js";
@@ -348,6 +350,7 @@ function exportOverlay() {
  * definition based on your hardware design.
  */
 
+${generatePmicIncludes()}
 `;
 
   // Generate overlay nodes for peripherals that differ from devkit base
@@ -367,6 +370,8 @@ function exportOverlay() {
       }
     }
   });
+
+  overlayContent += generatePmicNode();
 
   // Check if we need a pinctrl overlay
   let pinctrlContent = "";

@@ -2,12 +2,17 @@
 
 import state from "../state.js";
 import { removePeripheral, editPeripheral } from "../peripherals.js";
+import { getPmicDefinition } from "../pmic-data.js";
 
 export function updateSelectedPeripheralsList() {
   const selectedList = document.getElementById("selectedList");
   selectedList.innerHTML = "";
 
-  if (state.selectedPeripherals.length === 0) {
+  let visiblePeripherals = state.selectedPeripherals.filter(
+    (peripheral) => peripheral.config?.pmicOwned !== true,
+  );
+
+  if (visiblePeripherals.length === 0 && !state.pmicConfig) {
     selectedList.innerHTML =
       '<li class="empty-message">No peripherals selected yet.</li>';
     return;
@@ -28,7 +33,15 @@ export function updateSelectedPeripheralsList() {
     uniquePeripherals.forEach((p) => state.selectedPeripherals.push(p));
   }
 
-  state.selectedPeripherals.forEach((p) => {
+  visiblePeripherals = state.selectedPeripherals.filter(
+    (peripheral) => peripheral.config?.pmicOwned !== true,
+  );
+
+  if (state.pmicConfig) {
+    selectedList.appendChild(createPmicSelectedItem());
+  }
+
+  visiblePeripherals.forEach((p) => {
     const item = document.createElement("li");
     item.className = "selected-item";
 
@@ -107,4 +120,43 @@ export function updateSelectedPeripheralsList() {
     item.addEventListener("click", () => editPeripheral(p.id));
     selectedList.appendChild(item);
   });
+}
+
+function createPmicSelectedItem() {
+  const definition = getPmicDefinition(state.pmicConfig.id);
+  const item = document.createElement("li");
+  item.className = "selected-item";
+
+  const regulatorCount = Object.values(
+    state.pmicConfig.regulators || {},
+  ).filter((regulator) => regulator.enabled).length;
+  const fuelGaugeModel = definition?.fuelGaugeModels?.options.find(
+    (model) => model.id === state.pmicConfig.fuelGauge?.model,
+  );
+  const i2cPins = Object.entries(state.pmicConfig.i2cPinFunctions || {})
+    .map(([pin, signal]) => `${signal}: ${pin}`)
+    .join(", ");
+
+  item.innerHTML = `
+    <div>
+      <strong>PMIC: ${definition?.name || state.pmicConfig.id}</strong>
+      <div>${state.pmicConfig.i2cPeripheralId || "I2C not set"}${i2cPins ? ` (${i2cPins})` : ""}; ${regulatorCount} regulators; ${
+        state.pmicConfig.fuelGauge?.enabled
+          ? fuelGaugeModel?.label || "fuel gauge"
+          : "fuel gauge off"
+      }</div>
+    </div>
+    <button class="remove-btn" data-id="PMIC">Remove</button>
+  `;
+
+  item.querySelector(".remove-btn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    import("../pmic.js").then((module) => module.removePmicConfig());
+  });
+
+  item.addEventListener("click", () => {
+    import("../pmic.js").then((module) => module.openPmicModal());
+  });
+
+  return item;
 }

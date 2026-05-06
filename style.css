@@ -148,6 +148,86 @@ a:hover {
   font-size: 0.85rem;
 }
 
+.pmic-feature-callout {
+  align-items: center;
+  animation: pmic-callout-glow 1s ease-out 0.35s 1;
+  appearance: none;
+  background:
+    linear-gradient(90deg, rgba(122, 214, 230, 0.2), transparent 58%),
+    var(--card-bg);
+  border: 1px solid rgba(122, 214, 230, 0.5);
+  border-radius: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 1rem;
+  justify-content: space-between;
+  margin: -0.5rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  width: 100%;
+}
+
+.pmic-feature-callout:hover,
+.pmic-feature-callout:focus-visible {
+  border-color: var(--primary-hover);
+  box-shadow: 0 0 0 3px rgba(122, 214, 230, 0.16);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.pmic-feature-text {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+}
+
+.pmic-feature-text strong {
+  color: var(--primary-hover);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.pmic-feature-text span:last-child {
+  color: var(--light-text);
+  font-size: 0.9rem;
+}
+
+body.dark-mode .pmic-feature-callout {
+  background:
+    linear-gradient(90deg, rgba(45, 212, 191, 0.14), transparent 58%),
+    var(--card-bg);
+}
+
+@keyframes pmic-callout-glow {
+  0% {
+    border-color: rgba(122, 214, 230, 0.5);
+    box-shadow: 0 0 0 rgba(122, 214, 230, 0);
+  }
+  35% {
+    border-color: var(--primary-hover);
+    box-shadow:
+      0 0 0 4px rgba(122, 214, 230, 0.18),
+      0 0 28px rgba(122, 214, 230, 0.45);
+  }
+  100% {
+    border-color: rgba(122, 214, 230, 0.5);
+    box-shadow: 0 0 0 rgba(122, 214, 230, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pmic-feature-callout {
+    animation: none;
+  }
+}
+
 .github-link {
   display: flex;
   align-items: center;
@@ -769,6 +849,7 @@ option:disabled {
 }
 
 .form-group input[type="text"],
+.form-group input[type="number"],
 .form-group textarea,
 .form-group select {
   width: 100%;
@@ -782,6 +863,7 @@ option:disabled {
 }
 
 .form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
@@ -888,6 +970,265 @@ option:disabled {
   box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.2) !important;
 }
 
+/* --- PMIC CONFIGURATION --- */
+.pmic-panel {
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
+.pmic-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid rgba(122, 214, 230, 0.45);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(122, 214, 230, 0.15), transparent 55%),
+    var(--bg-color);
+}
+
+.pmic-hero h3 {
+  margin: 0.15rem 0;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.pmic-hero p {
+  color: var(--light-text);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.pmic-hero-selected {
+  border-color: rgba(91, 192, 222, 0.55);
+  background:
+    linear-gradient(135deg, rgba(91, 192, 222, 0.18), transparent 60%),
+    var(--bg-color);
+}
+
+.pmic-eyebrow {
+  color: var(--primary-hover);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pmic-chip,
+.pmic-badges span {
+  align-self: flex-start;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 173, 78, 0.5);
+  background-color: rgba(240, 173, 78, 0.13);
+  color: var(--warning-color);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  white-space: nowrap;
+}
+
+.pmic-card-grid {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.pmic-card {
+  width: 100%;
+  background-color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 0.85rem;
+  text-align: left;
+}
+
+.pmic-card:hover {
+  background-color: var(--border-color);
+}
+
+.pmic-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.pmic-card-top span {
+  color: var(--light-text);
+  font-size: 0.8rem;
+}
+
+.pmic-card-headline {
+  color: var(--primary-hover);
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.pmic-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+}
+
+.pmic-summary {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.86rem;
+  margin: 0.8rem 0;
+}
+
+.pmic-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+}
+
+#pmicConfigModal {
+  align-items: center;
+  box-sizing: border-box;
+  justify-content: center;
+  padding: 1rem;
+}
+
+#pmicModalBody {
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+}
+
+.pmic-modal-content {
+  margin: 0;
+  max-width: 980px;
+  max-height: calc(100vh - 2rem);
+}
+
+.pmic-modal-intro {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.pmic-modal-intro span,
+.pmic-help {
+  color: var(--light-text);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.pmic-config-section {
+  border-top: 1px solid var(--border-color);
+  padding: 1rem 0;
+}
+
+.pmic-config-section h4 {
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.pmic-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pmic-checkbox-row,
+.pmic-inline-check {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pmic-dvs-grid,
+.pmic-regulator-list {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.pmic-dvs-row,
+.pmic-control-row,
+.pmic-regulator-main {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.pmic-dvs-row {
+  grid-template-columns: minmax(130px, 0.75fr) minmax(150px, 1fr) minmax(
+      125px,
+      0.75fr
+    );
+}
+
+.pmic-regulator-row {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.pmic-regulator-main {
+  grid-template-columns:
+    minmax(130px, 1fr) minmax(120px, 0.8fr) minmax(110px, 0.75fr)
+    minmax(130px, 0.9fr) minmax(120px, 0.8fr);
+}
+
+.pmic-regulator-controls {
+  border-top: 1px dashed var(--border-color);
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+}
+
+.pmic-control-row {
+  grid-template-columns:
+    minmax(190px, 1.1fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr)
+    minmax(150px, 0.8fr);
+}
+
+.pmic-control-row select:last-child:nth-child(4) {
+  grid-column: auto;
+}
+
+.pmic-control-row label,
+.pmic-dvs-row label,
+.pmic-regulator-main label {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.validation-message {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  color: #721c24;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+}
+
+body.dark-mode .pmic-hero,
+body.dark-mode .pmic-hero-selected {
+  background:
+    linear-gradient(135deg, rgba(45, 212, 191, 0.12), transparent 60%),
+    var(--bg-color);
+}
+
+body.dark-mode .validation-message {
+  background-color: rgba(229, 115, 115, 0.2);
+  border-color: rgba(229, 115, 115, 0.3);
+  color: #e57373;
+}
+
 /* --- RESPONSIVE DESIGN --- */
 
 /* Desktop (default): 3-column grid - already defined as 380px 1fr 380px */
@@ -905,6 +1246,12 @@ option:disabled {
 /* Small tablet (<900px): single column */
 @media (max-width: 899px) {
   .content-grid {
+    grid-template-columns: 1fr;
+  }
+  .pmic-form-grid,
+  .pmic-dvs-row,
+  .pmic-regulator-main,
+  .pmic-control-row {
     grid-template-columns: 1fr;
   }
 }
@@ -927,6 +1274,10 @@ option:disabled {
   }
   .footer .github-link {
     justify-self: center;
+  }
+  .pmic-feature-callout {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
