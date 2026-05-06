@@ -4,7 +4,8 @@ import state from "./state.js";
 import {
   resetState,
   loadStateFromLocalStorage,
-  saveStateToLocalStorage,
+  getSavedPartPackageSelection,
+  savePartPackageSelection,
 } from "./state.js";
 import {
   organizePeripherals,
@@ -133,6 +134,7 @@ export async function initializeApp() {
 
 export function populateMcuSelector() {
   const mcuSelector = document.getElementById("mcuSelector");
+  const savedSelection = getSavedPartPackageSelection();
   mcuSelector.innerHTML = "";
   state.mcuManifest.mcus.forEach((mcu) => {
     const option = document.createElement("option");
@@ -141,13 +143,27 @@ export function populateMcuSelector() {
     option.dataset.packages = JSON.stringify(mcu.packages);
     mcuSelector.appendChild(option);
   });
-  handleMcuChange();
+
+  if (
+    savedSelection &&
+    Array.from(mcuSelector.options).some(
+      (option) => option.value === savedSelection.mcu,
+    )
+  ) {
+    mcuSelector.value = savedSelection.mcu;
+  }
+
+  handleMcuChange({ restoreSavedPackage: true });
 }
 
-export async function handleMcuChange() {
+export async function handleMcuChange(options = {}) {
   const mcuSelector = document.getElementById("mcuSelector");
   const packageSelector = document.getElementById("packageSelector");
   const selectedMcuOption = mcuSelector.options[mcuSelector.selectedIndex];
+  const savedSelection =
+    options.restoreSavedPackage === true
+      ? getSavedPartPackageSelection()
+      : null;
 
   if (!selectedMcuOption) return;
 
@@ -161,9 +177,18 @@ export async function handleMcuChange() {
       option.textContent = pkg.name;
       packageSelector.appendChild(option);
     });
+    if (
+      savedSelection?.mcu === mcuSelector.value &&
+      Array.from(packageSelector.options).some(
+        (option) => option.value === savedSelection.package,
+      )
+    ) {
+      packageSelector.value = savedSelection.package;
+    }
     updateExportButtonState();
     await loadCurrentMcuData();
   } else {
+    savePartPackageSelection(mcuSelector.value, "");
     updateExportButtonState();
     reinitializeView(true);
   }
@@ -177,6 +202,7 @@ export async function handlePackageChange() {
 export async function loadCurrentMcuData() {
   const mcu = document.getElementById("mcuSelector").value;
   const pkg = document.getElementById("packageSelector").value;
+  savePartPackageSelection(mcu, pkg);
   if (mcu && pkg) {
     await loadMCUData(mcu, pkg);
   }

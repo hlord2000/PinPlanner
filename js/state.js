@@ -18,6 +18,43 @@ export default state;
 
 // --- PERSISTENCE ---
 
+const SELECTED_PART_PACKAGE_KEY = "pinPlannerSelectedPartPackage";
+
+export function getSavedPartPackageSelection() {
+  const savedSelection = localStorage.getItem(SELECTED_PART_PACKAGE_KEY);
+  if (!savedSelection) return null;
+
+  try {
+    const selection = JSON.parse(savedSelection);
+    if (
+      !selection ||
+      typeof selection.mcu !== "string" ||
+      typeof selection.package !== "string"
+    ) {
+      localStorage.removeItem(SELECTED_PART_PACKAGE_KEY);
+      return null;
+    }
+
+    return selection;
+  } catch (error) {
+    console.error("Failed to load saved MCU/package selection:", error);
+    localStorage.removeItem(SELECTED_PART_PACKAGE_KEY);
+    return null;
+  }
+}
+
+export function savePartPackageSelection(mcu, pkg) {
+  if (!mcu) return;
+
+  localStorage.setItem(
+    SELECTED_PART_PACKAGE_KEY,
+    JSON.stringify({
+      mcu,
+      package: pkg || "",
+    }),
+  );
+}
+
 export function getPersistenceKey() {
   const mcu = document.getElementById("mcuSelector").value;
   const pkg = document.getElementById("packageSelector").value;
