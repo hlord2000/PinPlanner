@@ -2,8 +2,8 @@
   "$schema": "../mcuSchema.json",
   "partInfo": {
     "partNumber": "nRF54LM20A-PAAA",
-    "packageType": "FCCSP-98",
-    "sizeDescription": "3.67x3.85mm FCCSP-98",
+    "packageType": "CSP-98",
+    "sizeDescription": "3.67x3.85mm CSP-98",
     "datasheetVersion": "https://docs-be.nordicsemi.com/bundle/ps_nrf54LM20A/page/pdf/nRF54LM20A_Preliminary_Datasheet_v0.7.pdf"
   },
   "renderConfig": {
