@@ -81,6 +81,20 @@
         </div>
       </header>
 
+      <button
+        type="button"
+        id="pmicFeatureCallout"
+        class="pmic-feature-callout"
+      >
+        <span class="pmic-feature-text">
+          <strong>NEW: Add a PMIC!</strong>
+          <span
+            >Fuel gauges, regulators, and smart system management features for
+            primary cell or rechargeable batteries!</span
+          >
+        </span>
+      </button>
+
       <div class="content-grid">
         <aside class="sidebar">
           <div class="package-selector card">
@@ -120,6 +134,7 @@
           <div class="sidebar-content card">
             <h2>Peripherals</h2>
             <div id="content-peripherals">
+              <div id="pmicPanel" class="pmic-panel"></div>
               <input
                 type="text"
                 id="searchPeripherals"
@@ -608,6 +623,21 @@
         <div class="modal-footer">
           <button id="cancelImportExport">Cancel</button>
           <button id="confirmImportExport">Export</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PMIC Configuration Modal -->
+    <div id="pmicConfigModal" class="modal">
+      <div class="modal-content pmic-modal-content">
+        <div class="modal-header">
+          <h2 id="pmicModalTitle">Configure PMIC</h2>
+          <span class="close" id="closePmicModal">&times;</span>
+        </div>
+        <div id="pmicModalBody"></div>
+        <div class="modal-footer">
+          <button id="cancelPmicConfig">Cancel</button>
+          <button id="confirmPmicConfig">Save PMIC</button>
         </div>
       </div>
     </div>

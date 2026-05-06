@@ -6,6 +6,7 @@ import {
   getMcuSupportsFLPRXIP as getMcuSupportsFLPRXIPFromManifest,
   getMcuSupportsNonSecure as getMcuSupportsNonSecureFromManifest,
 } from "./mcu-manifest.js";
+import { getPmicDefinition, isNpm13xx } from "./pmic-data.js";
 import { parsePinName } from "./utils.js";
 
 export function getMcuSupportsNonSecure(mcuId) {
@@ -173,6 +174,421 @@ function getConsoleRoutingComment(mcu) {
   }
 
   return formatCommentBlock(note);
+}
+
+function getPmic() {
+  const definition = getPmicDefinition(state.pmicConfig?.id);
+  if (!definition) return null;
+
+  return {
+    config: state.pmicConfig,
+    definition,
+  };
+}
+
+export function generatePmicIncludes() {
+  const pmic = getPmic();
+  if (!pmic) return "";
+
+  const regulatorHeader = isNpm13xx(pmic.definition) ? "npm13xx" : "npm2100";
+  return `#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <zephyr/dt-bindings/regulator/${regulatorHeader}.h>
+
+`;
+}
+
+function getPmicLabelPrefix(definition) {
+  return definition.id;
+}
+
+function getPmicI2cNodeName(config) {
+  return (
+    state.deviceTreeTemplates?.[config.i2cPeripheralId]?.dtNodeName || null
+  );
+}
+
+function toDtGpioFlag(activeState) {
+  return activeState === "active-low" ? "GPIO_ACTIVE_LOW" : "GPIO_ACTIVE_HIGH";
+}
+
+function gpioSpec(pinName, activeState = "active-high") {
+  const pinInfo = parsePinName(pinName);
+  if (!pinInfo) return null;
+
+  return `<&gpio${pinInfo.port} ${pinInfo.pin} ${toDtGpioFlag(activeState)}>`;
+}
+
+function enabledDvsGpios(config) {
+  return Object.entries(config.dvsGpios || {})
+    .filter(([, entry]) => entry.enabled && entry.hostPin)
+    .sort(([a], [b]) => Number(a) - Number(b));
+}
+
+function usesPmicGpioPhandle(definition, config) {
+  if (isNpm13xx(definition)) return false;
+
+  return Object.values(config.regulators || {}).some(
+    (regulator) => regulator.gpioControl?.mode?.enabled,
+  );
+}
+
+function npm13xxModeConstant(regulator, regulatorConfig) {
+  if (regulator.kind === "buck") {
+    const modes = {
+      auto: "NPM13XX_BUCK_MODE_AUTO",
+      pwm: "NPM13XX_BUCK_MODE_PWM",
+      pfm: "NPM13XX_BUCK_MODE_PFM",
+    };
+    return modes[regulatorConfig.mode] || modes.auto;
+  }
+
+  if (regulator.kind === "ldo") {
+    return regulatorConfig.mode === "ldsw"
+      ? "NPM13XX_LDSW_MODE_LDSW"
+      : "NPM13XX_LDSW_MODE_LDO";
+  }
+
+  return null;
+}
+
+function npm2100BoostModeConstant(regulatorConfig) {
+  const modes = {
+    auto: "NPM2100_REG_OPER_AUTO",
+    hp: "NPM2100_REG_OPER_HP",
+    lp: "NPM2100_REG_OPER_LP",
+    pass: "NPM2100_REG_OPER_PASS",
+    nohp: "NPM2100_REG_OPER_NOHP",
+  };
+  const parts = [modes[regulatorConfig.mode] || modes.auto];
+  const control = regulatorConfig.gpioControl?.mode;
+
+  if (control?.enabled) {
+    const forced = {
+      hp: "NPM2100_REG_FORCE_HP",
+      lp: "NPM2100_REG_FORCE_LP",
+      pass: "NPM2100_REG_FORCE_PASS",
+      nohp: "NPM2100_REG_FORCE_NOHP",
+    };
+    if (forced[control.forcedMode]) {
+      parts.push(forced[control.forcedMode]);
+    }
+  }
+
+  return parts.join(" | ");
+}
+
+function npm2100LdoswModeConstant(regulatorConfig) {
+  const loadSwitch = regulatorConfig.mode?.startsWith("ldsw");
+  const control = regulatorConfig.gpioControl?.mode;
+  const parts = [];
+
+  if (loadSwitch) {
+    parts.push("NPM2100_REG_LDSW_EN");
+  }
+
+  if (control?.enabled) {
+    if (control.forcedMode === "ulp") {
+      parts.push("NPM2100_REG_OPER_OFF", "NPM2100_REG_FORCE_ULP");
+    } else if (regulatorConfig.mode?.endsWith("ulp")) {
+      parts.push("NPM2100_REG_OPER_ULP", "NPM2100_REG_FORCE_HP");
+    } else {
+      parts.push("NPM2100_REG_OPER_OFF", "NPM2100_REG_FORCE_HP");
+    }
+    return parts.join(" | ");
+  }
+
+  const modeMap = {
+    "ldo-auto": "NPM2100_REG_OPER_AUTO",
+    auto: "NPM2100_REG_OPER_AUTO",
+    "ldo-hp": "NPM2100_REG_OPER_HP",
+    "ldo-ulp": "NPM2100_REG_OPER_ULP",
+    "ldsw-auto": "NPM2100_REG_OPER_AUTO",
+    "ldsw-hp": "NPM2100_REG_OPER_HP",
+    "ldsw-ulp": "NPM2100_REG_OPER_ULP",
+  };
+  parts.push(modeMap[regulatorConfig.mode] || "NPM2100_REG_OPER_AUTO");
+
+  return parts.join(" | ");
+}
+
+function regulatorModeConstant(definition, regulator, regulatorConfig) {
+  if (isNpm13xx(definition)) {
+    return npm13xxModeConstant(regulator, regulatorConfig);
+  }
+
+  if (regulator.kind === "boost") {
+    return npm2100BoostModeConstant(regulatorConfig);
+  }
+
+  if (regulator.kind === "ldosw") {
+    return npm2100LdoswModeConstant(regulatorConfig);
+  }
+
+  return null;
+}
+
+function generatePmicGpioNode(definition, config, prefix) {
+  if (
+    !config.gpioController?.enabled &&
+    !usesPmicGpioPhandle(definition, config)
+  ) {
+    return "";
+  }
+
+  return `
+\t\t${prefix}_gpio: gpio-controller {
+\t\t\tcompatible = "nordic,${definition.id}-gpio";
+\t\t\tgpio-controller;
+\t\t\t#gpio-cells = <2>;
+\t\t\tngpios = <${definition.gpioCount}>;
+\t\t};
+`;
+}
+
+function generatePmicDvsGpios(config) {
+  const entries = enabledDvsGpios(config)
+    .map(([, entry]) => gpioSpec(entry.hostPin, entry.activeState))
+    .filter(Boolean);
+
+  if (entries.length === 0) return "";
+  if (entries.length === 1) {
+    return `\t\t\tdvs-gpios = ${entries[0]};\n`;
+  }
+
+  return `\t\t\tdvs-gpios = ${entries.join(",\n\t\t\t            ")};\n`;
+}
+
+function generateNpm13xxRegulatorControl(
+  regulatorConfig,
+  controlName,
+  property,
+) {
+  const control = regulatorConfig.gpioControl?.[controlName];
+  if (!control?.enabled || control.pmicGpio === "") return "";
+
+  return `\t\t\t\t${property} = <${control.pmicGpio} ${toDtGpioFlag(control.activeState)}>;\n`;
+}
+
+function generateNpm2100ModeGpio(regulatorConfig, prefix) {
+  const control = regulatorConfig.gpioControl?.mode;
+  if (!control?.enabled || control.pmicGpio === "") return "";
+
+  return `\t\t\t\tmode-gpios = <&${prefix}_gpio ${control.pmicGpio} ${toDtGpioFlag(control.activeState)}>;\n`;
+}
+
+function generatePmicRegulatorChild(
+  definition,
+  regulator,
+  regulatorConfig,
+  prefix,
+) {
+  const range =
+    definition.id === "npm2100"
+      ? definition.regulatorVoltage[regulator.id]
+      : definition.regulatorVoltage;
+  const label = `${prefix}_${regulator.id.toLowerCase()}`;
+  const mode = regulatorModeConstant(definition, regulator, regulatorConfig);
+
+  let content = `\t\t\t${label}: ${regulator.id} {\n`;
+  content += `\t\t\t\tregulator-min-microvolt = <${range.min}>;\n`;
+  content += `\t\t\t\tregulator-max-microvolt = <${range.max}>;\n`;
+  content += `\t\t\t\tregulator-init-microvolt = <${regulatorConfig.voltageMicrovolt}>;\n`;
+
+  if (regulatorConfig.enabled) {
+    if (regulatorConfig.boot === "always-on") {
+      content += "\t\t\t\tregulator-always-on;\n";
+    } else if (regulatorConfig.boot === "boot-on") {
+      content += "\t\t\t\tregulator-boot-on;\n";
+    }
+  } else if (isNpm13xx(definition)) {
+    content += "\t\t\t\tregulator-boot-off;\n";
+  }
+
+  if (mode) {
+    const modeExpression = mode.includes("|") ? `(${mode})` : mode;
+    content += `\t\t\t\tregulator-initial-mode = <${modeExpression}>;\n`;
+  }
+
+  if (isNpm13xx(definition)) {
+    if (regulatorConfig.activeDischarge) {
+      content += "\t\t\t\tactive-discharge;\n";
+    }
+    content += generateNpm13xxRegulatorControl(
+      regulatorConfig,
+      "enable",
+      "enable-gpio-config",
+    );
+    if (regulator.kind === "buck") {
+      content += generateNpm13xxRegulatorControl(
+        regulatorConfig,
+        "pwm",
+        "pwm-gpio-config",
+      );
+      content += generateNpm13xxRegulatorControl(
+        regulatorConfig,
+        "retention",
+        "retention-gpio-config",
+      );
+    }
+  } else {
+    content += generateNpm2100ModeGpio(regulatorConfig, prefix);
+  }
+
+  content += "\t\t\t};\n";
+  return content;
+}
+
+function generatePmicRegulators(definition, config, prefix) {
+  let content = `
+\t\t${prefix}_regulators: regulators {
+\t\t\tcompatible = "nordic,${definition.id}-regulator";
+`;
+  content += generatePmicDvsGpios(config);
+  content += "\n";
+
+  definition.regulators.forEach((regulator) => {
+    content += generatePmicRegulatorChild(
+      definition,
+      regulator,
+      config.regulators[regulator.id],
+      prefix,
+    );
+    content += "\n";
+  });
+
+  content = content.trimEnd();
+  content += `
+\t\t};
+`;
+  return content;
+}
+
+function generatePmicCharger(definition, config, prefix) {
+  if (!isNpm13xx(definition) || !config.charger?.enabled) return "";
+
+  const charger = config.charger;
+  let content = `
+\t\t${prefix}_charger: charger {
+\t\t\tcompatible = "nordic,${definition.id}-charger";
+\t\t\tterm-microvolt = <${charger.termMicrovolt}>;
+\t\t\tcurrent-microamp = <${charger.currentMicroamp}>;
+\t\t\tdischg-limit-microamp = <${charger.dischargeLimitMicroamp}>;
+\t\t\tvbus-limit-microamp = <${charger.vbusLimitMicroamp}>;
+\t\t\tthermistor-ohms = <${charger.thermistorOhms}>;
+\t\t\tthermistor-beta = <${charger.thermistorBeta}>;
+\t\t\tterm-current-percent = <${charger.termCurrentPercent}>;
+`;
+  if (charger.chargingEnable) {
+    content += "\t\t\tcharging-enable;\n";
+  }
+  content += "\t\t};\n";
+  return content;
+}
+
+function generatePmicLeds(definition, config, prefix) {
+  if (!isNpm13xx(definition) || !config.leds?.enabled) return "";
+
+  return `
+\t\t${prefix}_leds: leds {
+\t\t\tcompatible = "nordic,${definition.id}-led";
+\t\t\tnordic,led0-mode = "${config.leds.modes.led0}";
+\t\t\tnordic,led1-mode = "${config.leds.modes.led1}";
+\t\t\tnordic,led2-mode = "${config.leds.modes.led2}";
+\t\t};
+`;
+}
+
+function generatePmicWatchdog(definition, config, prefix) {
+  if (!config.watchdog?.enabled) return "";
+
+  return `
+\t\t${prefix}_wdt: watchdog {
+\t\t\tcompatible = "nordic,${definition.id}-wdt";
+\t\t};
+`;
+}
+
+function generatePmicFuelGaugeSensor(definition, config, prefix) {
+  if (definition.id !== "npm2100" || !config.fuelGauge?.enabled) return "";
+
+  return `
+\t\t${prefix}_vbat: vbat {
+\t\t\tcompatible = "nordic,npm2100-vbat";
+\t\t};
+`;
+}
+
+export function generatePmicNode() {
+  const pmic = getPmic();
+  if (!pmic) return "";
+
+  const { config, definition } = pmic;
+  const i2cNodeName = getPmicI2cNodeName(config);
+  if (!i2cNodeName) {
+    return "\n/* PMIC omitted: selected I2C peripheral has no DeviceTree template. */\n";
+  }
+
+  const prefix = getPmicLabelPrefix(definition);
+  const hostInt = config.hostInterrupt?.enabled
+    ? gpioSpec(config.hostInterrupt.hostPin, config.hostInterrupt.activeState)
+    : null;
+
+  let content = `
+&${i2cNodeName} {
+\t${prefix}_pmic: pmic@${definition.address.replace("0x", "")} {
+\t\tcompatible = "nordic,${definition.id}";
+\t\treg = <${definition.address}>;
+`;
+
+  if (hostInt) {
+    content += `\t\thost-int-gpios = ${hostInt};\n`;
+    content += `\t\tpmic-int-pin = <${config.hostInterrupt.pmicPin}>;\n`;
+  }
+
+  content += generatePmicGpioNode(definition, config, prefix);
+  content += generatePmicRegulators(definition, config, prefix);
+  content += generatePmicCharger(definition, config, prefix);
+  content += generatePmicLeds(definition, config, prefix);
+  content += generatePmicWatchdog(definition, config, prefix);
+  content += generatePmicFuelGaugeSensor(definition, config, prefix);
+  content += "\t};\n};\n";
+
+  return content;
+}
+
+function generatePmicDefconfig() {
+  const pmic = getPmic();
+  if (!pmic) return "";
+
+  const { config, definition } = pmic;
+  const sensorEnabled =
+    (isNpm13xx(definition) && config.charger?.enabled) ||
+    (definition.id === "npm2100" && config.fuelGauge?.enabled);
+
+  let content = `
+# Enable PMIC support
+CONFIG_I2C=y
+CONFIG_MFD=y
+CONFIG_REGULATOR=y
+`;
+
+  if (
+    config.gpioController?.enabled ||
+    usesPmicGpioPhandle(definition, config)
+  ) {
+    content += "CONFIG_GPIO=y\n";
+  }
+  if (sensorEnabled) {
+    content += "CONFIG_SENSOR=y\n";
+  }
+  if (isNpm13xx(definition) && config.leds?.enabled) {
+    content += "CONFIG_LED=y\n";
+  }
+  if (config.watchdog?.enabled) {
+    content += "CONFIG_WATCHDOG=y\n";
+  }
+
+  return `${content}\n`;
 }
 
 // Helper: get the DT node name for the exported board console UART
@@ -383,6 +799,7 @@ export function generateCommonDtsi(mcu) {
  * SPDX-License-Identifier: Apache-2.0
  */
 
+${generatePmicIncludes()}
 #include "${state.boardInfo.name}_${mcu}-pinctrl.dtsi"
 
 `;
@@ -419,6 +836,8 @@ export function generateCommonDtsi(mcu) {
   if (gpioPins.length > 0) {
     content += generateGpioNodes(gpioPins);
   }
+
+  content += generatePmicNode();
 
   return content;
 }
@@ -659,6 +1078,22 @@ export function generateYamlCapabilities(mcu, isNonSecure) {
 
   supportedFeatures.add("gpio");
   supportedFeatures.add("watchdog");
+  if (state.pmicConfig) {
+    supportedFeatures.add("i2c");
+    supportedFeatures.add("mfd");
+    supportedFeatures.add("regulator");
+
+    const pmicDefinition = getPmicDefinition(state.pmicConfig.id);
+    if (
+      (isNpm13xx(pmicDefinition) && state.pmicConfig.charger?.enabled) ||
+      (pmicDefinition?.id === "npm2100" && state.pmicConfig.fuelGauge?.enabled)
+    ) {
+      supportedFeatures.add("sensor");
+    }
+    if (isNpm13xx(pmicDefinition) && state.pmicConfig.leds?.enabled) {
+      supportedFeatures.add("led");
+    }
+  }
 
   const featuresArray = Array.from(supportedFeatures).sort();
 
@@ -841,7 +1276,7 @@ CONFIG_CLOCK_CONTROL_NRF_K32SRC_RC=y
     }
   }
 
-  return config;
+  return config + generatePmicDefconfig();
 }
 
 export function generateNSDts(mcu) {
@@ -1203,7 +1638,7 @@ CONFIG_RISCV_ALWAYS_SWITCH_THROUGH_ECALL=y
 `;
   }
 
-  return config;
+  return config + generatePmicDefconfig();
 }
 
 export function generateBoardYml(mcu, supportsNS, supportsFLPR) {
@@ -1458,6 +1893,77 @@ config BOARD_${boardNameUpper}
   return content;
 }
 
+function getPmicFuelGaugeModel(definition, config) {
+  return definition.fuelGaugeModels?.options.find(
+    (model) => model.id === config.fuelGauge?.model,
+  );
+}
+
+function formatPmicRegulators(definition, config) {
+  return definition.regulators
+    .filter((regulator) => config.regulators?.[regulator.id]?.enabled)
+    .map((regulator) => {
+      const regulatorConfig = config.regulators[regulator.id];
+      const volts = (regulatorConfig.voltageMicrovolt / 1000000).toFixed(2);
+      return `${regulator.label} ${volts} V (${regulatorConfig.mode})`;
+    })
+    .join(", ");
+}
+
+function formatPmicDvsGpios(config) {
+  const entries = enabledDvsGpios(config).map(
+    ([channel, entry], index) =>
+      `PMIC GPIO${channel} on ${entry.hostPin} (${entry.activeState}, DVS bit ${index})`,
+  );
+  return entries.length > 0 ? entries.join(", ") : "none";
+}
+
+function generatePmicReadmeSection() {
+  const pmic = getPmic();
+  if (!pmic) return "";
+
+  const { definition, config } = pmic;
+  const fuelGaugeModel = getPmicFuelGaugeModel(definition, config);
+  const i2cPins = Object.entries(config.i2cPinFunctions || {})
+    .map(([pin, signal]) => `${signal}: ${pin}`)
+    .join(", ");
+  const regulators = formatPmicRegulators(definition, config) || "none enabled";
+
+  let section = `
+## PMIC
+
+- **Part:** ${definition.name} (${config.packageVariant}, \`${definition.compatible}\`, I2C address \`${definition.address}\`)
+- **I2C:** ${config.i2cPeripheralId}${i2cPins ? ` (${i2cPins})` : ""}
+- **Regulators:** ${regulators}
+- **Regulator GPIO control:** ${formatPmicDvsGpios(config)}
+- **Fuel gauge:** ${
+    config.fuelGauge?.enabled ? fuelGaugeModel?.label || "enabled" : "disabled"
+  }
+`;
+
+  if (definition.id === "npm2100" && config.fuelGauge?.enabled) {
+    section += `- **Fuel-gauge model source:** include \`${fuelGaugeModel?.include || "battery_models/primary_cell/<model>.inc"}\` from \`nrfxlib/nrf_fuel_gauge/include\`. The nPM2100 fuel-gauge sample exposes this as \`${fuelGaugeModel?.kconfig || "CONFIG_BATTERY_MODEL_*"}\`; those battery-model Kconfig symbols are sample-level choices, so mirror the selected include/model in your application.
+`;
+  } else if (isNpm13xx(definition) && config.fuelGauge?.enabled) {
+    const modelDetail =
+      fuelGaugeModel?.detail ||
+      "Generate a production Li-ion/Li-poly model with nPM PowerUP.";
+    section += `- **Fuel-gauge model source:** ${modelDetail} Use \`CONFIG_NRF_FUEL_GAUGE_VARIANT_SECONDARY_CELL=y\` in applications using the nRF Fuel Gauge library.
+`;
+  }
+
+  if (config.fuelGauge?.enabled) {
+    section += `- **Application Kconfig hint:** enable \`CONFIG_NRF_FUEL_GAUGE=y\` and ${
+      definition.id === "npm2100"
+        ? "`CONFIG_NRF_FUEL_GAUGE_VARIANT_PRIMARY_CELL=y`"
+        : "`CONFIG_NRF_FUEL_GAUGE_VARIANT_SECONDARY_CELL=y`"
+    } when your application uses the nRF Fuel Gauge library.
+`;
+  }
+
+  return section;
+}
+
 export function generateReadme(mcu, pkg, supportsNS, supportsFLPR) {
   const hasSpiDcxSelection = state.selectedPeripherals.some((p) =>
     Object.values(p.pinFunctions || {}).includes("DCX"),
@@ -1539,6 +2045,7 @@ ${state.boardInfo.revision ? `**Revision:** ${state.boardInfo.revision}\n` : ""}
 ## Selected Peripherals
 
 ${state.selectedPeripherals
+  .filter((p) => p.config?.pmicOwned !== true)
   .map((p) => {
     if (p.config) {
       const capLabel =
@@ -1571,6 +2078,7 @@ ${state.selectedPeripherals
     }
   })
   .join("\n")}
+${generatePmicReadmeSection()}
 
 ## Pin Configuration
 

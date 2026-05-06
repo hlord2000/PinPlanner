@@ -12,6 +12,7 @@ import { organizePeripherals } from "../peripherals.js";
 import { updatePinDisplay } from "../pin-layout.js";
 import { updateSelectedPeripheralsList } from "./selected-list.js";
 import { updateConsoleConfig } from "../console-config.js";
+import { renderPmicPanel } from "../pmic.js";
 
 let pendingImportConfig = null;
 let isExportMode = true;
@@ -97,7 +98,9 @@ function validateAndShowImportModal(config) {
   text.textContent = `This will import a pin configuration from the file. The configuration is for:`;
   bullet1.innerHTML = `<strong>MCU:</strong> ${config.mcu}`;
   bullet2.innerHTML = `<strong>Package:</strong> ${config.package}`;
-  bullet3.innerHTML = `<strong>Peripherals:</strong> ${config.selectedPeripherals.length} configured`;
+  bullet3.innerHTML = `<strong>Peripherals:</strong> ${
+    config.selectedPeripherals.length + (config.pmicConfig ? 1 : 0)
+  } configured`;
 
   if (isDifferentPart) {
     warning.style.backgroundColor = "#fff3cd";
@@ -162,6 +165,8 @@ function exportConfig() {
     mcu: mcu,
     package: pkg,
     selectedPeripherals: state.selectedPeripherals.map(serializePeripheral),
+    consoleUart: state.consoleUart,
+    pmicConfig: state.pmicConfig,
   };
 
   const json = JSON.stringify(config, null, 2);
@@ -218,11 +223,14 @@ async function importConfig() {
 
   applyConfig({
     selectedPeripherals: config.selectedPeripherals,
+    pmicConfig: config.pmicConfig,
   });
 
+  state.consoleUart = config.consoleUart || null;
   saveStateToLocalStorage();
 
   organizePeripherals();
+  renderPmicPanel();
   updateSelectedPeripheralsList();
   updatePinDisplay();
   updateConsoleConfig();

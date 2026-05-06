@@ -12,6 +12,7 @@ const state = {
   boardInfo: null,
   consoleUart: null, // Peripheral ID (e.g., "UARTE20") of selected console UART, or null for RTT
   devkitConfig: null, // Loaded devkit config, or null for custom board
+  pmicConfig: null, // Selected PMIC configuration, or null when no PMIC is present
 };
 
 export default state;
@@ -87,14 +88,49 @@ export function saveStateToLocalStorage() {
   const config = {
     selectedPeripherals: state.selectedPeripherals.map(serializePeripheral),
     consoleUart: state.consoleUart,
+    pmicConfig: state.pmicConfig,
   };
   localStorage.setItem(key, JSON.stringify(config));
 }
 
-export function applyConfig(config) {
-  if (!config || !config.selectedPeripherals) return;
+function cloneConfig(config) {
+  return config ? JSON.parse(JSON.stringify(config)) : null;
+}
 
-  for (const p_config of config.selectedPeripherals) {
+function markPmicPinsFromConfig(config) {
+  if (!config) return;
+
+  if (config.hostInterrupt?.enabled && config.hostInterrupt.hostPin) {
+    state.usedPins[config.hostInterrupt.hostPin] = {
+      peripheral: "PMIC",
+      function: "HOST_INT",
+      required: false,
+    };
+  }
+
+  Object.entries(config.dvsGpios || {}).forEach(([channel, entry]) => {
+    if (!entry.enabled || !entry.hostPin) return;
+
+    state.usedPins[entry.hostPin] = {
+      peripheral: "PMIC",
+      function: `PMIC_GPIO${channel}`,
+      required: false,
+    };
+  });
+}
+
+function clearPmicPins() {
+  Object.entries(state.usedPins).forEach(([pinName, usage]) => {
+    if (usage.peripheral === "PMIC") {
+      delete state.usedPins[pinName];
+    }
+  });
+}
+
+export function applyConfig(config) {
+  if (!config) return;
+
+  for (const p_config of config.selectedPeripherals || []) {
     if (p_config.type === "GPIO") {
       state.selectedPeripherals.push({
         id: p_config.id,
@@ -159,6 +195,7 @@ export function applyConfig(config) {
           id: p_data.id,
           peripheral: p_data,
           pinFunctions: p_config.pinFunctions,
+          config: p_config.config || {},
         });
         for (const pinName in p_config.pinFunctions) {
           const signal = p_data.signals.find(
@@ -176,6 +213,10 @@ export function applyConfig(config) {
       }
     }
   }
+
+  clearPmicPins();
+  state.pmicConfig = cloneConfig(config.pmicConfig);
+  markPmicPinsFromConfig(state.pmicConfig);
 }
 
 export function loadStateFromLocalStorage() {
@@ -205,6 +246,7 @@ export function resetState() {
   state.usedAddresses = {};
   state.consoleUart = null;
   state.devkitConfig = null;
+  state.pmicConfig = null;
   document
     .querySelectorAll('input[type="checkbox"][data-peripheral-id]')
     .forEach((cb) => {

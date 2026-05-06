@@ -39,6 +39,12 @@ import { organizePeripherals } from "./peripherals.js";
 import { updatePinDisplay } from "./pin-layout.js";
 import { updateSelectedPeripheralsList } from "./ui/selected-list.js";
 import { updateConsoleConfig } from "./console-config.js";
+import {
+  closePmicModal,
+  confirmPmicConfig,
+  openPmicModal,
+  renderPmicPanel,
+} from "./pmic.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   // Set up event listeners
@@ -84,6 +90,18 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("confirmOscillatorConfig")
     .addEventListener("click", confirmOscillatorConfig);
+  document
+    .getElementById("closePmicModal")
+    .addEventListener("click", closePmicModal);
+  document
+    .getElementById("cancelPmicConfig")
+    .addEventListener("click", closePmicModal);
+  document
+    .getElementById("confirmPmicConfig")
+    .addEventListener("click", confirmPmicConfig);
+  document
+    .getElementById("pmicFeatureCallout")
+    .addEventListener("click", () => openPmicModal());
 
   // Import/Export config listeners
   document
@@ -197,6 +215,7 @@ function clearAllPeripherals() {
   }
   resetState();
   organizePeripherals();
+  renderPmicPanel();
   updateSelectedPeripheralsList();
   updatePinDisplay();
   updateConsoleConfig();
