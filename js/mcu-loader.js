@@ -12,7 +12,10 @@ import {
   addOscillatorsToPeripherals,
   autoSelectHFXO,
 } from "./peripherals.js";
-import { getDevicetreeExportUnsupportedReason } from "./mcu-manifest.js";
+import {
+  getDevicetreeExportUnsupportedReason,
+  getMcuManifestEntry,
+} from "./mcu-manifest.js";
 import { createPinLayout, updatePinDisplay } from "./pin-layout.js";
 import { updateSelectedPeripheralsList } from "./ui/selected-list.js";
 import { updateConsoleConfig } from "./console-config.js";
@@ -90,6 +93,10 @@ function normalizePackageData(packageData) {
   };
 }
 
+function cloneObject(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 async function fetchJson(url) {
   const response = await fetch(url);
   if (!response.ok) {
@@ -97,6 +104,62 @@ async function fetchJson(url) {
   }
 
   return response.json();
+}
+
+function getLocalPartPackage(mcu, pkg) {
+  return state.localParts?.[mcu]?.[pkg] || null;
+}
+
+function resolvePublicPackageUrl(mcu, packageRef) {
+  if (/^https?:\/\//i.test(packageRef)) {
+    return packageRef;
+  }
+
+  if (packageRef.startsWith("mcus/") || packageRef.startsWith("/")) {
+    return packageRef;
+  }
+
+  const packagePath = packageRef.endsWith(".json")
+    ? packageRef
+    : `${packageRef}.json`;
+  return new URL(packagePath, new URL(`mcus/${mcu}/`, window.location.href))
+    .href;
+}
+
+async function loadResolvedLocalPackageData(
+  mcu,
+  pkg,
+  packageData,
+  seen = new Set(),
+) {
+  const localKey = `${mcu}/${pkg}`;
+  if (seen.has(localKey)) {
+    throw new Error(`Circular package extends chain detected at ${localKey}`);
+  }
+
+  seen.add(localKey);
+
+  const data = cloneObject(packageData);
+  if (!data.extends) {
+    return normalizePackageData(data);
+  }
+
+  const parentRef = data.extends;
+  const parentPackageId = parentRef
+    .replace(/^\.\/+/, "")
+    .replace(/\.json$/, "");
+  const localParent = getLocalPartPackage(mcu, parentPackageId);
+
+  const parentData = localParent
+    ? await loadResolvedLocalPackageData(
+        mcu,
+        parentPackageId,
+        localParent.packageData,
+        seen,
+      )
+    : await loadResolvedPackageData(resolvePublicPackageUrl(mcu, parentRef));
+
+  return normalizePackageData(mergePackageData(parentData, data));
 }
 
 async function loadResolvedPackageData(url, seen = new Set()) {
@@ -161,6 +224,7 @@ export async function handleMcuChange(options = {}) {
   const mcuSelector = document.getElementById("mcuSelector");
   const packageSelector = document.getElementById("packageSelector");
   const selectedMcuOption = mcuSelector.options[mcuSelector.selectedIndex];
+  const selectedMcu = getMcuManifestEntry(state.mcuManifest, mcuSelector.value);
   const savedSelection =
     options.restoreSavedPackage === true
       ? getSavedPartPackageSelection()
@@ -168,17 +232,29 @@ export async function handleMcuChange(options = {}) {
 
   if (!selectedMcuOption) return;
 
-  const packages = JSON.parse(selectedMcuOption.dataset.packages || "[]");
+  const packages =
+    selectedMcu?.packages ||
+    JSON.parse(selectedMcuOption.dataset.packages || "[]");
   packageSelector.innerHTML = "";
 
   if (packages.length > 0) {
     packages.forEach((pkg) => {
       const option = document.createElement("option");
       option.value = pkg.file;
-      option.textContent = pkg.name;
+      option.textContent = pkg.isLocal ? `${pkg.name} [local]` : pkg.name;
+      if (pkg.isLocal) {
+        option.dataset.localPart = "true";
+      }
       packageSelector.appendChild(option);
     });
     if (
+      options.packageToSelect &&
+      Array.from(packageSelector.options).some(
+        (option) => option.value === options.packageToSelect,
+      )
+    ) {
+      packageSelector.value = options.packageToSelect;
+    } else if (
       savedSelection?.mcu === mcuSelector.value &&
       Array.from(packageSelector.options).some(
         (option) => option.value === savedSelection.package,
@@ -187,17 +263,18 @@ export async function handleMcuChange(options = {}) {
       packageSelector.value = savedSelection.package;
     }
     updateExportButtonState();
-    await loadCurrentMcuData();
+    return await loadCurrentMcuData();
   } else {
     savePartPackageSelection(mcuSelector.value, "");
     updateExportButtonState();
     reinitializeView(true);
+    return false;
   }
 }
 
 export async function handlePackageChange() {
   updateExportButtonState();
-  await loadCurrentMcuData();
+  return await loadCurrentMcuData();
 }
 
 export async function loadCurrentMcuData() {
@@ -205,23 +282,46 @@ export async function loadCurrentMcuData() {
   const pkg = document.getElementById("packageSelector").value;
   savePartPackageSelection(mcu, pkg);
   if (mcu && pkg) {
-    await loadMCUData(mcu, pkg);
+    return await loadMCUData(mcu, pkg);
   }
+  return false;
 }
 
 export async function loadMCUData(mcu, pkg) {
+  const localPart = getLocalPartPackage(mcu, pkg);
   const path = `mcus/${mcu}/${pkg}.json`;
   try {
-    state.mcuData = await loadResolvedPackageData(path);
+    state.mcuData = localPart
+      ? await loadResolvedLocalPackageData(mcu, pkg, localPart.packageData)
+      : await loadResolvedPackageData(path);
 
     state.deviceTreeTemplates = await loadDeviceTreeTemplates(mcu, pkg);
 
+    updateLocalPartStatus(mcu, pkg);
     reinitializeView();
+    return true;
   } catch (error) {
     console.error("Error loading MCU data:", error);
     alert(`Could not load data for ${mcu} - ${pkg}.\n${error.message}`);
+    updateLocalPartStatus(null, null);
     reinitializeView(true);
+    return false;
   }
+}
+
+function updateLocalPartStatus(mcu, pkg) {
+  const status = document.getElementById("localPartStatus");
+  if (!status) return;
+
+  const localPart = mcu && pkg ? getLocalPartPackage(mcu, pkg) : null;
+  if (!localPart) {
+    status.style.display = "none";
+    status.textContent = "";
+    return;
+  }
+
+  status.textContent = `Local part loaded: ${localPart.name}`;
+  status.style.display = "block";
 }
 
 export async function loadDeviceTreeTemplates(mcuId, pkgId = null) {

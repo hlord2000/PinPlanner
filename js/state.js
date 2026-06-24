@@ -13,6 +13,7 @@ const state = {
   consoleUart: null, // Peripheral ID (e.g., "UARTE20") of selected console UART, or null for RTT
   devkitConfig: null, // Loaded devkit config, or null for custom board
   pmicConfig: null, // Selected PMIC configuration, or null when no PMIC is present
+  localParts: {}, // Runtime-only uploaded package descriptions, keyed by MCU/package id
 };
 
 export default state;

@@ -25,7 +25,7 @@
     />
     <link rel="stylesheet" href="style.css" />
     <link rel="shortcut icon" type="image/png" href="favicon.png" />
-    <title>Nordic Semiconductor Pin Planner | by Helmut Lord</title>
+    <title>nRF Pin Planner | by Helmut Lord</title>
   </head>
   <body>
     <script>
@@ -46,7 +46,9 @@
     </script>
     <header class="site-header">
       <div class="site-header-inner">
-        <span class="app-name"><span class="brace">{</span>Pin Planner</span>
+        <span class="app-name"
+          ><span class="brace">{</span>nRF Pin Planner</span
+        >
         <div class="theme-switch-container">
           <svg
             class="theme-icon"
@@ -98,10 +100,10 @@
 
     <section class="page-title">
       <div class="page-title-inner">
-        <h1>nRF54L Pin Planner</h1>
+        <h1>nRF Pin Planner</h1>
         <p class="subtitle">
-          Plan pin assignments and generate Zephyr board definitions for nRF54L
-          Series SoCs. Created by
+          Plan pin assignments and generate Zephyr board definitions for nRF
+          SoCs. Created by
           <a href="https://www.linkedin.com/in/helmutlord/" target="_blank"
             >Helmut Lord</a
           >.
@@ -135,6 +137,22 @@
             <div class="selector-group">
               <label for="packageSelector">Package</label>
               <select id="packageSelector"></select>
+            </div>
+            <div class="selector-group local-part-upload">
+              <button
+                type="button"
+                id="uploadPartDescriptionBtn"
+                class="secondary-btn"
+              >
+                Upload Part Description
+              </button>
+              <input
+                type="file"
+                id="partDescriptionFile"
+                accept=".json,application/json"
+                style="display: none"
+              />
+              <small id="localPartStatus" style="display: none"></small>
             </div>
             <div class="selector-group">
               <label for="devkitSelector">Load Devkit (Optional)</label>
@@ -286,13 +304,13 @@
     <footer class="site-footer">
       <div class="footer-inner">
         <p class="footer-tagline">
-          An intuitive pin configuration tool for the nRF54L Series.
+          An intuitive pin configuration tool for nRF SoCs.
         </p>
         <div class="footer-note">
           <strong>NOTE:</strong> This is not an official Nordic application.
           Always verify configurations with the official
           <a href="https://docs.nordicsemi.com/" target="_blank"
-            >nRF54L documentation</a
+            >Nordic documentation</a
           >.
         </div>
         <a
@@ -357,8 +375,7 @@
               required
             />
             <small
-              >Display name for the board (e.g., "My nRF54L15 Board
-              v1.0")</small
+              >Display name for the board (e.g., "My nRF Board v1.0")</small
             >
           </div>
 

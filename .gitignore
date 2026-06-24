@@ -146,6 +146,9 @@ vite.config.ts.timestamp-*
 # CI output
 ci/output/
 
+# Local/private prerelease part descriptions
+unreleased/
+
 # Zephyr workspace (for local build testing)
 .west/
 zephyr/

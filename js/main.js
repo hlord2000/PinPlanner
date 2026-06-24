@@ -33,6 +33,7 @@ import {
 import { handleConsoleUartChange } from "./console-config.js";
 import { loadDevkitConfig } from "./devkit-loader.js";
 import { enableScrollWheelSelection } from "./utils.js";
+import { handlePartDescriptionUpload } from "./local-parts.js";
 import state from "./state.js";
 import { resetState, saveStateToLocalStorage } from "./state.js";
 import { organizePeripherals } from "./peripherals.js";
@@ -54,6 +55,14 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("packageSelector")
     .addEventListener("change", handlePackageChange);
+  document
+    .getElementById("uploadPartDescriptionBtn")
+    .addEventListener("click", () =>
+      document.getElementById("partDescriptionFile").click(),
+    );
+  document
+    .getElementById("partDescriptionFile")
+    .addEventListener("change", handlePartDescriptionUpload);
   document
     .getElementById("clearAllBtn")
     .addEventListener("click", clearAllPeripherals);

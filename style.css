@@ -453,6 +453,17 @@ option:disabled {
   font-style: italic;
 }
 
+.local-part-upload {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+
+#localPartStatus {
+  color: var(--warning-color);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
 /* 9. SIDEBARS */
 .sidebar-content {
   flex-grow: 1;
