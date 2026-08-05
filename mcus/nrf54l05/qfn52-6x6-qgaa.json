@@ -121,6 +121,7 @@
       "defaultType": "io",
       "isClockCapable": false,
       "powerDomain": "peripheral",
+      "functions": ["Digital I/O"],
       "side": "left"
     },
     {
@@ -662,8 +663,8 @@
       "pinIndex": 15,
       "defaultType": "io",
       "isClockCapable": false,
-      "functions": ["Digital I/O"],
       "powerDomain": "peripheral",
+      "functions": ["Digital I/O"],
       "side": "top"
     },
     {

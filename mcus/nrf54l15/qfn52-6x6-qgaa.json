@@ -121,6 +121,7 @@
       "defaultType": "io",
       "isClockCapable": false,
       "powerDomain": "peripheral",
+      "functions": ["Digital I/O"],
       "side": "left"
     },
     {
